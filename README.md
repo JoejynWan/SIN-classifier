@@ -25,8 +25,15 @@ To exit the virtual env, issue:
 conda deactivate
 ```
 
-## Cloning of other git repos for use
+## Cloning of other git repos for use in this project
 Some scripts (e.g., for the drawing of bounding boxes) require the use of functions from other git repositories. These git repositories have to be cloned, and its path appended to `PYTHONPATH`. On Windows, append a path to `PYTHONPATH` for the current shell session by executing the following on Windows:
 ```
 set PYTHONPATH="%PYTHONPATH%;c:\path\to\the\git\repo"
 ```
+However, this method needs to be repeated for every new shell session, and thus may not be very convienent. An alternative is to add a .pth file to the directory `$HOME/path/to/anaconda/lib/pythonX.X/site-packages` which is already in the system path. To do this, activate the conda virtual environment and execute the following: 
+```
+conda-develop c:\path\to\the\git\repo
+```
+Specifically, the git repositories that is required by this project are:
+1) [MegaDetector and classifier tools](https://github.com/microsoft/CameraTraps) (`CameraTraps`)
+2) [AI for Earth utilities repo](https://github.com/Microsoft/ai4eutils) (`ai4eutils`)
