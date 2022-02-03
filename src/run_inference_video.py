@@ -1,9 +1,9 @@
 import os
 import argparse
-from pickle import TRUE
 import tempfile
 import itertools
 from uuid import uuid1
+from pickle import FALSE, TRUE
 
 # Functions imported from this project
 from shared_utils import delete_temp_dir
@@ -147,9 +147,10 @@ def main():
 if __name__ == '__main__':
     ## Defining parameters within this script
     # Comment out if passing arguments from terminal directly
-    default_model_file = "MegaDetectorModel_v4.1/md_v4.1.0.pb"
+    default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
     default_input_video_file = "C:/temp_for_SSD_speed/test"
     default_n_cores = '15'
-    default_render_output_video = TRUE
+    default_render_output_video = FALSE
+    default_output_json_file = "results/test.json"
 
     main()

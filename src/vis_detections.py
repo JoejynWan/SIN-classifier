@@ -4,6 +4,9 @@ import argparse
 import tempfile
 from pickle import TRUE
 
+# Functions imported from this project
+from detection.shared_utils import delete_temp_dir
+
 # Imported from Microsoft/CameraTraps github repository
 from detection.process_video import ProcessVideoOptions
 from visualization.visualize_detector_output import visualize_detector_output
