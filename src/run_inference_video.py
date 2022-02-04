@@ -1,40 +1,38 @@
 import os
 import argparse
 import tempfile
-import itertools
-from uuid import uuid1
 from pickle import FALSE, TRUE
 
 # Functions imported from this project
 from shared_utils import delete_temp_dir
+from run_det_video import video_dir_to_frames, det_frames
+from vis_detections import vis_detection_videos
 
 # Functions imported from Microsoft/CameraTraps github repository
-from detection import run_tf_detector_batch
-from detection.process_video import ProcessVideoOptions
-from detection.video_utils import frames_to_video
-from detection.video_utils import video_folder_to_frames
-from detection.video_utils import frame_results_to_video_results
-from visualization.visualize_detector_output import visualize_detector_output
 from ct_utils import args_to_object
 
 
-def video_dir_to_frames(options, tempdir):
-    ## Split every video into frames, save frames in temp dir, and return the full path of each frame
-    if options.frame_folder is not None:
-        frame_output_folder = options.frame_folder
-    else:
-        frame_output_folder = os.path.join(
-            tempdir, os.path.basename(options.input_video_file) + '_frames_' + str(uuid1()))
-    os.makedirs(frame_output_folder, exist_ok=True)
+class VideoOptions:
 
-    frame_filenames, Fs = video_folder_to_frames(
-        input_folder=options.input_video_file, output_folder_base=frame_output_folder, 
-        recursive=options.recursive, overwrite=True,
-        n_threads=options.n_cores,every_n_frames=options.frame_sample)
+    model_file = ''
+    input_video_file = ''
+
+    output_dir = None
+    output_json_file = None
+    output_video_file = None
+
+    render_output_video = False
+    delete_output_frames = True
+    reuse_results_if_available = False
+    recursive = False 
+
+    rendering_confidence_threshold = 0.8
+    json_confidence_threshold = 0.0
+    frame_sample = None
     
-    image_file_names = list(itertools.chain.from_iterable(frame_filenames))
+    n_cores = 1
 
-    return image_file_names, Fs, frame_output_folder
+    debug_max_frames = -1
 
 
 def get_arg_parser():
@@ -51,8 +49,13 @@ def get_arg_parser():
     parser.add_argument('--recursive', type=bool, default=True, 
                         help='recurse into [input_video_file]; only meaningful if a folder is specified as input'
     )
+    parser.add_argument('--output_dir', type=str,
+                        default = default_output_dir, 
+                        help = 'Path to folder where videos will be saved.'
+    )
     parser.add_argument('--output_json_file', type=str,
-                        default=None, help='.json output file, defaults to [video file].json'
+                        default = None, 
+                        help='.json output file, defaults to [video file].json'
     )
     parser.add_argument('--render_output_video', type=bool,
                         default = default_render_output_video, 
@@ -88,56 +91,23 @@ def main():
     ## Process Command line arguments
     parser = get_arg_parser()
     args = parser.parse_args()
-    options = ProcessVideoOptions()
+    input_dir_name = os.path.basename(args.input_video_file)
+    args.output_json_file = os.path.join(args.output_dir, input_dir_name + ".json")
+    options = VideoOptions()
     args_to_object(args, options)
 
-    ## Processing videos with MegaDetector
+    ## Detecting subjects in each video frame using MegaDetector
     assert os.path.isdir(options.input_video_file),'{} is not a folder'.format(options.input_video_file)
-
-    # Save videos as frames in a temp folder 
     tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
     
-    print("Saving videos as frames...")
     image_file_names, Fs, frame_output_folder = video_dir_to_frames(options, tempdir)
-    print("Success. Video frames saved in {}".format(frame_output_folder))
+    det_frames(options, image_file_names, frame_output_folder)
 
-    # Run MegaDetector on each frame
-    if options.output_json_file is None:
-        frames_json = options.input_video_file + '.frames.json'
-        video_json = options.input_video_file + '.json'
-    else:
-        if '.json' in options.output_json_file:
-            frames_json = options.output_json_file.replace('.json','.frames.json')
-            video_json = options.output_json_file
-        else:
-            video_json = options.output_json_file
-            frames_json = video_json + '_frames'
-            
-    results = run_tf_detector_batch.load_and_run_detector_batch(
-        options.model_file, image_file_names,
-        confidence_threshold=options.json_confidence_threshold,
-        n_cores=options.n_cores)
-
-    run_tf_detector_batch.write_results_to_file(
-        results, frames_json,
-        relative_path_base=frame_output_folder)
-
-    frame_results_to_video_results(frames_json,video_json)
-
-    ## Rendering detections to images 
+    ## Annotating and exporting to video
     if options.render_output_video:
-        rendering_output_dir = os.path.join( #something wrong with this
-            tempdir, os.path.basename(options.input_video_file) + '_detections')
-
-        detected_frame_files = visualize_detector_output(
-            detector_output_path=frames_json,
-            out_dir=rendering_output_dir,
-            images_dir=frame_output_folder,
-            confidence=options.rendering_confidence_threshold)
-        
-        frames_to_video(detected_frame_files, 30, options.output_video_file)
-
-        # delete_temp_dir(rendering_output_dir)
+        vis_detection_videos(tempdir, options.output_json_file, 
+                            frame_output_folder, args.output_dir, 
+                            options.rendering_confidence_threshold)
 
     ## Delete the frames stored in the temp folder (if delete_output_frames == TRUE)
     if options.delete_output_frames:
@@ -150,7 +120,7 @@ if __name__ == '__main__':
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
     default_input_video_file = "C:/temp_for_SSD_speed/test"
     default_n_cores = '15'
-    default_render_output_video = FALSE
-    default_output_json_file = "results/test.json"
+    default_render_output_video = TRUE
+    default_output_dir = 'D:/CNN_Animal_ID/CamphoraClassifier/SIN-classifier/results/test'
 
     main()

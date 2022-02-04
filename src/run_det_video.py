@@ -13,7 +13,6 @@ from detection import run_tf_detector_batch
 from detection.process_video import ProcessVideoOptions
 from detection.video_utils import video_folder_to_frames
 from detection.video_utils import frame_results_to_video_results
-from visualization.visualize_detector_output import visualize_detector_output
 from ct_utils import args_to_object
 
 
@@ -50,7 +49,9 @@ def det_frames(options, image_file_names, frame_output_folder):
         else:
             video_json = options.output_json_file
             frames_json = video_json + '_frames'
-            
+    
+    os.makedirs(options.output_dir, exist_ok=True)
+
     results = run_tf_detector_batch.load_and_run_detector_batch(
         options.model_file, image_file_names,
         confidence_threshold=options.json_confidence_threshold,

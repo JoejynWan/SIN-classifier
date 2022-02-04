@@ -6,12 +6,12 @@ import argparse
 import tempfile
 from pickle import TRUE
 from typing import Any
+from multiprocessing.pool import ThreadPool
 
 # Functions imported from this project
 from shared_utils import delete_temp_dir, unique
 
 # Imported from Microsoft/CameraTraps github repository
-from visualization.visualize_detector_output import visualize_detector_output
 from visualization import visualization_utils as vis_utils
 from data_management.annotations.annotation_constants import (
     detector_bbox_category_id_to_name)  # here id is int
@@ -86,7 +86,8 @@ def vis_detector_output(images, detector_label_map, images_dir, out_dir, confide
     """
     Args: 
     images = list, detection dictionary for each of the image frames, loaded from the detector_output .json file
-    detector_label_map = str, detector categories, loaded from the detector_output .json file
+    detector_label_map = str, detector categories loaded from the detector_output .json file
+    images_dir = str, path to the base folder containing the frames
     out_dir = str, temporary directory where annotated frame images will be saved
     confidence = float, confidence threshold above which annotations will be rendered
     """
@@ -96,11 +97,8 @@ def vis_detector_output(images, detector_label_map, images_dir, out_dir, confide
         f'Confidence threshold {confidence} is invalid, must be in (0, 1).')
     
     os.makedirs(out_dir, exist_ok=True)
-
-    num_saved = 0
+    
     annotated_img_paths = []
-    image_obj: Any  # str for local images, BytesIO for Azure images
-
     for entry in images:
         image_id = entry['file']
         
@@ -126,7 +124,6 @@ def vis_detector_output(images, detector_label_map, images_dir, out_dir, confide
         annotated_img_path = os.path.join(out_dir, f'anno_{image_id}')
         annotated_img_paths.append(annotated_img_path)
         image.save(annotated_img_path)
-        num_saved += 1
 
     return annotated_img_paths
 
@@ -140,6 +137,7 @@ def vis_detection_videos(tempdir, input_frames_anno_file, input_frames_base_dir,
 
     print('Rendering detections above a confidence threshold of {} for {} videos...'.format(
         confidence, len(unqiue_videos)))
+    
     for unqiue_video in tqdm(unqiue_videos):
         images_set = [s for s in images if unqiue_video in s['file']]
 
@@ -183,9 +181,6 @@ def get_arg_parser():
     parser.add_argument('--output_dir', type=str,
                         default = default_output_dir, 
                         help = 'Path to folder where videos will be saved.'
-    )
-    parser.add_argument('--delete_output_frames', type=bool,
-                        default=True, help='enable/disable temporary file deletion (default True)'
     )
     parser.add_argument('--rendering_confidence_threshold', type=float,
                         default=0.8, help="don't render boxes with confidence below this threshold"
