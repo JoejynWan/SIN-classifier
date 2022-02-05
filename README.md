@@ -29,6 +29,7 @@ conda deactivate
 Some scripts (e.g., for the drawing of bounding boxes) require the use of functions from other git repositories. Specifically, the git repositories that is required by this project are:
 1) [MegaDetector and classifier tools](https://github.com/microsoft/CameraTraps) (`CameraTraps`)
 2) [AI for Earth utilities repo](https://github.com/Microsoft/ai4eutils) (`ai4eutils`)
+
 These git repositories have to be cloned, and its path appended to `PYTHONPATH`. On Windows, append a path to `PYTHONPATH` for the current shell session by executing the following on Windows:
 ```
 set PYTHONPATH="%PYTHONPATH%;c:\path\to\the\git\repo"
