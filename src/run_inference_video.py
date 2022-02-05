@@ -111,7 +111,7 @@ if __name__ == '__main__':
     ## Defining parameters within this script
     # Comment out if passing arguments from terminal directly
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
-    default_input_video_file = "C:/temp_for_SSD_speed/test"
-    default_output_dir = 'D:/CNN_Animal_ID/CamphoraClassifier/SIN-classifier/results/test'
+    default_input_video_file = "C:/temp_for_SSD_speed/CT_models"
+    default_output_dir = 'D:/CNN_Animal_ID/CamphoraClassifier/SIN-classifier/results/CT_models'
 
     main()
