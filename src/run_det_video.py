@@ -39,19 +39,21 @@ def video_dir_to_frames(options, tempdir):
 
 
 def det_frames(options, image_file_names, frame_output_folder):
-    if options.output_json_file is None:
+    ## Create the paths to save the .json file describing detections for each frame and video
+    if options.output_dir is None:
         frames_json = options.input_video_file + '.frames.json'
         video_json = options.input_video_file + '.json'
     else:
-        if '.json' in options.output_json_file:
-            frames_json = options.output_json_file.replace('.json','.frames.json')
-            video_json = options.output_json_file
-        else:
-            video_json = options.output_json_file
-            frames_json = video_json + '_frames'
+        input_folder_name = os.path.basename(options.input_video_file)
+        video_json = os.path.join(options.output_dir, input_folder_name + '_video_det.json')
+        frames_json = os.path.join(options.output_dir, input_folder_name + '_frames_det.json')
     
+    options.output_json_file = frames_json
+    options.output_video_file = video_json
+
     os.makedirs(options.output_dir, exist_ok=True)
 
+    ## Run and save detections
     results = run_tf_detector_batch.load_and_run_detector_batch(
         options.model_file, image_file_names,
         confidence_threshold=options.json_confidence_threshold,
