@@ -56,7 +56,7 @@ def find_unqiue_videos(images, output_dir):
 
     return unqiue_videos
 
-def frames_to_video(images, Fs, output_file_name, codec_spec = 'DIVX'):
+def frames_to_video(images, Fs, output_file_name):
     """
     Given a list of image files and a sample rate, concatenate those images into
     a video and write to [output_file_name].
@@ -71,6 +71,15 @@ def frames_to_video(images, Fs, output_file_name, codec_spec = 'DIVX'):
     height, width, channels = frame.shape 
 
     # Define the codec and create VideoWriter object
+    if output_file_name.lower().endswith('.avi'):
+        codec_spec = 'DIVX'
+    elif output_file_name.lower().endswith('.mp4'):
+        codec_spec = 'mp4v'
+    else: 
+        video_ext = output_file_name.split('.')[-1]
+        print('No codec_spec specified for video type .{}, defaulting to DIVX'.format(video_ext))
+        codec_spec = 'DIVX'
+        
     fourcc = cv2.VideoWriter_fourcc(*codec_spec)
     out = cv2.VideoWriter(output_file_name, fourcc, Fs, (width, height))
 

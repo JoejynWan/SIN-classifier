@@ -1,6 +1,9 @@
 import os
+import sys
+import time
 import argparse
 import tempfile
+import humanfriendly
 
 # Functions imported from this project
 from shared_utils import delete_temp_dir
@@ -83,14 +86,29 @@ def get_arg_parser():
 
 
 def main(): 
+    script_start_time = time.time()
+
     ## Process Command line arguments
     parser = get_arg_parser()
     args = parser.parse_args()
     options = VideoOptions()
     args_to_object(args, options)
 
-    ## Detecting subjects in each video frame using MegaDetector
+    ## Check arguments
     assert os.path.isdir(options.input_video_file),'{} is not a folder'.format(options.input_video_file)
+
+    if os.path.exists(options.output_dir) and os.listdir(options.output_dir):
+        while True:
+            rewrite_input = input('\nThe output directory specified is not empty. Do you want to continue and rewrite the files in the directory? (y/n)')
+            if rewrite_input.lower() not in ('y', 'n'):
+                print('Input invalid. Please enter y or n.')
+            else:
+                break
+        
+        if rewrite_input.lower() == 'n':
+            sys.exit('Stopping script. Please input the correct output directory. ')
+
+    ## Detecting subjects in each video frame using MegaDetector
     tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
     
     image_file_names, Fs, frame_output_folder = video_dir_to_frames(options, tempdir)
@@ -106,12 +124,14 @@ def main():
     if options.delete_output_frames:
         delete_temp_dir(frame_output_folder)
 
+    script_elapsed = time.time() - script_start_time
+    print('Completed! Script successfully excecuted in {}'.format(humanfriendly.format_timespan(script_elapsed)))
 
 if __name__ == '__main__':
     ## Defining parameters within this script
     # Comment out if passing arguments from terminal directly
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
-    default_input_video_file = "C:/temp_for_SSD_speed/CT_models"
-    default_output_dir = 'D:/CNN_Animal_ID/CamphoraClassifier/SIN-classifier/results/CT_models'
+    default_input_video_file = "C:/temp_for_SSD_speed/CT_models_test"
+    default_output_dir = 'D:/CNN_Animal_ID/CamphoraClassifier/SIN-classifier/results/CT_models_test'
 
     main()
