@@ -53,17 +53,21 @@ def det_frames(options, image_file_names, frame_output_folder):
 
     os.makedirs(options.output_dir, exist_ok=True)
 
-    ## Run and save detections
+    ## Run detections on each frame
     results = run_tf_detector_batch.load_and_run_detector_batch(
         options.model_file, image_file_names,
         confidence_threshold=options.json_confidence_threshold,
         n_cores=options.n_cores)
 
+    ## Rolling prediction average 
+    # TODO edit results object after prediction averaging 
+
+    ## Save and export detection .json files
     run_tf_detector_batch.write_results_to_file(
         results, frames_json,
         relative_path_base = frame_output_folder)
 
-    frame_results_to_video_results(frames_json,video_json)
+    frame_results_to_video_results(frames_json, video_json)
 
 
 def get_arg_parser():

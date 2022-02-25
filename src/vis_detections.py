@@ -208,7 +208,7 @@ def get_arg_parser():
 if __name__ == '__main__':
     ## Defining parameters within this script
     # Comment out if passing arguments from terminal directly
-    default_model_file = "MegaDetectorModel_v4.1/md_v4.1.0.pb"
+    default_model_file = 'MegaDetectorModel_v4.1/md_v4.1.0.pb'
     default_input_frames_base_dir = 'C:/temp_for_SSD_speed/CT_models_test_frames'
     default_input_frames_anno_file = 'C:/temp_for_SSD_speed/CT_models_test_frames/CT_models_test.frames.json'
     default_output_dir = 'D:/CNN_Animal_ID/CamphoraClassifier/SIN-classifier/results/CT_models_test'

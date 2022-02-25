@@ -1,3 +1,4 @@
 # Ignore contents of these folders
+data/*
 data/splits/*
 results/*
