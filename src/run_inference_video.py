@@ -4,6 +4,7 @@ import time
 import argparse
 import tempfile
 import humanfriendly
+import tensorflow.compat.v1 as tf
 
 # Functions imported from this project
 from shared_utils import delete_temp_dir
@@ -108,11 +109,18 @@ def main():
         if rewrite_input.lower() == 'n':
             sys.exit('Stopping script. Please input the correct output directory. ')
 
+    ## TODO
+    # Check the memory of the output_dir and temp_dir to ensure that there is 
+    # sufficient space to save the frames and videos 
+
     ## Detecting subjects in each video frame using MegaDetector
     tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
     
     image_file_names, Fs, frame_output_folder = video_dir_to_frames(options, tempdir)
     det_frames(options, image_file_names, frame_output_folder)
+
+    trainable_params = tf.trainable_variables()
+    print(trainable_params)
 
     ## Annotating and exporting to video
     if options.render_output_video:
@@ -131,7 +139,7 @@ if __name__ == '__main__':
     ## Defining parameters within this script
     # Comment out if passing arguments from terminal directly
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
-    default_input_video_file = "C:/temp_for_SSD_speed/CT_models_test"
-    default_output_dir = 'D:/CNN_Animal_ID/CamphoraClassifier/SIN-classifier/results/CT_models_test'
+    default_input_video_file = "C:/temp_for_SSD_speed/test"
+    default_output_dir = 'D:/CNN_Animal_ID/CamphoraClassifier/SIN-classifier/results/test'
 
     main()
