@@ -2,3 +2,4 @@
 data/*
 data/splits/*
 results/*
+!results/CT_models_test
