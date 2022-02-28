@@ -1,4 +1,5 @@
 import os
+import json
 import shutil
 
 
@@ -43,3 +44,10 @@ def find_unqiue_videos(images, output_dir = None):
     unqiue_videos = unique(frames_paths)
     
     return unqiue_videos
+
+
+def write_json_file(output_object, output_path):
+    
+    with open(output_path, 'w') as f:
+        json.dump(output_object, f, indent=1)
+    print('Output file saved at {}'.format(output_path))

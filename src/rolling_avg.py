@@ -1,7 +1,8 @@
 import os 
+import numpy as np
 from collections import deque
 
-from shared_utils import find_unqiue_videos
+from shared_utils import find_unqiue_videos, write_json_file
 from vis_detections import load_detector_output
 from detection.run_tf_detector_batch import write_results_to_file
 
@@ -129,65 +130,87 @@ def images_list_to_videos_list(images):
                 frames.append(image)
         video = {
             'video': video_path,
-            'frames': frames}
+            'images': frames}
         videos.append(video)
 
     return videos
 
 
-def rolling_pred_avg(images):
-    ##TODO identify unique videos
-    objects = []
-    for image in images:
-        detections = image['detections']
-        Q = deque(maxlen = rolling_avg_size)
-        object_Q = {
-            'animal_Q' : Q,
-            'person_Q' : Q,
-            'vehicle_Q' : Q}
+def rolling_pred_avg(videos):
 
-        if detections:
-            for detection in detections:
-                if not objects: #detected_objects is still empty (first detection)
-                    objects.append({
-                        "detection": detection, 
-                        "conf_Q": object_Q})
-                else:
-                    for object in objects:
-                        bbox_object = object["detection"]['bbox']
-                        bbox_detection = detection['bbox']
+    updated_videos = []
+    
+    for video in videos: 
+        
+        frames = video['frames']
+        updated_frames = video['frames']
+        Q = deque(maxlen = rolling_avg_size) #reset conf for each video
+        for frame_idx, frame in enumerate(frames):
+            
+            detections = frame['detections']
 
-                        iou = bbox_iou(bbox_object, bbox_detection)
-                        if iou >= iou_threshold: 
-                            #append conf for each class respectively
-                            detection_cat = detection['category']
-                            detection_conf = detection['conf']
-                            animal_Q = object['conf_Q']['animal_Q']
-                            person_Q = object['conf_Q']['person_Q']
-                            vehicle_Q = object['conf_Q']['vehicle_Q']
+            # if there are no bounding boxes...
+            if not detections:
+                
+                # update the conf deque with 0 for all classes ...
+                conf_all = [0,0,0]
+                Q.append(conf_all)
+            
+            # if there are bounding boxes...
+            else: 
+                # for each bounding box...
+                for det_idx, detection in enumerate(detections): 
+                    # update the conf deque with the confidence of the detected class... 
+                    det_conf = float(detection['conf'])
+                    conf_all = [det_conf, det_conf, det_conf]
+                    Q.append(conf_all)
 
-                            if detection_cat == '1':
-                                animal_Q.append(detection_conf)
-                                person_Q.append(0)
-                                vehicle_Q.append(0)
-                            elif detection_cat == '2':
-                                animal_Q.append(0)
-                                person_Q.append(detection_conf)
-                                vehicle_Q.append(0)
-                            elif detection_cat == '3':
-                                animal_Q.append(0)
-                                person_Q.append(0)
-                                vehicle_Q.append(detection_conf)
+                    # find the rolling prediction average...
+                    np_mean = np.array(Q).mean(axis = 0)
 
-                            
-                            
-                            
-                            pass #TODO
-                        else: #different object
-                            objects.append([detection, object_Q])
-        else:
-            pass
-            #TODO add 0 to the object_Q
+                    # update the conf of the detection 
+                    updated_frames[frame_idx]['detections'][det_idx]['conf'] = np_mean[0]
+        
+        updated_video = {
+            'video': video['video'], 
+            'images': updated_frames}
+        updated_videos.append(updated_video)
+    
+    return(updated_videos)
+
+            # if detections:
+            #     for detection in detections:
+            #         if not objects: #detected_objects is still empty (first detection)
+            #             objects.append({
+            #                 "detection": detection, 
+            #                 "conf_Q": object_Q})
+            #         else:
+            #             for object in objects:
+            #                 bbox_object = object["detection"]['bbox']
+            #                 bbox_detection = detection['bbox']
+
+            #                 iou = bbox_iou(bbox_object, bbox_detection)
+            #                 if iou >= iou_threshold: 
+            #                     #append conf for each class respectively
+            #                     detection_cat = detection['category']
+            #                     detection_conf = detection['conf']
+            #                     animal_Q = object['conf_Q']['animal_Q']
+            #                     person_Q = object['conf_Q']['person_Q']
+            #                     vehicle_Q = object['conf_Q']['vehicle_Q']
+
+            #                     if detection_cat == '1':
+            #                         animal_Q.append(detection_conf)
+            #                         person_Q.append(0)
+            #                         vehicle_Q.append(0)
+            #                     elif detection_cat == '2':
+            #                         animal_Q.append(0)
+            #                         person_Q.append(detection_conf)
+            #                         vehicle_Q.append(0)
+            #                     elif detection_cat == '3':
+            #                         animal_Q.append(0)
+            #                         person_Q.append(0)
+            #                         vehicle_Q.append(detection_conf)
+
 
 def main():
     images_full, detector_label_map = load_detector_output(frames_json)
@@ -196,11 +219,19 @@ def main():
     images = rm_bad_detections(images_full, conf_threshold, conf_threshold_buf)
 
     videos = images_list_to_videos_list(images)
-
-    print(videos[0])
-
+    
+    roll_avg = rolling_pred_avg(videos)
+    
+    ## Export out the updated files
+    videos_path = "results/CT_models_test/CT_models_test_videos.json"
+    write_json_file(videos, videos_path)
+    
+    roll_avg_path = "results/CT_models_test/CT_models_test_videos_rolling_avg.json"
+    write_json_file(roll_avg, roll_avg_path)
+    
     output_file = os.path.splitext(frames_json)[0] + '_conf_' + str(conf_threshold) + '.json'
     write_results_to_file(images, output_file)
+
 
 if __name__ == '__main__':
     ## Arguments
