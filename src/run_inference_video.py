@@ -66,7 +66,7 @@ def get_arg_parser():
                         default = None, help = 'folder to use for intermediate frame storage, defaults to a folder in the system temporary folder'
     )
     parser.add_argument('--delete_output_frames', type=bool,
-                        default = True, help = 'enable/disable temporary file deletion (default True)'
+                        default = False, help = 'enable/disable temporary file deletion (default True)'
     )
     parser.add_argument('--rendering_confidence_threshold', type=float,
                         default = 0.8, help = "don't render boxes with confidence below this threshold"
@@ -114,7 +114,7 @@ def main():
     # sufficient space to save the frames and videos 
 
     ## Detecting subjects in each video frame using MegaDetector
-    tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
+    tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video') # TODO fix if frame_folder argument is provided
     
     image_file_names, Fs, frame_output_folder = video_dir_to_frames(options, tempdir)
     det_frames(options, image_file_names, frame_output_folder)
@@ -131,6 +131,8 @@ def main():
     ## Delete the frames stored in the temp folder (if delete_output_frames == TRUE)
     if options.delete_output_frames:
         delete_temp_dir(frame_output_folder)
+    else:
+        print('Frames saved in {}'.format(tempdir))
 
     script_elapsed = time.time() - script_start_time
     print('Completed! Script successfully excecuted in {}'.format(humanfriendly.format_timespan(script_elapsed)))
@@ -139,7 +141,7 @@ if __name__ == '__main__':
     ## Defining parameters within this script
     # Comment out if passing arguments from terminal directly
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
-    default_input_video_file = "C:/temp_for_SSD_speed/test"
-    default_output_dir = 'D:/CNN_Animal_ID/CamphoraClassifier/SIN-classifier/results/test'
+    default_input_video_file = "data/reconyx_test"
+    default_output_dir = 'results/reconyx_test'
 
     main()
