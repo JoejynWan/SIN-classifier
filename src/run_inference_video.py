@@ -66,7 +66,7 @@ def get_arg_parser():
                         default = None, help = 'folder to use for intermediate frame storage, defaults to a folder in the system temporary folder'
     )
     parser.add_argument('--delete_output_frames', type=bool,
-                        default = False, help = 'enable/disable temporary file deletion (default True)'
+                        default = True, help = 'enable/disable temporary file deletion (default True)'
     )
     parser.add_argument('--rendering_confidence_threshold', type=float,
                         default = 0.8, help = "don't render boxes with confidence below this threshold"
