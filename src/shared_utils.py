@@ -22,7 +22,9 @@ def find_unqiue_videos(images, output_dir = None):
     images = list containing dictionaries of image frames.
         Each dictionary should contain:
             'file' = 'path/to/frame/image'
-
+    output_dir = str, optional. Path to save directory. 
+        If provided, folders with the names of the unique videos will be created
+        in the save directory provided
 
     """
 
@@ -35,6 +37,9 @@ def find_unqiue_videos(images, output_dir = None):
         if output_dir: 
             video_save_paths.append(os.path.join(output_dir, os.path.dirname(frames_path)))
 
+    if output_dir: 
+        [os.makedirs(make_path, exist_ok=True) for make_path in unique(video_save_paths)]
+    
     unqiue_videos = unique(frames_paths)
-
-    return unqiue_videos, video_save_paths
+    
+    return unqiue_videos

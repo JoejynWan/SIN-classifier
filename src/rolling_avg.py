@@ -1,6 +1,7 @@
 import os 
 from collections import deque
 
+from shared_utils import find_unqiue_videos
 from vis_detections import load_detector_output
 from detection.run_tf_detector_batch import write_results_to_file
 
@@ -114,12 +115,27 @@ def rm_bad_detections(images, conf_threshold, conf_threshold_buf):
     
     return images
 
-def main():
-    images_full, detector_label_map = load_detector_output(frames_json)
 
-    conf_threshold_buf = 0.7
-    images = rm_bad_detections(images_full, conf_threshold, conf_threshold_buf)
+def images_list_to_videos_list(images):
 
+    video_paths = find_unqiue_videos(images)
+
+    videos = []
+    for video_path in video_paths:
+        frames = []
+        for image in images:
+            frame_path = os.path.dirname(image['file'])
+            if frame_path == video_path:
+                frames.append(image)
+        video = {
+            'video': video_path,
+            'frames': frames}
+        videos.append(video)
+
+    return videos
+
+
+def rolling_pred_avg(images):
     ##TODO identify unique videos
     objects = []
     for image in images:
@@ -173,9 +189,15 @@ def main():
             pass
             #TODO add 0 to the object_Q
 
+def main():
+    images_full, detector_label_map = load_detector_output(frames_json)
 
+    conf_threshold_buf = 0.7
+    images = rm_bad_detections(images_full, conf_threshold, conf_threshold_buf)
 
+    videos = images_list_to_videos_list(images)
 
+    print(videos[0])
 
     output_file = os.path.splitext(frames_json)[0] + '_conf_' + str(conf_threshold) + '.json'
     write_results_to_file(images, output_file)

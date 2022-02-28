@@ -9,7 +9,7 @@ from typing import Any
 from multiprocessing.pool import ThreadPool
 
 # Functions imported from this project
-from shared_utils import delete_temp_dir, unique, find_unqiue_videos
+from shared_utils import delete_temp_dir, find_unqiue_videos
 
 # Imported from Microsoft/CameraTraps github repository
 from visualization import visualization_utils as vis_utils
@@ -135,8 +135,7 @@ def vis_detection_videos(tempdir, input_frames_anno_file, input_frames_base_dir,
     """
     images, detector_label_map = load_detector_output(input_frames_anno_file)
 
-    unqiue_videos, video_save_paths = find_unqiue_videos(images, output_dir)
-    [os.makedirs(make_path, exist_ok=True) for make_path in unique(video_save_paths)]
+    unqiue_videos = find_unqiue_videos(images, output_dir)
     rendering_output_dir = os.path.join(tempdir, 'detection_frames')
 
     print('Rendering detections above a confidence threshold of {} for {} videos...'.format(
