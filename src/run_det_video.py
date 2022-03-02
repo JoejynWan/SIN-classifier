@@ -16,11 +16,12 @@ from detection.video_utils import frame_results_to_video_results
 from ct_utils import args_to_object
 
 
-def video_dir_to_frames(options, tempdir):
+def video_dir_to_frames(options):
     ## Split every video into frames, save frames in temp dir, and return the full path of each frame
     if options.frame_folder is not None:
         frame_output_folder = options.frame_folder
     else:
+        tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
         frame_output_folder = os.path.join(
             tempdir, os.path.basename(options.input_video_file) + '_frames_' + str(uuid1()))
     os.makedirs(frame_output_folder, exist_ok=True)

@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import argparse
-import tempfile
 import humanfriendly
 import tensorflow.compat.v1 as tf
 
@@ -25,7 +24,9 @@ class VideoOptions:
     output_video_file = None
 
     render_output_video = False
+    frame_folder = None
     delete_output_frames = True
+    
     reuse_results_if_available = False
     recursive = False 
 
@@ -63,10 +64,10 @@ def get_arg_parser():
                         default = None, help='video output file (or folder), defaults to [video file].mp4 for files, or [video file]_annotated] for folders'
     )
     parser.add_argument('--frame_folder', type=str, 
-                        default = None, help = 'folder to use for intermediate frame storage, defaults to a folder in the system temporary folder'
+                        default = default_frame_folder, help = 'folder to use for intermediate frame storage, defaults to a folder in the system temporary folder'
     )
     parser.add_argument('--delete_output_frames', type=bool,
-                        default = True, help = 'enable/disable temporary file deletion (default True)'
+                        default = default_delete_output_frames, help = 'enable/disable temporary file deletion (default True)'
     )
     parser.add_argument('--rendering_confidence_threshold', type=float,
                         default = 0.8, help = "don't render boxes with confidence below this threshold"
@@ -87,6 +88,7 @@ def get_arg_parser():
 
 
 def main(): 
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
     script_start_time = time.time()
 
     ## Process Command line arguments
@@ -114,9 +116,8 @@ def main():
     # sufficient space to save the frames and videos 
 
     ## Detecting subjects in each video frame using MegaDetector
-    tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video') # TODO fix if frame_folder argument is provided
     
-    image_file_names, Fs, frame_output_folder = video_dir_to_frames(options, tempdir)
+    image_file_names, Fs, frame_output_folder = video_dir_to_frames(options)
     det_frames(options, image_file_names, frame_output_folder)
 
     trainable_params = tf.trainable_variables()
@@ -124,7 +125,7 @@ def main():
 
     ## Annotating and exporting to video
     if options.render_output_video:
-        vis_detection_videos(tempdir, options.output_json_file, 
+        vis_detection_videos(options.output_json_file, 
                             frame_output_folder, Fs, options.output_dir, 
                             options.rendering_confidence_threshold)
 
@@ -132,7 +133,7 @@ def main():
     if options.delete_output_frames:
         delete_temp_dir(frame_output_folder)
     else:
-        print('Frames saved in {}'.format(tempdir))
+        print('Frames saved in {}'.format(frame_output_folder))
 
     script_elapsed = time.time() - script_start_time
     print('Completed! Script successfully excecuted in {}'.format(humanfriendly.format_timespan(script_elapsed)))
@@ -141,7 +142,10 @@ if __name__ == '__main__':
     ## Defining parameters within this script
     # Comment out if passing arguments from terminal directly
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
-    default_input_video_file = "data/reconyx_test"
-    default_output_dir = 'results/reconyx_test'
+    default_input_video_file = "data/CT_models_test"
+    default_output_dir = 'results/CT_models_test_2'
+    
+    default_delete_output_frames = False
+    default_frame_folder = 'results/CT_models_test_2/video_frames'
 
     main()

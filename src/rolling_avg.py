@@ -6,6 +6,8 @@ from shared_utils import find_unqiue_videos, write_json_file
 from vis_detections import load_detector_output
 from detection.run_tf_detector_batch import write_results_to_file
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
+
 
 def limit_xy_min(coord):
     if coord < 0:
@@ -117,8 +119,14 @@ def rm_bad_detections(images, conf_threshold, conf_threshold_buf):
     return images
 
 
-def images_list_to_videos_list(images):
-
+def add_video_layer(images):
+    """
+    Converts the list of images into a list of videos by adding an 
+    additional "layer" above the images "layer". 
+    Each item in the video list is a dictionary containing:
+        "video" = 'name of the video'
+        "images" = 'details of each frame of that video'
+    """
     video_paths = find_unqiue_videos(images)
 
     videos = []
@@ -136,14 +144,58 @@ def images_list_to_videos_list(images):
     return videos
 
 
+def add_object_layer(videos):
+
+    objects = []
+    for video in videos:
+        frames = video['images']
+        for frame in frames:
+            detections = frame['detections']
+            if not detections:
+                pass 
+            else:
+                for detection in detections:
+                    object_num = 1
+                    det_categorised = False
+                    while not det_categorised:
+                        if not objects: #first detection of the video
+                            object = {
+                                "object_number": "object_" + str(object_num),
+                                "details": detection
+                            }
+                            objects.append(object)
+
+                            det_categorised = True
+                        else:
+                            for object in objects: 
+                                object_number = object["object_number"]
+                                bbox_object = object["details"]
+                                bbox_detection = detection['bbox']
+                                
+                                iou = bbox_iou(bbox_object, bbox_detection)
+                                
+                                if iou >= iou_threshold: #same object
+                                    pass
+
+
+
+
+                    
+                    
+                    
+                    
+                    
+                    
+
+
 def rolling_pred_avg(videos):
 
     updated_videos = []
     
     for video in videos: 
         
-        frames = video['frames']
-        updated_frames = video['frames']
+        frames = video['images']
+        updated_frames = video['images']
         Q = deque(maxlen = rolling_avg_size) #reset conf for each video
         for frame_idx, frame in enumerate(frames):
             
@@ -160,16 +212,19 @@ def rolling_pred_avg(videos):
             else: 
                 # for each bounding box...
                 for det_idx, detection in enumerate(detections): 
-                    # update the conf deque with the confidence of the detected class... 
                     det_conf = float(detection['conf'])
-                    conf_all = [det_conf, det_conf, det_conf]
+                    det_cat = int(detection['category'])
+                    
+                    # update the conf deque with the confidence of the detected class... 
+                    conf_all = [0,0,0]
+                    conf_all[det_cat-1] = det_conf
                     Q.append(conf_all)
 
                     # find the rolling prediction average...
                     np_mean = np.array(Q).mean(axis = 0)
 
                     # update the conf of the detection 
-                    updated_frames[frame_idx]['detections'][det_idx]['conf'] = np_mean[0]
+                    updated_frames[frame_idx]['detections'][det_idx]['conf'] = np_mean[det_cat-1] #TODO fix for specific class
         
         updated_video = {
             'video': video['video'], 
@@ -213,29 +268,31 @@ def rolling_pred_avg(videos):
 
 
 def main():
+
+    frames_json = os.path.join(output_dir, "CT_models_test_frames_det.json")
     images_full, detector_label_map = load_detector_output(frames_json)
 
     conf_threshold_buf = 0.7
     images = rm_bad_detections(images_full, conf_threshold, conf_threshold_buf)
 
-    videos = images_list_to_videos_list(images)
+    videos = add_video_layer(images)
     
     roll_avg = rolling_pred_avg(videos)
     
     ## Export out the updated files
-    videos_path = "results/CT_models_test/CT_models_test_videos.json"
-    write_json_file(videos, videos_path)
-    
-    roll_avg_path = "results/CT_models_test/CT_models_test_videos_rolling_avg.json"
-    write_json_file(roll_avg, roll_avg_path)
-    
     output_file = os.path.splitext(frames_json)[0] + '_conf_' + str(conf_threshold) + '.json'
     write_results_to_file(images, output_file)
+
+    videos_path = os.path.join(output_dir, "CT_models_test_videos.json")
+    write_json_file(videos, videos_path)
+    
+    roll_avg_path = os.path.join(output_dir, "CT_models_test_videos_rolling_avg.json")
+    write_json_file(roll_avg, roll_avg_path)
 
 
 if __name__ == '__main__':
     ## Arguments
-    frames_json = "results/CT_models_test/CT_models_test_frames_det.json"
+    output_dir = "results/CT_models_test_2"
     conf_threshold = 0.8
     iou_threshold = 0.5
     rolling_avg_size = 64

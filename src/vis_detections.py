@@ -123,10 +123,9 @@ def vis_detector_output(images, detector_label_map, images_dir, out_dir, confide
     return annotated_img_paths
 
 
-def vis_detection_videos(tempdir, input_frames_anno_file, input_frames_base_dir, Fs_per_video, output_dir, confidence):
+def vis_detection_videos(input_frames_anno_file, input_frames_base_dir, Fs_per_video, output_dir, confidence):
     """
     Args:
-    tempdir = str, path to temporary folder where annotated frames will be saved
     input_frames_anno_file = str, path to .json file describing the detections for each frame
     input_frames_base_dir = str, path to base folder containing the video frames
     Fs_per_video = list, frame rate for each unique video
@@ -136,6 +135,7 @@ def vis_detection_videos(tempdir, input_frames_anno_file, input_frames_base_dir,
     images, detector_label_map = load_detector_output(input_frames_anno_file)
 
     unqiue_videos = find_unqiue_videos(images, output_dir)
+    tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
     rendering_output_dir = os.path.join(tempdir, 'detection_frames')
 
     print('Rendering detections above a confidence threshold of {} for {} videos...'.format(
