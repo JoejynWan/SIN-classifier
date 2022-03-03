@@ -1,4 +1,5 @@
 import os 
+from tqdm import tqdm
 import numpy as np
 from collections import deque
 
@@ -146,46 +147,82 @@ def add_video_layer(images):
 
 def add_object_layer(videos):
 
-    objects = []
-    for video in videos:
+    updated_videos = videos
+    for vid_idx, video in tqdm(enumerate(videos)):
+        
         frames = video['images']
-        for frame in frames:
+        objects = []
+        for frame_idx, frame in enumerate(frames):
+            
             detections = frame['detections']
-            if not detections:
-                pass 
-            else:
-                for detection in detections:
+            if detections:
+                for det_idx, detection in enumerate(detections):
+                    
                     object_num = 1
                     det_categorised = False
                     while not det_categorised:
-                        if not objects: #first detection of the video
-                            object = {
+                        
+                        #first detection of the video is always a new unique object
+                        if not objects: 
+                            object_dict = {
                                 "object_number": "object_" + str(object_num),
                                 "details": detection
                             }
-                            objects.append(object)
+                            
+                            # save detection as a new object
+                            objects.append(object_dict)
+
+                            # update the detection with object number
+                            updated_videos[vid_idx]['images'][frame_idx]['detections'][det_idx] = object_dict
 
                             det_categorised = True
+                        
                         else:
                             for object in objects: 
                                 object_number = object["object_number"]
-                                bbox_object = object["details"]
+                                bbox_object = object["details"]['bbox']
                                 bbox_detection = detection['bbox']
                                 
                                 iou = bbox_iou(bbox_object, bbox_detection)
                                 
-                                if iou >= iou_threshold: #same object
-                                    pass
+                                # Bounding boxes overlap significantly, 
+                                # and so it is the same object
+                                if iou >= iou_threshold:
+                                    
+                                    object_dict = {
+                                        "object_number": object_number,
+                                        "details": detection
+                                    }
 
+                                    # update object as the detection
+                                    object = object_dict
 
+                                    # update the detection with object number
+                                    updated_videos[vid_idx]['images'][frame_idx]['detections'][det_idx] = object_dict
+                                
+                                    det_categorised = True
 
+                                else:
+                                    
+                                    object_num = object_num + 1
+                                    object_dict = {
+                                        "object_number": "object_" + str(object_num),
+                                        "details": detection
+                                    }
 
-                    
-                    
-                    
-                    
-                    
-                    
+                                    # add new object for that video
+                                    objects.append(object_dict)
+
+                                    # update the detection with object number
+                                    updated_videos[vid_idx]['images'][frame_idx]['detections'][det_idx] = object_dict
+                                    
+                                    det_categorised = True
+
+                                    break
+                                
+                                
+    
+    return videos
 
 
 def rolling_pred_avg(videos):
@@ -233,39 +270,6 @@ def rolling_pred_avg(videos):
     
     return(updated_videos)
 
-            # if detections:
-            #     for detection in detections:
-            #         if not objects: #detected_objects is still empty (first detection)
-            #             objects.append({
-            #                 "detection": detection, 
-            #                 "conf_Q": object_Q})
-            #         else:
-            #             for object in objects:
-            #                 bbox_object = object["detection"]['bbox']
-            #                 bbox_detection = detection['bbox']
-
-            #                 iou = bbox_iou(bbox_object, bbox_detection)
-            #                 if iou >= iou_threshold: 
-            #                     #append conf for each class respectively
-            #                     detection_cat = detection['category']
-            #                     detection_conf = detection['conf']
-            #                     animal_Q = object['conf_Q']['animal_Q']
-            #                     person_Q = object['conf_Q']['person_Q']
-            #                     vehicle_Q = object['conf_Q']['vehicle_Q']
-
-            #                     if detection_cat == '1':
-            #                         animal_Q.append(detection_conf)
-            #                         person_Q.append(0)
-            #                         vehicle_Q.append(0)
-            #                     elif detection_cat == '2':
-            #                         animal_Q.append(0)
-            #                         person_Q.append(detection_conf)
-            #                         vehicle_Q.append(0)
-            #                     elif detection_cat == '3':
-            #                         animal_Q.append(0)
-            #                         person_Q.append(0)
-            #                         vehicle_Q.append(detection_conf)
-
 
 def main():
 
@@ -276,8 +280,10 @@ def main():
     images = rm_bad_detections(images_full, conf_threshold, conf_threshold_buf)
 
     videos = add_video_layer(images)
+
+    objects = add_object_layer(videos)
     
-    roll_avg = rolling_pred_avg(videos)
+    # roll_avg = rolling_pred_avg(videos)
     
     ## Export out the updated files
     output_file = os.path.splitext(frames_json)[0] + '_conf_' + str(conf_threshold) + '.json'
@@ -285,9 +291,12 @@ def main():
 
     videos_path = os.path.join(output_dir, "CT_models_test_videos.json")
     write_json_file(videos, videos_path)
+
+    objects_path = os.path.join(output_dir, "CT_models_test_objects.json")
+    write_json_file(objects, objects_path)
     
-    roll_avg_path = os.path.join(output_dir, "CT_models_test_videos_rolling_avg.json")
-    write_json_file(roll_avg, roll_avg_path)
+    # roll_avg_path = os.path.join(output_dir, "CT_models_test_videos_rolling_avg.json")
+    # write_json_file(roll_avg, roll_avg_path)
 
 
 if __name__ == '__main__':
