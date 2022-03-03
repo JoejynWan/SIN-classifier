@@ -147,7 +147,6 @@ def add_video_layer(images):
 
 def add_object_layer(videos):
 
-    updated_videos = videos
     for vid_idx, video in tqdm(enumerate(videos)):
         
         frames = video['images']
@@ -173,7 +172,7 @@ def add_object_layer(videos):
                             objects.append(object_dict)
 
                             # update the detection with object number
-                            updated_videos[vid_idx]['images'][frame_idx]['detections'][det_idx] = object_dict
+                            videos[vid_idx]['images'][frame_idx]['detections'][det_idx] = object_dict
 
                             det_categorised = True
                         
@@ -198,7 +197,7 @@ def add_object_layer(videos):
                                     object = object_dict
 
                                     # update the detection with object number
-                                    updated_videos[vid_idx]['images'][frame_idx]['detections'][det_idx] = object_dict
+                                    videos[vid_idx]['images'][frame_idx]['detections'][det_idx] = object_dict
                                 
                                     det_categorised = True
 
@@ -214,14 +213,12 @@ def add_object_layer(videos):
                                     objects.append(object_dict)
 
                                     # update the detection with object number
-                                    updated_videos[vid_idx]['images'][frame_idx]['detections'][det_idx] = object_dict
+                                    videos[vid_idx]['images'][frame_idx]['detections'][det_idx] = object_dict
                                     
                                     det_categorised = True
 
                                     break
                                 
-                                
-    
     return videos
 
 
