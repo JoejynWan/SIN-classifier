@@ -163,23 +163,16 @@ def add_object_layer(videos):
                         
                         #first detection of the video is always a new unique object
                         if not objects: 
-                            object_dict = {
-                                "object_number": "object_" + str(object_num),
-                                "details": detection
-                            }
+                            detection["object_number"] = "object_" + str(object_num)
+
+                            objects.append(detection)
                             
-                            # save detection as a new object
-                            objects.append(object_dict)
-
-                            # update the detection with object number
-                            videos[vid_idx]['images'][frame_idx]['detections'][det_idx] = object_dict
-
-                            det_categorised = True
+                            det_categorised = True                           
                         
                         else:
                             for object in objects: 
                                 object_number = object["object_number"]
-                                bbox_object = object["details"]['bbox']
+                                bbox_object = object['bbox']
                                 bbox_detection = detection['bbox']
                                 
                                 iou = bbox_iou(bbox_object, bbox_detection)
@@ -187,33 +180,17 @@ def add_object_layer(videos):
                                 # Bounding boxes overlap significantly, 
                                 # and so it is the same object
                                 if iou >= iou_threshold:
+                                    detection["object_number"] = object_number
+
+                                    object = detection
                                     
-                                    object_dict = {
-                                        "object_number": object_number,
-                                        "details": detection
-                                    }
-
-                                    # update object as the detection
-                                    object = object_dict
-
-                                    # update the detection with object number
-                                    videos[vid_idx]['images'][frame_idx]['detections'][det_idx] = object_dict
-                                
                                     det_categorised = True
 
                                 else:
-                                    
                                     object_num = object_num + 1
-                                    object_dict = {
-                                        "object_number": "object_" + str(object_num),
-                                        "details": detection
-                                    }
+                                    detection["object_number"] = "object_" + str(object_num)
 
-                                    # add new object for that video
-                                    objects.append(object_dict)
-
-                                    # update the detection with object number
-                                    videos[vid_idx]['images'][frame_idx]['detections'][det_idx] = object_dict
+                                    objects.append(detection)
                                     
                                     det_categorised = True
 
@@ -222,11 +199,11 @@ def add_object_layer(videos):
     return videos
 
 
-def rolling_pred_avg(videos):
+def rolling_pred_avg(objects):
 
-    updated_videos = []
+    updated_objects = []
     
-    for video in videos: 
+    for video in objects: 
         
         frames = video['images']
         updated_frames = video['images']
@@ -246,6 +223,7 @@ def rolling_pred_avg(videos):
             else: 
                 # for each bounding box...
                 for det_idx, detection in enumerate(detections): 
+                    
                     det_conf = float(detection['conf'])
                     det_cat = int(detection['category'])
                     
@@ -263,9 +241,9 @@ def rolling_pred_avg(videos):
         updated_video = {
             'video': video['video'], 
             'images': updated_frames}
-        updated_videos.append(updated_video)
+        updated_objects.append(updated_video)
     
-    return(updated_videos)
+    return updated_objects
 
 
 def main():
