@@ -11,7 +11,7 @@ def delete_temp_dir(directory):
 
 
 def unique(x):
-    x = list(set(x))
+    x = list(sorted(set(x)))
     return x
 
 
@@ -44,6 +44,19 @@ def find_unqiue_videos(images, output_dir = None):
     unqiue_videos = unique(frames_paths)
     
     return unqiue_videos
+
+
+def find_unique_objects(images):
+    
+    obj_nums = []
+    for image in images:
+        for detection in image['detections']:
+            obj_num = detection['object_number']
+            obj_nums.append(obj_num)
+
+    unq_obj_nums = unique(obj_nums)
+
+    return unq_obj_nums
 
 
 def write_json_file(output_object, output_path):

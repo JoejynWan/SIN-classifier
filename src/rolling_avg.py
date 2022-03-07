@@ -3,8 +3,8 @@ from tqdm import tqdm
 import numpy as np
 from collections import deque
 
-from shared_utils import find_unqiue_videos, write_json_file
-from vis_detections import load_detector_output
+from shared_utils import find_unqiue_videos, write_json_file, find_unique_objects
+from vis_detections import load_detector_output, vis_detection_video
 from detection.run_tf_detector_batch import write_results_to_file
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
@@ -145,17 +145,19 @@ def add_video_layer(images):
     return videos
 
 
-def add_object_layer(videos):
+def add_object_number(videos):
+    
+    updated_videos = videos.copy()
 
-    for vid_idx, video in tqdm(enumerate(videos)):
+    for video in updated_videos:
         
         frames = video['images']
         objects = []
-        for frame_idx, frame in enumerate(frames):
+        for frame in frames:
             
             detections = frame['detections']
             if detections:
-                for det_idx, detection in enumerate(detections):
+                for detection in detections:
                     
                     object_num = 1
                     det_categorised = False
@@ -196,52 +198,55 @@ def add_object_layer(videos):
 
                                     break
                                 
-    return videos
+    return updated_videos
 
 
 def rolling_pred_avg(objects):
 
-    updated_objects = []
+    updated_objects = objects.copy()
     
-    for video in objects: 
+    for video in updated_objects: 
         
         frames = video['images']
-        updated_frames = video['images']
-        Q = deque(maxlen = rolling_avg_size) #reset conf for each video
-        for frame_idx, frame in enumerate(frames):
+
+        unique_objects = find_unique_objects(frames)
+        Q_objs = []
+        for unique_object in unique_objects:
+            Q_obj = {
+                'object_number': unique_object,
+                'object_Q': deque(maxlen = rolling_avg_size)
+            }
+            Q_objs.append(Q_obj)
+
+        for frame in frames: 
+            
+            for Q_obj in Q_objs:
+                Q_obj['object_Q'].append([0,0,0])
             
             detections = frame['detections']
 
-            # if there are no bounding boxes...
-            if not detections:
-                
-                # update the conf deque with 0 for all classes ...
-                conf_all = [0,0,0]
-                Q.append(conf_all)
-            
-            # if there are bounding boxes...
-            else: 
-                # for each bounding box...
-                for det_idx, detection in enumerate(detections): 
-                    
-                    det_conf = float(detection['conf'])
+            if detections: 
+                for detection in detections: 
                     det_cat = int(detection['category'])
-                    
-                    # update the conf deque with the confidence of the detected class... 
-                    conf_all = [0,0,0]
-                    conf_all[det_cat-1] = det_conf
-                    Q.append(conf_all)
+                    det_conf = detection['conf']
+                    det_obj_num = detection['object_number']
+
+                    Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
+                    Q[-1][det_cat-1] = det_conf
+                
+                for detection in detections: 
+                    det_obj_num = detection['object_number']
+                    Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
 
                     # find the rolling prediction average...
                     np_mean = np.array(Q).mean(axis = 0)
 
-                    # update the conf of the detection 
-                    updated_frames[frame_idx]['detections'][det_idx]['conf'] = np_mean[det_cat-1] #TODO fix for specific class
-        
-        updated_video = {
-            'video': video['video'], 
-            'images': updated_frames}
-        updated_objects.append(updated_video)
+                    # update the conf and cat of the detection 
+                    max_conf = max(np_mean)
+                    max_index = np.where(np_mean == max_conf)[0].tolist()[0] + 1
+
+                    detection['conf'] = max_conf
+                    detection['category'] = str(max_index)                
     
     return updated_objects
 
@@ -256,10 +261,20 @@ def main():
 
     videos = add_video_layer(images)
 
-    objects = add_object_layer(videos)
+    objects = add_object_number(videos)
+    objects_path = os.path.join(output_dir, "CT_models_test_objects.json")
+    write_json_file(objects, objects_path)
+
+    roll_avg = rolling_pred_avg(objects)
     
-    # roll_avg = rolling_pred_avg(videos)
-    
+    for video in tqdm(roll_avg): 
+        video_name = video['video']
+        video_Fs = 30
+        images_set = video['images']
+
+        vis_detection_video(images_set, detector_label_map, frames_dir, 
+            conf_threshold, output_dir, video_name, video_Fs)
+
     ## Export out the updated files
     output_file = os.path.splitext(frames_json)[0] + '_conf_' + str(conf_threshold) + '.json'
     write_results_to_file(images, output_file)
@@ -267,16 +282,14 @@ def main():
     videos_path = os.path.join(output_dir, "CT_models_test_videos.json")
     write_json_file(videos, videos_path)
 
-    objects_path = os.path.join(output_dir, "CT_models_test_objects.json")
-    write_json_file(objects, objects_path)
-    
-    # roll_avg_path = os.path.join(output_dir, "CT_models_test_videos_rolling_avg.json")
-    # write_json_file(roll_avg, roll_avg_path)
+    roll_avg_path = os.path.join(output_dir, "CT_models_test_videos_rolling_avg.json")
+    write_json_file(roll_avg, roll_avg_path)
 
 
 if __name__ == '__main__':
     ## Arguments
     output_dir = "results/CT_models_test_2"
+    frames_dir = "results/CT_models_test_2/video_frames"
     conf_threshold = 0.8
     iou_threshold = 0.5
     rolling_avg_size = 64

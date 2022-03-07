@@ -122,6 +122,22 @@ def vis_detector_output(images, detector_label_map, images_dir, out_dir, confide
 
     return annotated_img_paths
 
+def vis_detection_video(images_set, detector_label_map, input_frames_base_dir, 
+    confidence, output_dir, video_name, video_Fs):
+    
+    tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
+    rendering_output_dir = os.path.join(tempdir, 'detection_frames')
+
+    detected_frame_files = vis_detector_output(
+        images_set, detector_label_map, input_frames_base_dir, 
+        rendering_output_dir, confidence)
+    
+    output_video_file = os.path.join(output_dir, video_name)
+    os.makedirs(os.path.split(output_video_file)[0], exist_ok=True)
+    frames_to_video(detected_frame_files, video_Fs, output_video_file)
+    
+    delete_temp_dir(rendering_output_dir)
+
 
 def vis_detection_videos(input_frames_anno_file, input_frames_base_dir, Fs_per_video, output_dir, confidence):
     """
@@ -135,8 +151,6 @@ def vis_detection_videos(input_frames_anno_file, input_frames_base_dir, Fs_per_v
     images, detector_label_map = load_detector_output(input_frames_anno_file)
 
     unqiue_videos = find_unqiue_videos(images, output_dir)
-    tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
-    rendering_output_dir = os.path.join(tempdir, 'detection_frames')
 
     print('Rendering detections above a confidence threshold of {} for {} videos...'.format(
         confidence, len(unqiue_videos)))
@@ -144,14 +158,8 @@ def vis_detection_videos(input_frames_anno_file, input_frames_base_dir, Fs_per_v
     for unqiue_video, Fs in tqdm(zip(unqiue_videos, Fs_per_video), total = len(unqiue_videos)):
         images_set = [s for s in images if unqiue_video in s['file']]
 
-        detected_frame_files = vis_detector_output(
-            images_set, detector_label_map, input_frames_base_dir, 
-            rendering_output_dir, confidence)
-        
-        output_video_file = os.path.join(output_dir, unqiue_video)
-        frames_to_video(detected_frame_files, Fs, output_video_file)
-
-        delete_temp_dir(rendering_output_dir)
+        vis_detection_video(images_set, detector_label_map, input_frames_base_dir, 
+            confidence, output_dir, unqiue_video, Fs)
 
 
 def main():
@@ -159,11 +167,9 @@ def main():
     parser = get_arg_parser()
     args = parser.parse_args()
 
-    tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
-
-    vis_detection_videos(tempdir, args.input_frames_anno_file, 
+    vis_detection_videos(args.input_frames_anno_file, 
                         args.input_frames_base_dir, args.output_dir, 
-                        args.rendering_confidence_threshold)
+                        args.rendering_confidence_threshold) #TODO fix faulty missing Fs argument
 
 
 def get_arg_parser():
