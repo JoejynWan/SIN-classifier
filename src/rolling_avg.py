@@ -1,4 +1,5 @@
 import os 
+import copy
 from tqdm import tqdm
 import numpy as np
 from collections import deque
@@ -147,63 +148,69 @@ def add_video_layer(images):
 
 def add_object_number(videos):
     
-    updated_videos = videos.copy()
+    updated_videos = copy.copy(videos)
 
     for video in updated_videos:
         
         frames = video['images']
         objects = []
+        object_num = 1
         for frame in frames:
-            
+            # print(frame['file'])
             detections = frame['detections']
+            
             if detections:
-                for detection in detections:
+                for det_idx, detection in enumerate(detections):
                     
-                    object_num = 1
-                    det_categorised = False
-                    while not det_categorised:
+                    # print('Detection number {}'.format(det_idx))
+                    #first detection of the video is always a new unique object
+                    if not objects: 
                         
-                        #first detection of the video is always a new unique object
-                        if not objects: 
+                        detection["object_number"] = "object_" + str(object_num)
+
+                        objects.append(detection)
+                        
+                        # print("Creating new object {}".format(detection["object_number"]))                         
+                    
+                    else:
+                            
+                        # Check if the detection is an alr recorded object
+                        det_categorised = False
+                        for i in range(len(objects)): 
+                            object_number = objects[i]["object_number"]
+                            bbox_object = objects[i]['bbox']
+                            bbox_detection = detection['bbox']
+                            
+                            iou = bbox_iou(bbox_object, bbox_detection)
+                            
+                            # Bounding boxes overlap significantly, 
+                            # and so it is the same object
+                            if iou >= iou_threshold:
+                                detection["object_number"] = object_number
+
+                                objects[i] = detection
+                                
+                                # print("Same object, which is {}".format(detection["object_number"]))
+                                det_categorised = True
+
+                                break #break the objects for loop
+                        
+                        if not det_categorised:
+                            # Since the detection is NOT an alr recorded object, 
+                            # add in a new object
+                            object_num = object_num + 1
                             detection["object_number"] = "object_" + str(object_num)
 
                             objects.append(detection)
                             
-                            det_categorised = True                           
-                        
-                        else:
-                            for object in objects: 
-                                object_number = object["object_number"]
-                                bbox_object = object['bbox']
-                                bbox_detection = detection['bbox']
-                                
-                                iou = bbox_iou(bbox_object, bbox_detection)
-                                
-                                # Bounding boxes overlap significantly, 
-                                # and so it is the same object
-                                if iou >= iou_threshold:
-                                    detection["object_number"] = object_number
-
-                                    object = detection
-                                    
-                                    det_categorised = True
-
-                                else:
-                                    object_num = object_num + 1
-                                    detection["object_number"] = "object_" + str(object_num)
-
-                                    objects.append(detection)
-                                    
-                                    det_categorised = True
-
-                                    break
+                            # print("Creating new object {}".format(detection["object_number"]))                           
                                 
     return updated_videos
 
 
 def rolling_pred_avg(objects):
 
-    updated_objects = objects.copy()
+    updated_objects = copy.copy(objects)
     
     for video in updated_objects: 
         
@@ -258,15 +265,21 @@ def main():
 
     conf_threshold_buf = 0.7
     images = rm_bad_detections(images_full, conf_threshold, conf_threshold_buf)
+    output_file = os.path.splitext(frames_json)[0] + '_conf_' + str(conf_threshold) + '.json'
+    write_results_to_file(images, output_file)
 
     videos = add_video_layer(images)
+    videos_path = os.path.join(output_dir, "CT_models_test_videos.json")
+    write_json_file(videos, videos_path)
 
     objects = add_object_number(videos)
     objects_path = os.path.join(output_dir, "CT_models_test_objects.json")
     write_json_file(objects, objects_path)
 
     roll_avg = rolling_pred_avg(objects)
-    
+    roll_avg_path = os.path.join(output_dir, "CT_models_test_videos_rolling_avg.json")
+    write_json_file(roll_avg, roll_avg_path)
+
     for video in tqdm(roll_avg): 
         video_name = video['video']
         video_Fs = 30
@@ -275,16 +288,6 @@ def main():
         vis_detection_video(images_set, detector_label_map, frames_dir, 
             conf_threshold, output_dir, video_name, video_Fs)
 
-    ## Export out the updated files
-    output_file = os.path.splitext(frames_json)[0] + '_conf_' + str(conf_threshold) + '.json'
-    write_results_to_file(images, output_file)
-
-    videos_path = os.path.join(output_dir, "CT_models_test_videos.json")
-    write_json_file(videos, videos_path)
-
-    roll_avg_path = os.path.join(output_dir, "CT_models_test_videos_rolling_avg.json")
-    write_json_file(roll_avg, roll_avg_path)
-
 
 if __name__ == '__main__':
     ## Arguments
@@ -292,6 +295,6 @@ if __name__ == '__main__':
     frames_dir = "results/CT_models_test_2/video_frames"
     conf_threshold = 0.8
     iou_threshold = 0.5
-    rolling_avg_size = 64
+    rolling_avg_size = 32
 
     main()
