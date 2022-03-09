@@ -101,10 +101,10 @@ def bbox_iou(bbox_1, bbox_2):
     return iou
 
 
-def rm_bad_detections(images, conf_threshold, conf_threshold_buf):
+def rm_bad_detections(options, images):
     # provide some buffer and accept detections with a conf threshold 
     # conf_threshold_buf% less for rolling prediction averaging
-    conf_threshold_limit = conf_threshold_buf * conf_threshold 
+    conf_threshold_limit = options.conf_threshold_buf * options.rendering_confidence_threshold 
 
     for image in images: 
         detections = image['detections']
@@ -181,9 +181,9 @@ def add_object_number(videos, iou_threshold):
                             
                         # Check if the detection is an alr recorded object
                         det_categorised = False
-                        for i in range(len(objects)): 
-                            object_number = objects[i]["object_number"]
-                            bbox_object = objects[i]['bbox']
+                        for object in objects: 
+                            object_number = object["object_number"]
+                            bbox_object = object['bbox']
                             bbox_detection = detection['bbox']
                             
                             iou = bbox_iou(bbox_object, bbox_detection)
@@ -193,7 +193,7 @@ def add_object_number(videos, iou_threshold):
                             if iou >= iou_threshold:
                                 detection["object_number"] = object_number
 
-                                objects[i] = detection
+                                object = detection
                                 
                                 # print("Same object, which is {}".format(detection["object_number"]))
                                 det_categorised = True
@@ -273,8 +273,7 @@ def remove_video_layer(roll_avg):
 
 def rolling_avg(options, images):
     
-    images = rm_bad_detections(
-        images, options.rendering_confidence_threshold, options.conf_threshold_buf)
+    images = rm_bad_detections(options, images)
     output_images = copy.deepcopy(images)
 
     videos = add_video_layer(images)
@@ -298,7 +297,7 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
 
-    images_full, detector_label_map = load_detector_output(args.frames_json)
+    images_full, detector_label_map = load_detector_output(options.frames_json_file)
 
     roll_avg, output_images, output_videos, output_objects, output_roll_avg = rolling_avg(options, images_full)
 

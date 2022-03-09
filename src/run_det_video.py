@@ -68,7 +68,7 @@ def det_frames(options, image_file_names):
         n_cores=options.n_cores)
 
     ## Rolling prediction average 
-    roll_avg, _, _, _, _ = rolling_avg(results, options.rendering_confidence_threshold)
+    roll_avg, _, _, _, _ = rolling_avg(options, results)
 
     ## Save and export detection .json files
     write_results_to_file(roll_avg, options.frames_json_file, options.frame_folder)
