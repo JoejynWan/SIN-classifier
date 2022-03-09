@@ -118,16 +118,14 @@ def main():
     ## Detecting subjects in each video frame using MegaDetector
     
     image_file_names, Fs, frame_output_folder = video_dir_to_frames(options)
-    det_frames(options, image_file_names, frame_output_folder)
-
-    trainable_params = tf.trainable_variables()
-    print(trainable_params)
+    results = det_frames(options, image_file_names, frame_output_folder)
 
     ## Annotating and exporting to video
     if options.render_output_video:
-        vis_detection_videos(options.output_json_file, 
-                            frame_output_folder, Fs, options.output_dir, 
-                            options.rendering_confidence_threshold)
+        vis_detection_videos(
+            options.output_json_file, 
+            frame_output_folder, Fs, options.output_dir, 
+            options.rendering_confidence_threshold)
 
     ## Delete the frames stored in the temp folder (if delete_output_frames == TRUE)
     if options.delete_output_frames:
@@ -142,10 +140,10 @@ if __name__ == '__main__':
     ## Defining parameters within this script
     # Comment out if passing arguments from terminal directly
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
-    default_input_video_file = "data/CT_models_test"
-    default_output_dir = 'results/CT_models_test_2'
+    default_input_video_file = "data/test"
+    default_output_dir = 'results/test'
     
-    default_delete_output_frames = False
-    default_frame_folder = 'results/CT_models_test_2/video_frames'
+    default_delete_output_frames = True
+    default_frame_folder = None
 
     main()

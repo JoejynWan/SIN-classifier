@@ -168,8 +168,8 @@ def main():
     args = parser.parse_args()
 
     vis_detection_videos(args.input_frames_anno_file, 
-                        args.input_frames_base_dir, args.output_dir, 
-                        args.rendering_confidence_threshold) #TODO fix faulty missing Fs argument
+        args.input_frames_base_dir, args.output_dir, 
+        args.rendering_confidence_threshold) #TODO fix faulty missing Fs argument
 
 
 def get_arg_parser():

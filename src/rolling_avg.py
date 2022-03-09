@@ -5,7 +5,7 @@ import numpy as np
 from collections import deque
 
 from shared_utils import find_unqiue_videos, write_json_file, find_unique_objects
-from vis_detections import load_detector_output, vis_detection_video
+from vis_detections import load_detector_output, vis_detection_videos
 from detection.run_tf_detector_batch import write_results_to_file
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
@@ -146,7 +146,7 @@ def add_video_layer(images):
     return videos
 
 
-def add_object_number(videos):
+def add_object_number(videos, iou_threshold):
     
     updated_videos = copy.copy(videos)
 
@@ -208,7 +208,7 @@ def add_object_number(videos):
     return updated_videos
 
 
-def rolling_pred_avg(objects):
+def rolling_pred_avg(objects, rolling_avg_size):
 
     updated_objects = copy.copy(objects)
     
@@ -258,43 +258,76 @@ def rolling_pred_avg(objects):
     return updated_objects
 
 
-def main():
+def remove_video_layer(roll_avg):
+    images_only = []
+    for video in roll_avg:
+        images_only = images_only + video['images']
 
-    frames_json = os.path.join(output_dir, "CT_models_test_frames_det.json")
-    images_full, detector_label_map = load_detector_output(frames_json)
+    return images_only
 
-    conf_threshold_buf = 0.7
-    images = rm_bad_detections(images_full, conf_threshold, conf_threshold_buf)
-    output_file = os.path.splitext(frames_json)[0] + '_conf_' + str(conf_threshold) + '.json'
-    write_results_to_file(images, output_file)
+
+def rolling_avg(images, conf_threshold, 
+    rolling_avg_size = 32, iou_threshold = 0.5, conf_threshold_buf = 0.7):
+    
+    images = rm_bad_detections(images, conf_threshold, conf_threshold_buf)
+    output_images = copy.deepcopy(images)
 
     videos = add_video_layer(images)
+    output_videos = copy.deepcopy(videos)
+
+    objects = add_object_number(videos, iou_threshold)
+    output_objects = copy.deepcopy(objects)
+
+    roll_avg = rolling_pred_avg(objects, rolling_avg_size)
+    output_roll_avg = copy.deepcopy(roll_avg)
+
+    roll_avg_images = remove_video_layer(roll_avg)
+
+    return roll_avg_images, output_images, output_videos, output_objects, output_roll_avg
+
+
+def main():
+
+    images_full, detector_label_map = load_detector_output(frames_json)
+
+    roll_avg, output_images, output_videos, output_objects, output_roll_avg = rolling_avg(images_full, conf_threshold, conf_threshold_buf = 0.7)
+
+    # Fs = [30,30,30,30,30,30]
+    # vis_detection_videos(roll_avg, detector_label_map, frames_dir, Fs, 
+    #     output_dir, conf_threshold)
+
+    # for video in tqdm(roll_avg): 
+    #     video_name = video['video']
+    #     video_Fs = 30
+    #     images_set = video['images']
+
+    #     vis_detection_video(images_set, detector_label_map, frames_dir, 
+    #         conf_threshold, output_dir, video_name, video_Fs)
+
+    ## Save outputs for checking
+    output_file = os.path.splitext(frames_json)[0] + '_conf_' + str(conf_threshold) + '.json'
+    write_results_to_file(output_images, output_file)
+
     videos_path = os.path.join(output_dir, "CT_models_test_videos.json")
-    write_json_file(videos, videos_path)
+    write_json_file(output_videos, videos_path)
 
-    objects = add_object_number(videos)
     objects_path = os.path.join(output_dir, "CT_models_test_objects.json")
-    write_json_file(objects, objects_path)
+    write_json_file(output_objects, objects_path)
 
-    roll_avg = rolling_pred_avg(objects)
     roll_avg_path = os.path.join(output_dir, "CT_models_test_videos_rolling_avg.json")
-    write_json_file(roll_avg, roll_avg_path)
+    write_json_file(output_roll_avg, roll_avg_path)
 
-    for video in tqdm(roll_avg): 
-        video_name = video['video']
-        video_Fs = 30
-        images_set = video['images']
-
-        vis_detection_video(images_set, detector_label_map, frames_dir, 
-            conf_threshold, output_dir, video_name, video_Fs)
+    final_output_path = os.path.join(output_dir, "CT_models_test_final_output.json")
+    write_json_file(roll_avg, final_output_path)
 
 
 if __name__ == '__main__':
     ## Arguments
     output_dir = "results/CT_models_test_2"
+    frames_json = "results/CT_models_test_2/CT_models_test_frames_det.json"
     frames_dir = "results/CT_models_test_2/video_frames"
     conf_threshold = 0.8
-    iou_threshold = 0.5
-    rolling_avg_size = 32
+    # iou_threshold = 0.5
+    # rolling_avg_size = 32
 
     main()

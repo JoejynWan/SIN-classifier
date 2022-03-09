@@ -7,9 +7,11 @@ from pickle import FALSE, TRUE
 
 # Functions imported from this project
 from shared_utils import delete_temp_dir
+from rolling_avg import rolling_avg
 
 # Functions imported from Microsoft/CameraTraps github repository
-from detection import run_tf_detector_batch
+from detection.run_tf_detector_batch import load_and_run_detector_batch
+from detection.run_tf_detector_batch import write_results_to_file
 from detection.process_video import ProcessVideoOptions
 from detection.video_utils import video_folder_to_frames
 from detection.video_utils import frame_results_to_video_results
@@ -17,7 +19,11 @@ from ct_utils import args_to_object
 
 
 def video_dir_to_frames(options):
-    ## Split every video into frames, save frames in temp dir, and return the full path of each frame
+    """
+    Split every video into frames, save frames in temp dir, 
+    and return the full path of each frame. 
+    """
+
     if options.frame_folder is not None:
         frame_output_folder = options.frame_folder
     else:
@@ -26,7 +32,7 @@ def video_dir_to_frames(options):
             tempdir, os.path.basename(options.input_video_file) + '_frames_' + str(uuid1()))
     os.makedirs(frame_output_folder, exist_ok=True)
     
-    print("Saving videos as frames...")
+    print("Saving videos as frames in {}...".format(frame_output_folder))
     frame_filenames, Fs = video_folder_to_frames(
         input_folder=options.input_video_file, output_folder_base=frame_output_folder, 
         recursive=options.recursive, overwrite=True,
@@ -34,7 +40,7 @@ def video_dir_to_frames(options):
     
     image_file_names = list(itertools.chain.from_iterable(frame_filenames))
 
-    print("Success. Video frames saved in {}".format(frame_output_folder))
+    print("Done. Video frames successfully saved.")
 
     return image_file_names, Fs, frame_output_folder
 
@@ -55,20 +61,20 @@ def det_frames(options, image_file_names, frame_output_folder):
     os.makedirs(options.output_dir, exist_ok=True)
 
     ## Run detections on each frame
-    results = run_tf_detector_batch.load_and_run_detector_batch(
+    results = load_and_run_detector_batch(
         options.model_file, image_file_names,
         confidence_threshold=options.json_confidence_threshold,
         n_cores=options.n_cores)
 
     ## Rolling prediction average 
-    # TODO edit results object after prediction averaging 
+    roll_avg, _, _, _, _ = rolling_avg(results, options.rendering_confidence_threshold)
 
     ## Save and export detection .json files
-    run_tf_detector_batch.write_results_to_file(
-        results, frames_json,
-        relative_path_base = frame_output_folder)
+    write_results_to_file(roll_avg, frames_json, relative_path_base = frame_output_folder)
 
     frame_results_to_video_results(frames_json, video_json)
+
+    return roll_avg
 
 
 def get_arg_parser():
@@ -123,9 +129,8 @@ def get_arg_parser():
 def main(): 
     # Split videos into frames
     assert os.path.isdir(options.input_video_file),'{} is not a folder'.format(options.input_video_file)  
-    tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
 
-    image_file_names, Fs, frame_output_folder = video_dir_to_frames(options, tempdir)
+    image_file_names, Fs, frame_output_folder = video_dir_to_frames(options)
 
     # Run MegaDetector on each frame
     det_frames(options, image_file_names, frame_output_folder)
