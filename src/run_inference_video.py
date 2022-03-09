@@ -12,6 +12,8 @@ from vis_detections import vis_detection_videos
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
+
 
 def get_arg_parser():
     parser = argparse.ArgumentParser(
@@ -67,19 +69,7 @@ def get_arg_parser():
     return parser
 
 
-def main(): 
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
-    script_start_time = time.time()
-
-    ## Process Command line arguments
-    parser = get_arg_parser()
-    args = parser.parse_args()
-    options = VideoOptions()
-    args_to_object(args, options)
-
-    ## Check arguments
-    assert os.path.isdir(options.input_video_file),'{} is not a folder'.format(options.input_video_file)
-
+def check_output_dir(options):
     if os.path.exists(options.output_dir) and os.listdir(options.output_dir):
         while True:
             rewrite_input = input('\nThe output directory specified is not empty. Do you want to continue and rewrite the files in the directory? (y/n)')
@@ -91,12 +81,26 @@ def main():
         if rewrite_input.lower() == 'n':
             sys.exit('Stopping script. Please input the correct output directory. ')
 
+
+def main(): 
+    script_start_time = time.time()
+
+    ## Process Command line arguments
+    parser = get_arg_parser()
+    args = parser.parse_args()
+    options = VideoOptions()
+    args_to_object(args, options)
+
+    ## Check arguments
+    assert os.path.isdir(options.input_video_file),'{} is not a folder'.format(options.input_video_file)
+
+    check_output_dir(options)
+
     ## TODO
     # Check the memory of the output_dir and temp_dir to ensure that there is 
     # sufficient space to save the frames and videos 
 
     ## Detecting subjects in each video frame using MegaDetector
-    
     image_file_names, Fs = video_dir_to_frames(options)
     det_frames(options, image_file_names)
 

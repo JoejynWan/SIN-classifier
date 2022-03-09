@@ -15,6 +15,8 @@ from data_management.annotations.annotation_constants import (
 from ct_utils import args_to_object
 
 #%% Constants
+# Set to ignore INFO messages
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' 
 
 # Convert category ID from int to str
 DEFAULT_DETECTOR_LABEL_MAP = {

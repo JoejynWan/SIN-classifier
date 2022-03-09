@@ -17,6 +17,8 @@ from detection.video_utils import video_folder_to_frames
 from detection.video_utils import frame_results_to_video_results
 from ct_utils import args_to_object
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
+
 
 def video_dir_to_frames(options):
     """
@@ -59,6 +61,7 @@ def det_frames(options, image_file_names):
     os.makedirs(options.output_dir, exist_ok=True)
 
     ## Run detections on each frame
+    print("Running MegaDetector on each video frame...")
     results = load_and_run_detector_batch(
         options.model_file, image_file_names,
         confidence_threshold=options.json_confidence_threshold,
