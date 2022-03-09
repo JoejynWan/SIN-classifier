@@ -56,10 +56,10 @@ def get_arg_parser():
                         help = "don't render boxes with confidence below this threshold"
     )
     parser.add_argument('--n_cores', type=int,
-                        default = 1, help = 'number of cores to use for detection (CPU only)'
+                        default = 15, help = 'number of cores to use for detection (CPU only)'
     )
     parser.add_argument('--frame_sample', type=int,
-                        default = 2, help = 'procss every Nth frame (defaults to every frame)'
+                        default = None, help = 'procss every Nth frame (defaults to every frame)'
     )
     parser.add_argument('--debug_max_frames', type=int,
                         default = -1, help = 'trim to N frames for debugging (impacts model execution, not frame rendering)'
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     ## Defining parameters within this script
     # Comment out if passing arguments from terminal directly
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
-    default_input_video_file = "data/test"
-    default_output_dir = 'results/test'
+    default_input_video_file = "C:/temp_for_SSD_speed/CT_models"
+    default_output_dir = 'results/CT_models_w_RPA'
 
     main()
