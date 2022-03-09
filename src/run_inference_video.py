@@ -3,40 +3,14 @@ import sys
 import time
 import argparse
 import humanfriendly
-import tensorflow.compat.v1 as tf
 
 # Functions imported from this project
-from shared_utils import delete_temp_dir
+from shared_utils import delete_temp_dir, VideoOptions
 from run_det_video import video_dir_to_frames, det_frames
 from vis_detections import vis_detection_videos
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
-
-
-class VideoOptions:
-
-    model_file = ''
-    input_video_file = ''
-
-    output_dir = None
-    output_json_file = None
-    output_video_file = None
-
-    render_output_video = False
-    frame_folder = None
-    delete_output_frames = True
-    
-    reuse_results_if_available = False
-    recursive = False 
-
-    rendering_confidence_threshold = 0.8
-    json_confidence_threshold = 0.0
-    frame_sample = None
-    
-    n_cores = 1
-
-    debug_max_frames = -1
 
 
 def get_arg_parser():
@@ -57,29 +31,35 @@ def get_arg_parser():
                         default = default_output_dir, 
                         help = 'Path to folder where videos will be saved.'
     )
-    parser.add_argument('--render_output_video', type=bool,
-                        default = True, help='enable video output rendering (not rendered by default)'
+    parser.add_argument('--frame_json_file', type=str,
+                        default = None, 
+                        help = 'Path of json file with detections for each frame. Defaults to [output_dir]_frames_det.json'
     )
-    parser.add_argument('--output_video_file', type=str,
-                        default = None, help='video output file (or folder), defaults to [video file].mp4 for files, or [video file]_annotated] for folders'
+    parser.add_argument('--video_json_file', type=str,
+                        default = None, 
+                        help = 'Path of json file with consolidated detections for each video. Defaults to [output_dir]_video_det.json'
+    )
+    parser.add_argument('--render_output_video', type=bool,
+                        default = True, 
+                        help = 'Enable video output rendering.'
     )
     parser.add_argument('--frame_folder', type=str, 
-                        default = default_frame_folder, help = 'folder to use for intermediate frame storage, defaults to a folder in the system temporary folder'
+                        default = None, 
+                        help = 'Folder to use for intermediate frame storage, defaults to a folder in the system temporary folder'
     )
     parser.add_argument('--delete_output_frames', type=bool,
-                        default = default_delete_output_frames, help = 'enable/disable temporary file deletion (default True)'
+                        default = True, 
+                        help = 'enable/disable temporary file deletion (default True)'
     )
     parser.add_argument('--rendering_confidence_threshold', type=float,
-                        default = 0.8, help = "don't render boxes with confidence below this threshold"
-    )
-    parser.add_argument('--json_confidence_threshold', type=float,
-                        default = 0.0, help = "don't include boxes in the .json file with confidence below this threshold"
+                        default = 0.8, 
+                        help = "don't render boxes with confidence below this threshold"
     )
     parser.add_argument('--n_cores', type=int,
-                        default = 15, help = 'number of cores to use for detection (CPU only)'
+                        default = 1, help = 'number of cores to use for detection (CPU only)'
     )
     parser.add_argument('--frame_sample', type=int,
-                        default = None, help = 'procss every Nth frame (defaults to every frame)'
+                        default = 2, help = 'procss every Nth frame (defaults to every frame)'
     )
     parser.add_argument('--debug_max_frames', type=int,
                         default = -1, help = 'trim to N frames for debugging (impacts model execution, not frame rendering)'
@@ -117,21 +97,18 @@ def main():
 
     ## Detecting subjects in each video frame using MegaDetector
     
-    image_file_names, Fs, frame_output_folder = video_dir_to_frames(options)
-    results = det_frames(options, image_file_names, frame_output_folder)
+    image_file_names, Fs = video_dir_to_frames(options)
+    det_frames(options, image_file_names)
 
     ## Annotating and exporting to video
     if options.render_output_video:
-        vis_detection_videos(
-            options.output_json_file, 
-            frame_output_folder, Fs, options.output_dir, 
-            options.rendering_confidence_threshold)
+        vis_detection_videos(options, Fs)
 
     ## Delete the frames stored in the temp folder (if delete_output_frames == TRUE)
     if options.delete_output_frames:
-        delete_temp_dir(frame_output_folder)
+        delete_temp_dir(options.frame_folder)
     else:
-        print('Frames saved in {}'.format(frame_output_folder))
+        print('Frames saved in {}'.format(options.frame_folder))
 
     script_elapsed = time.time() - script_start_time
     print('Completed! Script successfully excecuted in {}'.format(humanfriendly.format_timespan(script_elapsed)))
@@ -142,8 +119,5 @@ if __name__ == '__main__':
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
     default_input_video_file = "data/test"
     default_output_dir = 'results/test'
-    
-    default_delete_output_frames = True
-    default_frame_folder = None
 
     main()

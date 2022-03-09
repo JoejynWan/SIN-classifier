@@ -4,18 +4,15 @@ import json
 from tqdm import tqdm
 import argparse
 import tempfile
-from pickle import TRUE
-from typing import Any
-from multiprocessing.pool import ThreadPool
 
 # Functions imported from this project
-from shared_utils import delete_temp_dir, find_unqiue_videos
+from shared_utils import delete_temp_dir, find_unqiue_videos, VideoOptions
 
 # Imported from Microsoft/CameraTraps github repository
 from visualization import visualization_utils as vis_utils
 from data_management.annotations.annotation_constants import (
     detector_bbox_category_id_to_name)  # here id is int
-
+from ct_utils import args_to_object
 
 #%% Constants
 
@@ -77,19 +74,18 @@ def frames_to_video(images, Fs, output_file_name):
     cv2.destroyAllWindows()
 
 
-def vis_detector_output(images, detector_label_map, images_dir, out_dir, confidence, output_image_width = 700):
+def vis_detector_output(options, images, detector_label_map, out_dir, output_image_width = 700):
     """
     Args: 
     images = list, detection dictionary for each of the image frames, loaded from the detector_output .json file
     detector_label_map = str, detector categories loaded from the detector_output .json file
     images_dir = str, path to the base folder containing the frames
     out_dir = str, temporary directory where annotated frame images will be saved
-    confidence = float, confidence threshold above which annotations will be rendered
     """
 
     ## Arguments error checking
-    assert confidence > 0 and confidence < 1, (
-        f'Confidence threshold {confidence} is invalid, must be in (0, 1).')
+    assert options.rendering_confidence_threshold > 0 and options.rendering_confidence_threshold < 1, (
+        f'Confidence threshold {options.rendering_confidence_threshold} is invalid, must be in (0, 1).')
     
     os.makedirs(out_dir, exist_ok=True)
     
@@ -101,7 +97,7 @@ def vis_detector_output(images, detector_label_map, images_dir, out_dir, confide
             print(f'Skipping {image_id}, failure: "{entry["failure"]}"')
             continue
 
-        image_obj = os.path.join(images_dir, image_id)
+        image_obj = os.path.join(options.frame_folder, image_id)
         if not os.path.exists(image_obj):
             print(f'Image {image_id} not found in images_dir; skipped.')
             continue
@@ -112,7 +108,7 @@ def vis_detector_output(images, detector_label_map, images_dir, out_dir, confide
 
         vis_utils.render_detection_bounding_boxes(
             entry['detections'], image, label_map=detector_label_map,
-            confidence_threshold=confidence)
+            confidence_threshold = options.rendering_confidence_threshold)
 
         for char in ['/', '\\', ':']:
             image_id = image_id.replace(char, '~')
@@ -122,24 +118,22 @@ def vis_detector_output(images, detector_label_map, images_dir, out_dir, confide
 
     return annotated_img_paths
 
-def vis_detection_video(images_set, detector_label_map, input_frames_base_dir, 
-    confidence, output_dir, video_name, video_Fs):
+def vis_detection_video(options, images_set, detector_label_map, video_name, video_Fs):
     
     tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
     rendering_output_dir = os.path.join(tempdir, 'detection_frames')
 
-    detected_frame_files = vis_detector_output(
-        images_set, detector_label_map, input_frames_base_dir, 
-        rendering_output_dir, confidence)
+    detected_frame_files = vis_detector_output(options, 
+        images_set, detector_label_map, rendering_output_dir)
     
-    output_video_file = os.path.join(output_dir, video_name)
+    output_video_file = os.path.join(options.output_dir, video_name)
     os.makedirs(os.path.split(output_video_file)[0], exist_ok=True)
     frames_to_video(detected_frame_files, video_Fs, output_video_file)
     
     delete_temp_dir(rendering_output_dir)
 
 
-def vis_detection_videos(input_frames_anno_file, input_frames_base_dir, Fs_per_video, output_dir, confidence):
+def vis_detection_videos(options, Fs_per_video):
     """
     Args:
     input_frames_anno_file = str, path to .json file describing the detections for each frame
@@ -148,28 +142,27 @@ def vis_detection_videos(input_frames_anno_file, input_frames_base_dir, Fs_per_v
     output_dir = str, path to the base folder where the annotated videos will be saved
     confidence = float, confidence threshold above which annotations will be rendered
     """
-    images, detector_label_map = load_detector_output(input_frames_anno_file)
+    images, detector_label_map = load_detector_output(options.frames_json_file)
 
-    unqiue_videos = find_unqiue_videos(images, output_dir)
+    unqiue_videos = find_unqiue_videos(images, options.output_dir)
 
     print('Rendering detections above a confidence threshold of {} for {} videos...'.format(
-        confidence, len(unqiue_videos)))
+        options.rendering_confidence_threshold, len(unqiue_videos)))
     
     for unqiue_video, Fs in tqdm(zip(unqiue_videos, Fs_per_video), total = len(unqiue_videos)):
         images_set = [s for s in images if unqiue_video in s['file']]
 
-        vis_detection_video(images_set, detector_label_map, input_frames_base_dir, 
-            confidence, output_dir, unqiue_video, Fs)
+        vis_detection_video(options, images_set, detector_label_map, unqiue_video, Fs)
 
 
 def main():
     ## Process Command line arguments
     parser = get_arg_parser()
     args = parser.parse_args()
+    options = VideoOptions()
+    args_to_object(args, options)
 
-    vis_detection_videos(args.input_frames_anno_file, 
-        args.input_frames_base_dir, args.output_dir, 
-        args.rendering_confidence_threshold) #TODO fix faulty missing Fs argument
+    vis_detection_videos(options) #TODO fix faulty missing Fs argument
 
 
 def get_arg_parser():
@@ -179,11 +172,11 @@ def get_arg_parser():
                         default = default_model_file, 
                         help='Path to .pb MegaDetector model file.'
     )
-    parser.add_argument('--input_frames_base_dir', type = str,
+    parser.add_argument('--frame_folder', type = str,
                         default = default_input_frames_base_dir,
                         help = 'Path to folder containing the video frames processed by det_videos.py'
     )
-    parser.add_argument('--input_frames_anno_file', type=str,
+    parser.add_argument('--frames_json_file', type=str,
                         default = default_input_frames_anno_file, 
                         help = '.json file depicting the detections for each frame of the video'
     )

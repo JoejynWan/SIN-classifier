@@ -25,6 +25,7 @@ def limit_wh_rel(coord):
 
 def bbbox_buffer(bbox_shape, buffer_scale):
     """
+    NOT USED.
     bbox_shape = list, containing x_min, y_min, w_rel, h_rel. 
         These values are from 0 to 1
         x_min and y_min denotes the position of the top left corner
@@ -292,17 +293,9 @@ def main():
 
     roll_avg, output_images, output_videos, output_objects, output_roll_avg = rolling_avg(images_full, conf_threshold, conf_threshold_buf = 0.7)
 
-    # Fs = [30,30,30,30,30,30]
-    # vis_detection_videos(roll_avg, detector_label_map, frames_dir, Fs, 
-    #     output_dir, conf_threshold)
-
-    # for video in tqdm(roll_avg): 
-    #     video_name = video['video']
-    #     video_Fs = 30
-    #     images_set = video['images']
-
-    #     vis_detection_video(images_set, detector_label_map, frames_dir, 
-    #         conf_threshold, output_dir, video_name, video_Fs)
+    Fs = [30,30,30,30,30,30] #TODO FIX only works for 6 videos
+    vis_detection_videos(roll_avg, detector_label_map, frames_dir, Fs, 
+        output_dir, conf_threshold)
 
     ## Save outputs for checking
     output_file = os.path.splitext(frames_json)[0] + '_conf_' + str(conf_threshold) + '.json'
@@ -327,7 +320,5 @@ if __name__ == '__main__':
     frames_json = "results/CT_models_test_2/CT_models_test_frames_det.json"
     frames_dir = "results/CT_models_test_2/video_frames"
     conf_threshold = 0.8
-    # iou_threshold = 0.5
-    # rolling_avg_size = 32
 
     main()

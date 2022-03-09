@@ -64,3 +64,28 @@ def write_json_file(output_object, output_path):
     with open(output_path, 'w') as f:
         json.dump(output_object, f, indent=1)
     print('Output file saved at {}'.format(output_path))
+
+
+class VideoOptions:
+
+    model_file = ''
+    input_video_file = ''
+    recursive = True 
+    
+    output_dir = None
+    
+    frames_json_file = None
+    video_json_file = None
+
+    render_output_video = False
+    frame_folder = None
+    delete_output_frames = True
+    
+    rendering_confidence_threshold = 0.8
+    frame_sample = None
+    
+    n_cores = 1
+
+    json_confidence_threshold = 0.0 # outdated. Don't include boxes in the .json file with confidence below this threshold
+    debug_max_frames = -1
+    reuse_results_if_available = False
