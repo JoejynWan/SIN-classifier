@@ -33,13 +33,21 @@ def get_arg_parser():
                         default = default_output_dir, 
                         help = 'Path to folder where videos will be saved.'
     )
-    parser.add_argument('--frame_json_file', type=str,
+    parser.add_argument('--full_det_frames_json', type=str,
                         default = None, 
-                        help = 'Path of json file with detections for each frame. Defaults to [output_dir]_frames_det.json'
+                        help = 'Path of json file with all detections for each frame.'
     )
-    parser.add_argument('--video_json_file', type=str,
+    parser.add_argument('--full_det_video_json', type=str,
                         default = None, 
-                        help = 'Path of json file with consolidated detections for each video. Defaults to [output_dir]_video_det.json'
+                        help = 'Path of json file with consolidated detections (consolidated across categories) for each video.'
+    )
+    parser.add_argument('--roll_avg_frames_json', type=str,
+                        default = None, 
+                        help = 'Path of json file with rolling-averaged detections for each frame.'
+    )
+    parser.add_argument('--roll_avg_video_json', type=str,
+                        default = None, 
+                        help = 'Path of json file with consolidated rolling-averaged detections (consolidated across categories) for each video.'
     )
     parser.add_argument('--render_output_video', type=bool,
                         default = True, 

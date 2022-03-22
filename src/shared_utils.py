@@ -74,8 +74,10 @@ class VideoOptions:
     
     output_dir = None
     
-    frames_json_file = None
-    video_json_file = None
+    full_det_frames_json = None
+    full_det_video_json = None
+    roll_avg_frames_json = None
+    roll_avg_video_json = None
 
     render_output_video = False
     delete_output_frames = True

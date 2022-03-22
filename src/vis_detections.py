@@ -144,7 +144,7 @@ def vis_detection_videos(options, Fs_per_video):
     output_dir = str, path to the base folder where the annotated videos will be saved
     confidence = float, confidence threshold above which annotations will be rendered
     """
-    images, detector_label_map = load_detector_output(options.frames_json_file)
+    images, detector_label_map = load_detector_output(options.roll_avg_frames_json)
 
     unqiue_videos = find_unqiue_videos(images, options.output_dir)
 
@@ -174,17 +174,17 @@ def get_arg_parser():
                         default = default_model_file, 
                         help='Path to .pb MegaDetector model file.'
     )
+    parser.add_argument('--output_dir', type=str,
+                        default = default_output_dir, 
+                        help = 'Path to folder where videos will be saved.'
+    )
     parser.add_argument('--frame_folder', type = str,
                         default = default_input_frames_base_dir,
                         help = 'Path to folder containing the video frames processed by det_videos.py'
     )
-    parser.add_argument('--frames_json_file', type=str,
+    parser.add_argument('--roll_avg_frames_json', type=str,
                         default = default_input_frames_anno_file, 
                         help = '.json file depicting the detections for each frame of the video'
-    )
-    parser.add_argument('--output_dir', type=str,
-                        default = default_output_dir, 
-                        help = 'Path to folder where videos will be saved.'
     )
     parser.add_argument('--rendering_confidence_threshold', type=float,
                         default=0.8, help="don't render boxes with confidence below this threshold"
