@@ -103,11 +103,11 @@ def get_arg_parser():
                         help = 'Enable video output rendering.'
     )
     parser.add_argument('--frame_folder', type=str, 
-                        default = None, 
+                        default = default_frame_folder, 
                         help = 'Folder to use for intermediate frame storage, defaults to a folder in the system temporary folder'
     )
     parser.add_argument('--delete_output_frames', type=bool,
-                        default = True, 
+                        default = False, 
                         help = 'enable/disable temporary file deletion (default True)'
     )
     parser.add_argument('--rendering_confidence_threshold', type=float,
@@ -132,5 +132,6 @@ if __name__ == '__main__':
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
     default_input_video_file = "data/example_test_set"
     default_output_dir = 'results/example_test_set'
+    default_frame_folder = 'results/example_test_set/frames'
 
     main()

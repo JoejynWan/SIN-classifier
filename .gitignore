@@ -2,5 +2,6 @@
 data/*
 data/splits/*
 results/*
+results/example_test_set/frames
 !results/example_test_set
 !data/example_test_set

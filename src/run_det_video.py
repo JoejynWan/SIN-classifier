@@ -6,7 +6,7 @@ from uuid import uuid1
 from pickle import FALSE, TRUE
 
 # Functions imported from this project
-from shared_utils import delete_temp_dir, VideoOptions
+from shared_utils import delete_temp_dir, VideoOptions, make_output_path
 from rolling_avg import rolling_avg
 
 # Functions imported from Microsoft/CameraTraps github repository
@@ -17,6 +17,26 @@ from detection.video_utils import frame_results_to_video_results
 from ct_utils import args_to_object
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
+
+
+def make_default_json(options):
+    if options.full_det_frames_json is None:
+        options.full_det_frames_json = make_output_path(
+            options.output_dir, options.input_video_file, '_full_det_frames.json')
+
+    if options.full_det_video_json is None:
+        options.full_det_video_json = make_output_path(
+            options.output_dir, options.input_video_file, '_full_det_videos.json')
+
+    if options.roll_avg_frames_json is None:
+        options.roll_avg_frames_json = make_output_path(
+            options.output_dir, options.input_video_file, '_roll_avg_frames.json')
+
+    if options.roll_avg_video_json is None:
+        options.roll_avg_video_json = make_output_path(
+            options.output_dir, options.input_video_file, '_roll_avg_videos.json')
+    
+    return options
 
 
 def video_dir_to_frames(options):
@@ -42,25 +62,12 @@ def video_dir_to_frames(options):
     
     image_file_names = list(itertools.chain.from_iterable(frame_filenames))
 
-    print("Done. Video frames successfully saved.")
-
     return image_file_names, Fs
 
 
 def det_frames(options, image_file_names):
-    ## Create the paths to save the .json file describing detections for each frame and video
-    if options.output_dir is None:
-        options.full_det_frames_json = options.input_video_file + '_full_det_frames.json'
-        options.full_det_video_json = options.input_video_file + '_full_det_videos.json'
-        options.roll_avg_frames_json = options.input_video_file + '_roll_avg_frames.json'
-        options.roll_avg_video_json = options.input_video_file + '_roll_avg_videos.json'
-    else:
-        input_folder_name = os.path.basename(options.input_video_file)
-        options.full_det_frames_json = os.path.join(options.output_dir, input_folder_name + '_full_det_frames.json')
-        options.full_det_video_json = os.path.join(options.output_dir, input_folder_name + '_full_det_videos.json')
-        options.roll_avg_frames_json = os.path.join(options.output_dir, input_folder_name + '_roll_avg_frames.json')
-        options.roll_avg_video_json = os.path.join(options.output_dir, input_folder_name + '_roll_avg_videos.json')
-    
+    ## Create the paths to save the .json file describing detections for each frame and video    
+    options = make_default_json(options)
     os.makedirs(options.output_dir, exist_ok=True)
 
     ## Run detections on each frame

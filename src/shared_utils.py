@@ -95,3 +95,13 @@ class VideoOptions:
     json_confidence_threshold = 0.0 # Outdated: will be overridden by rolling prediction averaging. Description: don't include boxes in the .json file with confidence below this threshold
     debug_max_frames = -1
     reuse_results_if_available = False
+
+def make_output_path(output_dir, input_video_file, file_suffix):
+    if output_dir is None:
+        output_file_name = input_video_file + file_suffix
+       
+    else:
+        input_folder_name = os.path.basename(input_video_file)
+        output_file_name = os.path.join(output_dir, input_folder_name + file_suffix)
+
+    return output_file_name
