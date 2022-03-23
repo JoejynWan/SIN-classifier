@@ -82,7 +82,7 @@ def write_json_file(output_object, output_path):
 class VideoOptions:
 
     model_file = ''
-    input_video_file = ''
+    input_dir = ''
     recursive = True 
     
     output_dir = None
@@ -109,12 +109,13 @@ class VideoOptions:
     debug_max_frames = -1
     reuse_results_if_available = False
 
-def make_output_path(output_dir, input_video_file, file_suffix):
+
+def make_output_path(output_dir, input_dir, file_suffix):
     if output_dir is None:
-        output_file_name = input_video_file + file_suffix
+        output_file_name = input_dir + file_suffix
        
     else:
-        input_folder_name = os.path.basename(input_video_file)
+        input_folder_name = os.path.basename(input_dir)
         output_file_name = os.path.join(output_dir, input_folder_name + file_suffix)
 
     return output_file_name

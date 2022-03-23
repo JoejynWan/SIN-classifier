@@ -38,7 +38,7 @@ def main():
     args_to_object(args, options)
 
     ## Check arguments
-    assert os.path.isdir(options.input_video_file),'{} is not a folder'.format(options.input_video_file)
+    assert os.path.isdir(options.input_dir),'{} is not a folder'.format(options.input_dir)
 
     check_output_dir(options)
 
@@ -71,12 +71,12 @@ def get_arg_parser():
                         default = default_model_file, 
                         help = 'Path to .pb MegaDetector model file.'
     )
-    parser.add_argument('--input_video_file', type=str, 
-                        default = default_input_video_file, 
-                        help = 'video file (or folder) to process'
+    parser.add_argument('--input_dir', type=str, 
+                        default = default_input_dir, 
+                        help = 'Path to folder containing the video(s) to be processed.'
     )
     parser.add_argument('--recursive', type=bool, 
-                        default = True, help = 'recurse into [input_video_file]; only meaningful if a folder is specified as input'
+                        default = True, help = 'recurse into [input_dir]; only meaningful if a folder is specified as input'
     )
     parser.add_argument('--output_dir', type=str,
                         default = default_output_dir, 
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     ## Defining parameters within this script
     # Comment out if passing arguments from terminal directly
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
-    default_input_video_file = "data/example_test_set"
+    default_input_dir = "data/example_test_set"
     default_output_dir = 'results/example_test_set'
     default_frame_folder = 'results/example_test_set/frames'
 

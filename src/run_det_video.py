@@ -27,19 +27,19 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
 def make_default_json(options):
     if options.full_det_frames_json is None:
         options.full_det_frames_json = make_output_path(
-            options.output_dir, options.input_video_file, '_full_det_frames.json')
+            options.output_dir, options.input_dir, '_full_det_frames.json')
 
     if options.full_det_video_json is None:
         options.full_det_video_json = make_output_path(
-            options.output_dir, options.input_video_file, '_full_det_videos.json')
+            options.output_dir, options.input_dir, '_full_det_videos.json')
 
     if options.roll_avg_frames_json is None:
         options.roll_avg_frames_json = make_output_path(
-            options.output_dir, options.input_video_file, '_roll_avg_frames.json')
+            options.output_dir, options.input_dir, '_roll_avg_frames.json')
 
     if options.roll_avg_video_json is None:
         options.roll_avg_video_json = make_output_path(
-            options.output_dir, options.input_video_file, '_roll_avg_videos.json')
+            options.output_dir, options.input_dir, '_roll_avg_videos.json')
     
     return options
 
@@ -55,13 +55,13 @@ def video_dir_to_frames(options):
     else:
         tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
         frame_output_folder = os.path.join(
-            tempdir, os.path.basename(options.input_video_file) + '_frames_' + str(uuid1()))
+            tempdir, os.path.basename(options.input_dir) + '_frames_' + str(uuid1()))
         options.frame_folder = frame_output_folder
     os.makedirs(frame_output_folder, exist_ok=True)
     
     print("Saving videos as frames in {}...".format(frame_output_folder))
     frame_filenames, Fs = video_folder_to_frames(
-        input_folder = options.input_video_file, output_folder_base = frame_output_folder, 
+        input_folder = options.input_dir, output_folder_base = frame_output_folder, 
         recursive = options.recursive, overwrite = True,
         n_threads = options.n_cores, every_n_frames = options.frame_sample)
     
@@ -228,7 +228,7 @@ def main():
     args_to_object(args, options)
 
     # Split videos into frames
-    assert os.path.isdir(options.input_video_file),'{} is not a folder'.format(options.input_video_file)  
+    assert os.path.isdir(options.input_dir),'{} is not a folder'.format(options.input_dir)  
 
     image_file_names, Fs = video_dir_to_frames(options)
 
@@ -247,13 +247,13 @@ def get_arg_parser():
                         default = default_model_file, 
                         help = 'Path to .pb MegaDetector model file.'
     )
-    parser.add_argument('--input_video_file', type=str, 
-                        default = default_input_video_file, 
+    parser.add_argument('--input_dir', type=str, 
+                        default = default_input_dir, 
                         help = 'video file (or folder) to process'
     )
     parser.add_argument('--recursive', type=bool, 
                         default=True, 
-                        help='recurse into [input_video_file]; only meaningful if a folder is specified as input'
+                        help='recurse into [input_dir]; only meaningful if a folder is specified as input'
     )
     parser.add_argument('--full_det_frames_json', type=str,
                         default = None, 
@@ -301,7 +301,7 @@ if __name__ == '__main__':
     ## Defining arguments within this script
     # Comment out if passing arguments from terminal directly
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
-    default_input_video_file = "C:/temp_for_SSD_speed/CT_models_test"
+    default_input_dir = "C:/temp_for_SSD_speed/CT_models_test"
     default_frame_folder = "C:/temp_for_SSD_speed/CT_models_test_frames"
     default_n_cores = '15'
     default_render_output_video = FALSE

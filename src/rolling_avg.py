@@ -5,7 +5,8 @@ import numpy as np
 from collections import deque
 
 # Functions imported from this project
-from shared_utils import find_unique_videos, write_json_file, find_unique_objects, VideoOptions
+from shared_utils import find_unique_videos, write_json_file, find_unique_objects
+from shared_utils import VideoOptions, make_output_path
 from vis_detections import load_detector_output, vis_detection_videos
 
 # Imported from Microsoft/CameraTraps github repository
@@ -297,6 +298,11 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
 
+    if options.roll_avg_frames_json is None: 
+        options.roll_avg_frames_json = make_output_path(
+            options.output_dir, options.input_dir, '_roll_avg_frames.json'
+        )
+
     images_full, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
 
     roll_avg, output_images, output_videos, output_objects, output_roll_avg = rolling_avg(options, images_full)
@@ -326,6 +332,10 @@ def get_arg_parser():
     parser.add_argument('--output_dir', type=str,
                         default = default_output_dir, 
                         help = 'Path to folder where videos will be saved.'
+    )
+    parser.add_argument('--input_dir', type=str, 
+                        default = default_input_dir, 
+                        help = 'Path to folder containing the video(s) to be processed.'
     )
     parser.add_argument('--full_det_frames_json', type=str,
                         default = default_full_det_frames_json, 
@@ -360,8 +370,9 @@ def get_arg_parser():
 
 if __name__ == '__main__':
     ## Arguments
-    default_output_dir = "results/example_test_set"
+    default_input_dir = 'data/example_test_set'
+    default_frame_folder = "data/example_test_set/frames"
     default_full_det_frames_json = "results/example_test_set/example_test_set_full_det_frames.json"
-    default_frame_folder = "results/CT_models_test_2/video_frames"
+    default_output_dir = "results/example_test_set"
 
     main()
