@@ -1,6 +1,7 @@
 import os
 import json
 import shutil
+from typing import Container
 
 
 def delete_temp_dir(directory):
@@ -15,7 +16,19 @@ def unique(x):
     return x
 
 
-def find_unqiue_videos(images, output_dir = None):
+VIDEO_EXTENSIONS = ('.mp4','.avi','.mpeg','.mpg')
+
+def is_video_file(s: str, video_extensions: Container[str] = VIDEO_EXTENSIONS
+                  ) -> bool:
+    """
+    Checks a file's extension against a hard-coded set of video file
+    extensions.
+    """
+    ext = os.path.splitext(s)[1]
+    return ext.lower() in video_extensions
+
+
+def find_unique_videos(images, output_dir = None):
     """
     Function to extract the unique videos in the frames.json file. 
     
@@ -41,9 +54,9 @@ def find_unqiue_videos(images, output_dir = None):
     if output_dir: 
         [os.makedirs(make_path, exist_ok=True) for make_path in unique(video_save_paths)]
     
-    unqiue_videos = unique(frames_paths)
+    unique_videos = unique(frames_paths)
     
-    return unqiue_videos
+    return unique_videos
 
 
 def find_unique_objects(images):

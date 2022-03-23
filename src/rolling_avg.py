@@ -5,7 +5,7 @@ import numpy as np
 from collections import deque
 
 # Functions imported from this project
-from shared_utils import find_unqiue_videos, write_json_file, find_unique_objects, VideoOptions
+from shared_utils import find_unique_videos, write_json_file, find_unique_objects, VideoOptions
 from vis_detections import load_detector_output, vis_detection_videos
 
 # Imported from Microsoft/CameraTraps github repository
@@ -134,7 +134,7 @@ def add_video_layer(images):
         "video" = 'name of the video'
         "images" = 'details of each frame of that video'
     """
-    video_paths = find_unqiue_videos(images)
+    video_paths = find_unique_videos(images)
 
     videos = []
     for video_path in video_paths:
@@ -297,14 +297,13 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
 
-    images_full, detector_label_map = load_detector_output(options.full_det_frames_json)
+    images_full, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
 
     roll_avg, output_images, output_videos, output_objects, output_roll_avg = rolling_avg(options, images_full)
 
     write_results_to_file(roll_avg, options.roll_avg_frames_json)
 
-    Fs = [30,30,30,30,30,30] #TODO FIX only works for 6 videos
-    vis_detection_videos(options, Fs)
+    vis_detection_videos(options)
 
     ## Save outputs for checking
     output_file = os.path.splitext(

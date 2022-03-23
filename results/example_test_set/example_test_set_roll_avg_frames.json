@@ -27471,8 +27471,27 @@
   "2": "person",
   "3": "vehicle"
  },
+ "videos": {
+  "num_videos": 6,
+  "video_names": [
+   "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0001.AVI",
+   "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0002.AVI",
+   "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0003.AVI",
+   "CT04_20211116_7A\\20211116_CT04\\IMG_0001.MP4",
+   "CT04_20211116_7A\\20211116_CT04\\IMG_0002.MP4",
+   "CT04_20211116_7A\\20211116_CT04\\IMG_0003.MP4"
+  ],
+  "frame_rates": [
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003,
+   30.0,
+   30.0,
+   30.0
+  ]
+ },
  "info": {
-  "detection_completion_time": "2022-03-23 04:49:28",
+  "detection_completion_time": "2022-03-23 07:24:03",
   "format_version": "1.0"
  }
 }

@@ -5,9 +5,9 @@ def main():
     parser = get_arg_parser()
     args = parser.parse_args()
 
-    images, detector_label_map = load_detector_output(args.full_det_frames_json)
+    images, detector_label_map, Fs = load_detector_output(args.full_det_frames_json)
 
-    
+
 
 def get_arg_parser():
     parser = argparse.ArgumentParser(

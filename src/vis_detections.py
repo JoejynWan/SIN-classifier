@@ -6,7 +6,7 @@ import argparse
 import tempfile
 
 # Functions imported from this project
-from shared_utils import delete_temp_dir, find_unqiue_videos, VideoOptions
+from shared_utils import delete_temp_dir, find_unique_videos, VideoOptions
 
 # Imported from Microsoft/CameraTraps github repository
 from visualization import visualization_utils as vis_utils
@@ -38,7 +38,9 @@ def load_detector_output(detector_output_path):
         print('detection_categories provided')
         detector_label_map = detector_output['detection_categories']
 
-    return images, detector_label_map
+    Fs = detector_output['videos']['frame_rates']
+
+    return images, detector_label_map, Fs
 
 
 def frames_to_video(images, Fs, output_file_name):
@@ -135,7 +137,7 @@ def vis_detection_video(options, images_set, detector_label_map, video_name, vid
     delete_temp_dir(rendering_output_dir)
 
 
-def vis_detection_videos(options, Fs_per_video):
+def vis_detection_videos(options):
     """
     Args:
     input_frames_anno_file = str, path to .json file describing the detections for each frame
@@ -144,17 +146,17 @@ def vis_detection_videos(options, Fs_per_video):
     output_dir = str, path to the base folder where the annotated videos will be saved
     confidence = float, confidence threshold above which annotations will be rendered
     """
-    images, detector_label_map = load_detector_output(options.roll_avg_frames_json)
+    images, detector_label_map, Fs = load_detector_output(options.roll_avg_frames_json)
 
-    unqiue_videos = find_unqiue_videos(images, options.output_dir)
+    unique_videos = find_unique_videos(images, options.output_dir)
 
     print('Rendering detections above a confidence threshold of {} for {} videos...'.format(
-        options.rendering_confidence_threshold, len(unqiue_videos)))
+        options.rendering_confidence_threshold, len(unique_videos)))
     
-    for unqiue_video, Fs in tqdm(zip(unqiue_videos, Fs_per_video), total = len(unqiue_videos)):
-        images_set = [s for s in images if unqiue_video in s['file']]
+    for unique_video, fs in tqdm(zip(unique_videos, Fs), total = len(unique_videos)):
+        images_set = [s for s in images if unique_video in s['file']]
 
-        vis_detection_video(options, images_set, detector_label_map, unqiue_video, Fs)
+        vis_detection_video(options, images_set, detector_label_map, unique_video, fs)
 
 
 def main():
@@ -164,7 +166,7 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
 
-    vis_detection_videos(options) #TODO fix faulty missing Fs argument
+    vis_detection_videos(options) 
 
 
 def get_arg_parser():

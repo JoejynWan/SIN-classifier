@@ -48,11 +48,11 @@ def main():
 
     ## Detecting subjects in each video frame using MegaDetector
     image_file_names, Fs = video_dir_to_frames(options)
-    det_frames(options, image_file_names)
+    det_frames(options, image_file_names, Fs)
 
     ## Annotating and exporting to video
     if options.render_output_video:
-        vis_detection_videos(options, Fs)
+        vis_detection_videos(options)
 
     ## Delete the frames stored in the temp folder (if delete_output_frames == TRUE)
     if options.delete_output_frames:
