@@ -297,18 +297,18 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
 
-    images_full, detector_label_map = load_detector_output(options.frames_json_file)
+    images_full, detector_label_map = load_detector_output(options.full_det_frames_json)
 
     roll_avg, output_images, output_videos, output_objects, output_roll_avg = rolling_avg(options, images_full)
 
-    write_results_to_file(roll_avg, options.frames_json_file)
+    write_results_to_file(roll_avg, options.roll_avg_frames_json)
 
     Fs = [30,30,30,30,30,30] #TODO FIX only works for 6 videos
     vis_detection_videos(options, Fs)
 
     ## Save outputs for checking
     output_file = os.path.splitext(
-        options.frames_json_file)[0] + '_conf_' + str(options.rendering_confidence_threshold) + '.json'
+        options.full_det_frames_json)[0] + '_conf_' + str(options.rendering_confidence_threshold) + '.json'
     write_results_to_file(output_images, output_file)
 
     videos_path = os.path.join(options.output_dir, "CT_models_test_videos.json")
@@ -328,9 +328,13 @@ def get_arg_parser():
                         default = default_output_dir, 
                         help = 'Path to folder where videos will be saved.'
     )
-    parser.add_argument('--frames_json_file', type=str,
-                        default = default_frames_json_file, 
+    parser.add_argument('--full_det_frames_json', type=str,
+                        default = default_full_det_frames_json, 
                         help = '.json file depicting the detections for each frame of the video'
+    )
+    parser.add_argument('--roll_avg_frames_json', type=str,
+                        default = None, 
+                        help = 'Path of json file with rolling-averaged detections for each frame.'
     )
     parser.add_argument('--frame_folder', type = str,
                         default = default_frame_folder,
@@ -357,8 +361,8 @@ def get_arg_parser():
 
 if __name__ == '__main__':
     ## Arguments
-    default_output_dir = "results/CT_models_test_2"
-    default_frames_json_file = "results/CT_models_test_2/CT_models_test_frames_det.json"
+    default_output_dir = "results/example_test_set"
+    default_full_det_frames_json = "results/example_test_set/example_test_set_full_det_frames.json"
     default_frame_folder = "results/CT_models_test_2/video_frames"
 
     main()
