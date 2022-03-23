@@ -5,15 +5,15 @@
    "frame_rate": 30.00030000300003,
    "detections": [
     {
-     "category": "1",
-     "conf": 0.027,
+     "category": "2",
+     "conf": 0.8635000000000002,
      "bbox": [
-      0.6879,
-      0.174,
-      0.3089,
-      0.7807
+      0,
+      0.01072,
+      0.9765,
+      0.94
      ],
-     "object_number": "object_3"
+     "object_number": "object_01"
     },
     {
      "category": "2",
@@ -34,17 +34,6 @@
    "frame_rate": 30.00030000300003,
    "detections": [
     {
-     "category": "1",
-     "conf": 0.7417812499999998,
-     "bbox": [
-      0.5809,
-      0.4583,
-      0.07043,
-      0.05779
-     ],
-     "object_number": "object_2"
-    },
-    {
      "category": "2",
      "conf": 0.98134375,
      "bbox": [
@@ -53,7 +42,7 @@
       0.2046,
       0.8571
      ],
-     "object_number": "object_1"
+     "object_number": "object_01"
     }
    ],
    "max_detection_conf": 0.98134375
@@ -61,36 +50,13 @@
   {
    "file": "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0003.AVI",
    "frame_rate": 30.00030000300003,
-   "detections": [
-    {
-     "category": "1",
-     "conf": 0.326,
-     "bbox": [
-      0.5771,
-      0.4552,
-      0.07236,
-      0.05866
-     ],
-     "object_number": "object_1"
-    }
-   ],
-   "max_detection_conf": 0.326
+   "detections": [],
+   "max_detection_conf": 0
   },
   {
    "file": "CT04_20211116_7A\\20211116_CT04\\IMG_0001.MP4",
    "frame_rate": 30.0,
    "detections": [
-    {
-     "category": "1",
-     "conf": 0.3470937499999999,
-     "bbox": [
-      0.4673,
-      0.002081,
-      0.5121,
-      0.9365
-     ],
-     "object_number": "object_1"
-    },
     {
      "category": "2",
      "conf": 0.9565833333333332,
@@ -100,7 +66,7 @@
       0.6161,
       0.9402
      ],
-     "object_number": "object_1"
+     "object_number": "object_01"
     }
    ],
    "max_detection_conf": 0.9565833333333332
@@ -108,57 +74,23 @@
   {
    "file": "CT04_20211116_7A\\20211116_CT04\\IMG_0002.MP4",
    "frame_rate": 30.0,
-   "detections": [
-    {
-     "category": "1",
-     "conf": 0.0394375,
-     "bbox": [
-      0.05029,
-      0.004922,
-      0.9497,
-      0.6611
-     ],
-     "object_number": "object_6"
-    },
-    {
-     "category": "2",
-     "conf": 0.7382812499999999,
-     "bbox": [
-      0,
-      0.001748,
-      0.9962,
-      0.9542
-     ],
-     "object_number": "object_6"
-    },
-    {
-     "category": "3",
-     "conf": 0.02940625,
-     "bbox": [
-      0.7521,
-      0.1407,
-      0.2477,
-      0.6345
-     ],
-     "object_number": "object_13"
-    }
-   ],
-   "max_detection_conf": 0.7382812499999999
+   "detections": [],
+   "max_detection_conf": 0
   },
   {
    "file": "CT04_20211116_7A\\20211116_CT04\\IMG_0003.MP4",
    "frame_rate": 30.0,
    "detections": [
     {
-     "category": "1",
-     "conf": 0.28724999999999995,
+     "category": "2",
+     "conf": 0.9885625000000001,
      "bbox": [
-      0.2002,
-      0.5983,
-      0.1814,
-      0.137
+      0.5411,
+      0.002064,
+      0.457,
+      0.9547
      ],
-     "object_number": "object_12"
+     "object_number": "object_01"
     },
     {
      "category": "2",
@@ -200,7 +132,7 @@
   ]
  },
  "info": {
-  "detection_completion_time": "2022-03-23 12:34:53",
+  "detection_completion_time": "2022-03-23 16:07:57",
   "format_version": "1.0"
  }
 }

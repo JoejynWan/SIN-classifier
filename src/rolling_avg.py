@@ -7,7 +7,9 @@ from collections import deque
 # Functions imported from this project
 from shared_utils import find_unique_videos, write_json_file, find_unique_objects
 from shared_utils import VideoOptions, make_output_path
+from shared_utils import write_frame_results, write_roll_avg_video_results
 from vis_detections import load_detector_output, vis_detection_videos
+from run_det_video import write_frame_results
 
 # Imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
@@ -172,7 +174,7 @@ def add_object_number(videos, iou_threshold):
                     #first detection of the video is always a new unique object
                     if not objects: 
                         
-                        detection["object_number"] = "object_" + str(object_num)
+                        detection["object_number"] = "object_" + str(object_num).zfill(2)
 
                         objects.append(detection)
                         
@@ -205,7 +207,7 @@ def add_object_number(videos, iou_threshold):
                             # Since the detection is NOT an alr recorded object, 
                             # add in a new object
                             object_num = object_num + 1
-                            detection["object_number"] = "object_" + str(object_num)
+                            detection["object_number"] = "object_" + str(object_num).zfill(2)
 
                             objects.append(detection)
                             
@@ -303,11 +305,17 @@ def main():
             options.output_dir, options.input_dir, '_roll_avg_frames.json'
         )
 
+    if options.roll_avg_video_json is None: 
+        options.roll_avg_video_json = make_output_path(
+            options.output_dir, options.input_dir, '_roll_avg_videos.json'
+        )
+
     images_full, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
 
     roll_avg, output_images, output_videos, output_objects, output_roll_avg = rolling_avg(options, images_full)
 
-    write_results_to_file(roll_avg, options.roll_avg_frames_json)
+    write_frame_results(roll_avg, Fs, options.roll_avg_frames_json)
+    write_roll_avg_video_results(options)
 
     vis_detection_videos(options)
 
@@ -364,6 +372,9 @@ def get_arg_parser():
     parser.add_argument('--conf_threshold_buf', type=float,
                         default = 0.7, 
                         help = "Buffer for the rendering confidence threshold to allow for 'poorer' detections to be included in rolling prediction averaging."
+    )
+    parser.add_argument('--nth_highest_confidence', type=float,
+                        default=1, help="nth-highest-confidence frame to choose a confidence value for each video"
     )
     return parser
 

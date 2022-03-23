@@ -1,17 +1,13 @@
 import os
 import argparse
 
-from shared_utils import make_output_path, VideoOptions, find_unique_videos
+from shared_utils import make_output_path, VideoOptions, find_unique_videos, unique
 from rolling_avg import rolling_avg
 from vis_detections import load_detector_output
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
 
-def images_json_to_csv(images):
-    
-    unique_videos = find_unique_videos(images)
-    
 
 def main():
     parser = get_arg_parser()
@@ -29,7 +25,6 @@ def main():
     images_full, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
 
     roll_avg, _, _, _, _ = rolling_avg(options, images_full)
-
 
 
 def get_arg_parser():
