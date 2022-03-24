@@ -50,7 +50,7 @@ def main():
     ## Getting the results from manual detection
     if options.check_accuracy:
         manualID_file = make_output_path(options.output_dir, options.input_dir, "_manual_ID.csv")
-        manual_ID_csv(options.input_dir, manualID_file)
+        manual_ID_csv(options.input_dir, options.species_database_file, manualID_file)
 
     ## Detecting subjects in each video frame using MegaDetector
     image_file_names, Fs = video_dir_to_frames(options)
@@ -129,8 +129,11 @@ def get_arg_parser():
     parser.add_argument('--debug_max_frames', type=int,
                         default = -1, help = 'trim to N frames for debugging (impacts model execution, not frame rendering)'
     )
-    parser.add_argument('--check_accuracy', type=int,
+    parser.add_argument('--check_accuracy', type=bool,
                         default = True, help = 'Whether accuracy of MegaDetector should be checked with manual ID. Folder names must contain species and quantity.'
+    )
+    parser.add_argument('--species_database_file', type=str,
+                        default = default_species_database_file, help = 'Path to the species_database.csv which describes details of species.'
     )
     return parser
 
@@ -139,8 +142,9 @@ if __name__ == '__main__':
     ## Defining parameters within this script
     # Comment out if passing arguments from terminal directly
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
-    default_input_dir = "data/20211119"
-    default_output_dir = 'results/20211119'
+    default_input_dir = "data/20211119_test"
+    default_output_dir = 'results/20211119_test'
+    default_species_database_file = 'data/species_database.csv'
     default_frame_folder = None
 
     main()

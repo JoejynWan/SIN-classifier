@@ -120,6 +120,7 @@ class VideoOptions:
     reuse_results_if_available = False
 
     check_accuracy = False
+    species_database_file = None
 
 
 def make_output_path(output_dir, input_dir, file_suffix):
@@ -284,7 +285,7 @@ def json_to_csv(images, csv_file):
         if not detections: #no detections, so false trigger
 
             obj_row = {
-                'video': video,
+                'FullVideoPath': video,
                 'frame_rate': frame_rate,
                 'category': 0,
                 'detected_obj': pd.NA,
@@ -302,7 +303,7 @@ def json_to_csv(images, csv_file):
             for detection in detections:
 
                 obj_row = {
-                    'video': video,
+                    'FullVideoPath': video,
                     'frame_rate': frame_rate,
                     'category': detection['category'],
                     'detected_obj': detection['object_number'],
@@ -360,7 +361,7 @@ def write_roll_avg_video_results(options):
 
         # Output dict for this video
         im_out = {}
-        im_out['FullVideoPath'] = unique_video
+        im_out['file'] = unique_video
         im_out['frame_rate'] = int(fs)
         im_out['detections'] = top_obj_detections
         im_out['max_detection_conf'] = 0

@@ -81,6 +81,7 @@ def main():
 
     manual_ID_csv(input_dir, species_database_file, csv_output_file)
 
+
 if __name__ == '__main__':
     input_dir = 'data/20211119'
     output_dir = 'results/20211119_test'
