@@ -64,8 +64,6 @@ def video_dir_to_frames(options):
     return image_file_names, Fs
 
 
-
-
 def det_frames(options, image_file_names, Fs):
     ## Create the paths to save the .json file describing detections for each frame and video    
     options = make_default_json(options)

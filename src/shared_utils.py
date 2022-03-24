@@ -3,6 +3,7 @@ import json
 import copy
 import json
 import shutil
+import pandas as pd
 from tqdm import tqdm
 from typing import Container
 from datetime import datetime
@@ -270,7 +271,42 @@ def find_unique_objects(images):
     return(unique_objs)
 
 
-def write_roll_avg_video_results(options, ):
+def json_to_csv(images, csv_file):
+
+    video_pd = pd.DataFrame()
+    for image in images:
+        video = image['file']
+        frame_rate = image['frame_rate']
+        detections = image['detections']
+
+        for detection in detections:
+            obj = detection['object_number']
+            category = detection['category']
+            conf = detection['conf']
+            x_min = detection['bbox'][0]
+            y_min = detection['bbox'][1]
+            w_rel = detection['bbox'][2]
+            h_rel = detection['bbox'][3]
+
+            obj_row = {
+                'video': video,
+                'frame_rate': frame_rate,
+                'detected_obj': obj,
+                'category': category,
+                'max_conf': conf,
+                'bbox_x_min': x_min,
+                'bbox_y_min': y_min,
+                'bbox_w_rel': w_rel,
+                'bbox_h_rel': h_rel
+            }
+            obj_row_pd = pd.DataFrame(obj_row, index = [0])
+
+            video_pd = video_pd.append(obj_row_pd)
+    
+    video_pd.to_csv(csv_file)
+
+
+def write_roll_avg_video_results(options):
     
     # Load frame-level results
     with open(options.roll_avg_frames_json,'r') as f:
@@ -328,3 +364,6 @@ def write_roll_avg_video_results(options, ):
     # Write the output file
     with open(options.roll_avg_video_json,'w') as f:
         f.write(s)
+
+    roll_avg_video_csv = os.path.splitext(options.roll_avg_video_json)[0] + '.csv'
+    json_to_csv(output_images, roll_avg_video_csv)
