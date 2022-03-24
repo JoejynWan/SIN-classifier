@@ -119,6 +119,8 @@ class VideoOptions:
     debug_max_frames = -1
     reuse_results_if_available = False
 
+    check_accuracy = False
+
 
 def make_output_path(output_dir, input_dir, file_suffix):
     if output_dir is None:
@@ -358,7 +360,7 @@ def write_roll_avg_video_results(options):
 
         # Output dict for this video
         im_out = {}
-        im_out['file'] = unique_video
+        im_out['FullVideoPath'] = unique_video
         im_out['frame_rate'] = int(fs)
         im_out['detections'] = top_obj_detections
         im_out['max_detection_conf'] = 0

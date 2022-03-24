@@ -5,9 +5,10 @@ import argparse
 import humanfriendly
 
 # Functions imported from this project
-from shared_utils import delete_temp_dir, VideoOptions
+from shared_utils import delete_temp_dir, VideoOptions, make_output_path
 from run_det_video import video_dir_to_frames, det_frames
 from vis_detections import vis_detection_videos
+from video_metadata import manual_ID_csv
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
@@ -45,6 +46,11 @@ def main():
     ## TODO
     # Check the memory of the output_dir and temp_dir to ensure that there is 
     # sufficient space to save the frames and videos 
+
+    ## Getting the results from manual detection
+    if options.check_accuracy:
+        manualID_file = make_output_path(options.output_dir, options.input_dir, "_manual_ID.csv")
+        manual_ID_csv(options.input_dir, manualID_file)
 
     ## Detecting subjects in each video frame using MegaDetector
     image_file_names, Fs = video_dir_to_frames(options)
@@ -123,6 +129,9 @@ def get_arg_parser():
     parser.add_argument('--debug_max_frames', type=int,
                         default = -1, help = 'trim to N frames for debugging (impacts model execution, not frame rendering)'
     )
+    parser.add_argument('--check_accuracy', type=int,
+                        default = True, help = 'Whether accuracy of MegaDetector should be checked with manual ID. Folder names must contain species and quantity.'
+    )
     return parser
 
 
@@ -130,8 +139,8 @@ if __name__ == '__main__':
     ## Defining parameters within this script
     # Comment out if passing arguments from terminal directly
     default_model_file = "../MegaDetectorModel_v4.1/md_v4.1.0.pb"
-    default_input_dir = "data/example_test_set"
-    default_output_dir = 'results/example_test_set'
+    default_input_dir = "data/20211119"
+    default_output_dir = 'results/20211119'
     default_frame_folder = None
 
     main()

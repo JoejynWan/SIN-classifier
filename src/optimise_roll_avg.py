@@ -1,7 +1,7 @@
 import os
 import argparse
 
-from shared_utils import make_output_path, VideoOptions, find_unique_videos, unique
+from shared_utils import make_output_path, VideoOptions
 from rolling_avg import rolling_avg
 from vis_detections import load_detector_output
 
