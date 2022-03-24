@@ -1,7 +1,9 @@
-# Ignore contents of these folders
+## Ignore all data and results, except for the example_test_set
 data/*
 data/splits/*
 results/*
-results/example_test_set/frames
 !results/example_test_set
 !data/example_test_set
+
+## Ignore depreciated folder which contains old code/data
+depreciated/
