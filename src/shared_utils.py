@@ -279,31 +279,42 @@ def json_to_csv(images, csv_file):
         frame_rate = image['frame_rate']
         detections = image['detections']
 
-        for detection in detections:
-            obj = detection['object_number']
-            category = detection['category']
-            conf = detection['conf']
-            x_min = detection['bbox'][0]
-            y_min = detection['bbox'][1]
-            w_rel = detection['bbox'][2]
-            h_rel = detection['bbox'][3]
+        if not detections: #no detections, so false trigger
 
             obj_row = {
                 'video': video,
                 'frame_rate': frame_rate,
-                'detected_obj': obj,
-                'category': category,
-                'max_conf': conf,
-                'bbox_x_min': x_min,
-                'bbox_y_min': y_min,
-                'bbox_w_rel': w_rel,
-                'bbox_h_rel': h_rel
+                'category': 0,
+                'detected_obj': pd.NA,
+                'max_conf': pd.NA,
+                'bbox_x_min': pd.NA,
+                'bbox_y_min': pd.NA,
+                'bbox_w_rel': pd.NA,
+                'bbox_h_rel': pd.NA
             }
             obj_row_pd = pd.DataFrame(obj_row, index = [0])
 
             video_pd = video_pd.append(obj_row_pd)
+
+        else: 
+            for detection in detections:
+
+                obj_row = {
+                    'video': video,
+                    'frame_rate': frame_rate,
+                    'category': detection['category'],
+                    'detected_obj': detection['object_number'],
+                    'max_conf': detection['conf'],
+                    'bbox_x_min': detection['bbox'][0],
+                    'bbox_y_min': detection['bbox'][1],
+                    'bbox_w_rel': detection['bbox'][2],
+                    'bbox_h_rel': detection['bbox'][3]
+                }
+                obj_row_pd = pd.DataFrame(obj_row, index = [0])
+
+                video_pd = video_pd.append(obj_row_pd)
     
-    video_pd.to_csv(csv_file)
+    video_pd.to_csv(csv_file, index = False)
 
 
 def write_roll_avg_video_results(options):
