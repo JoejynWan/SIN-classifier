@@ -4,7 +4,6 @@ import copy
 import json
 import shutil
 import pandas as pd
-from tqdm import tqdm
 from typing import Container
 from datetime import datetime
 from collections import defaultdict
@@ -90,46 +89,57 @@ def write_json_file(output_object, output_path):
 
 class VideoOptions:
 
-    model_file = ''
     input_dir = ''
-    recursive = True 
-    
     output_dir = None
+
+    model_file = ''
+    species_database_file = None
+
+    recursive = True 
+    n_cores = 1
     
     full_det_frames_json = None
     full_det_video_json = None
-    roll_avg_frames_json = None
-    roll_avg_video_json = None
+
+    frame_sample = None
+    debug_max_frames = -1
+    reuse_results_if_available = False
+    json_confidence_threshold = 0.0 # Outdated: will be overridden by rolling prediction averaging. Description: don't include boxes in the .json file with confidence below this threshold
 
     render_output_video = False
     delete_output_frames = True
     frame_folder = None
-    
     rendering_confidence_threshold = 0.8
-    frame_sample = None
-    
+
     rolling_avg_size = 32
     iou_threshold = 0.5
     conf_threshold_buf = 0.7
     nth_highest_confidence = 1
 
-    n_cores = 1
-
-    json_confidence_threshold = 0.0 # Outdated: will be overridden by rolling prediction averaging. Description: don't include boxes in the .json file with confidence below this threshold
-    debug_max_frames = -1
-    reuse_results_if_available = False
-
+    roll_avg_frames_json = None
+    roll_avg_video_json = None
+    roll_avg_video_csv = None
+    
     check_accuracy = False
-    species_database_file = None
+    manual_ID_csv = None
 
 
-def make_output_path(output_dir, input_dir, file_suffix):
-    if output_dir is None:
-        output_file_name = input_dir + file_suffix
-       
+def default_path_from_none(output_dir, input_dir, file_path, file_suffix):
+    """
+    Creates the default path for the output files if not defined by the user.
+    Default path is based on the output_dir, input_dir, and file_suffix. 
+    """
+    if file_path is None: 
+    
+        if output_dir is None:
+            output_file_name = input_dir + file_suffix
+        
+        else:
+            input_folder_name = os.path.basename(input_dir)
+            output_file_name = os.path.join(output_dir, input_folder_name + file_suffix)
+
     else:
-        input_folder_name = os.path.basename(input_dir)
-        output_file_name = os.path.join(output_dir, input_folder_name + file_suffix)
+        output_file_name = file_path
 
     return output_file_name
 
@@ -198,7 +208,7 @@ def write_video_results(input_file,output_file, nth_highest_confidence = 1):
     
     video_to_frames = defaultdict(list) 
     
-    for im in tqdm(images):
+    for im in images:
         
         fn = im['file']
         video_name = os.path.dirname(fn)
@@ -206,11 +216,8 @@ def write_video_results(input_file,output_file, nth_highest_confidence = 1):
         video_to_frames[video_name].append(im)
     
     ## For each video...
-    print('Converting {} frame-level results to {} video-level results by keeping only one detection per category.'.format(
-        len(images), len(video_to_frames)))
-
     output_images = []
-    for video_name, fs in tqdm(zip(video_to_frames, Fs)):
+    for video_name, fs in zip(video_to_frames, Fs):
         
         frames = video_to_frames[video_name]
         
@@ -256,6 +263,7 @@ def write_video_results(input_file,output_file, nth_highest_confidence = 1):
     # Write the output file
     with open(output_file,'w') as f:
         f.write(s)
+    print('Output file saved at {}'.format(output_file))
 
 
 def find_unique_objects(images):
@@ -332,11 +340,8 @@ def write_roll_avg_video_results(options):
     # Find one object detection for each video
     unique_videos = find_unique_videos(images)
 
-    print('Converting {} frame-level results to {} video-level results by keeping only one detection per object.'.format(
-        len(images), len(unique_videos)))
-
     output_images = []
-    for unique_video, fs in tqdm(zip(unique_videos, Fs)):
+    for unique_video, fs in zip(unique_videos, Fs):
         frames = [im for im in images if unique_video in im['file']]
 
         unique_objs = find_unique_objects(frames)
@@ -376,8 +381,18 @@ def write_roll_avg_video_results(options):
     s = json.dumps(output_data,indent=1)
     
     # Write the output file
+    options.roll_avg_video_json = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.roll_avg_video_json, '_roll_avg_videos.json'
+    )
+
     with open(options.roll_avg_video_json,'w') as f:
         f.write(s)
+    print('Output file saved at {}'.format(options.roll_avg_video_json))
 
-    roll_avg_video_csv = os.path.splitext(options.roll_avg_video_json)[0] + '.csv'
-    json_to_csv(output_images, roll_avg_video_csv)
+    options.roll_avg_video_csv = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.roll_avg_video_csv, '_roll_avg_videos.csv'
+    )
+    json_to_csv(output_images, options.roll_avg_video_csv)
+    print('Output file saved at {}'.format(options.roll_avg_video_csv))

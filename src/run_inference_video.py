@@ -9,7 +9,7 @@ import config
 from shared_utils import delete_temp_dir, VideoOptions
 from run_det_video import video_dir_to_frames, det_frames
 from vis_detections import vis_detection_videos
-from video_metadata import manual_ID_results
+from manual_ID import manual_ID_results
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
@@ -50,16 +50,21 @@ def main():
 
     ## Getting the results from manual detection
     if options.check_accuracy:
-        
         manual_ID_results(options)
+
+        manual_det_endtime = time.time()
 
     ## Detecting subjects in each video frame using MegaDetector
     image_file_names, Fs = video_dir_to_frames(options)
     det_frames(options, image_file_names, Fs)
-
+    
+    megadetector_endtime = time.time()
+    
     ## Annotating and exporting to video
     if options.render_output_video:
         vis_detection_videos(options)
+
+        vis_endtime = time.time()
 
     ## Delete the frames stored in the temp folder (if delete_output_frames == TRUE)
     if options.delete_output_frames:
@@ -89,22 +94,6 @@ def get_arg_parser():
     parser.add_argument('--output_dir', type=str,
                         default = config.OUTPUT_DIR, 
                         help = 'Path to folder where videos will be saved.'
-    )
-    parser.add_argument('--full_det_frames_json', type=str,
-                        default = config.FULL_DET_FRAMES_JSON, 
-                        help = 'Path of json file with all detections for each frame.'
-    )
-    parser.add_argument('--full_det_video_json', type=str,
-                        default = config.FULL_DET_VIDEO_JSON, 
-                        help = 'Path of json file with consolidated detections (consolidated across categories) for each video.'
-    )
-    parser.add_argument('--roll_avg_frames_json', type=str,
-                        default = config.ROLL_AVG_FRAMES_JSON, 
-                        help = 'Path of json file with rolling-averaged detections for each frame.'
-    )
-    parser.add_argument('--roll_avg_video_json', type=str,
-                        default = config.ROLL_AVG_VIDEO_JSON, 
-                        help = 'Path of json file with consolidated rolling-averaged detections (consolidated across categories) for each video.'
     )
     parser.add_argument('--render_output_video', type=bool,
                         default = config.RENDER_OUTPUT_VIDEO, 

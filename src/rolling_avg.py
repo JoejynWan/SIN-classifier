@@ -7,7 +7,7 @@ from collections import deque
 # Functions imported from this project
 import config
 from shared_utils import find_unique_videos, write_json_file, find_unique_objects
-from shared_utils import VideoOptions, make_output_path
+from shared_utils import VideoOptions, default_path_from_none
 from shared_utils import write_frame_results, write_roll_avg_video_results
 from vis_detections import load_detector_output, vis_detection_videos
 from run_det_video import write_frame_results
@@ -275,7 +275,7 @@ def remove_video_layer(roll_avg):
     return images_only
 
 
-def rolling_avg(options, images):
+def rolling_avg(options, images, Fs):
     
     images = rm_bad_detections(options, images)
     output_images = copy.deepcopy(images)
@@ -291,6 +291,15 @@ def rolling_avg(options, images):
 
     roll_avg_images = remove_video_layer(roll_avg)
 
+    ## Write the output files
+    options.roll_avg_frames_json = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.roll_avg_frames_json, '_roll_avg_frames.json'
+    )
+
+    write_frame_results(roll_avg_images, Fs, options.roll_avg_frames_json, options.frame_folder)
+    write_roll_avg_video_results(options)
+
     return roll_avg_images, output_images, output_videos, output_objects, output_roll_avg
 
 
@@ -301,21 +310,10 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
 
-    if options.roll_avg_frames_json is None: 
-        options.roll_avg_frames_json = make_output_path(
-            options.output_dir, options.input_dir, '_roll_avg_frames.json'
-        )
-
-    if options.roll_avg_video_json is None: 
-        options.roll_avg_video_json = make_output_path(
-            options.output_dir, options.input_dir, '_roll_avg_videos.json'
-        )
-
     images_full, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
 
-    roll_avg, output_images, output_videos, output_objects, output_roll_avg = rolling_avg(options, images_full)
+    roll_avg, output_images, output_videos, output_objects, output_roll_avg = rolling_avg(options, images_full, Fs)
 
-    write_frame_results(roll_avg, Fs, options.roll_avg_frames_json)
     write_roll_avg_video_results(options)
 
     vis_detection_videos(options)
@@ -345,14 +343,6 @@ def get_arg_parser():
     parser.add_argument('--input_dir', type=str, 
                         default = config.INPUT_DIR, 
                         help = 'Path to folder containing the video(s) to be processed.'
-    )
-    parser.add_argument('--full_det_frames_json', type=str,
-                        default = config.FULL_DET_FRAMES_JSON, 
-                        help = '.json file depicting the detections for each frame of the video'
-    )
-    parser.add_argument('--roll_avg_frames_json', type=str,
-                        default = config.ROLL_AVG_FRAMES_JSON, 
-                        help = 'Path of json file with rolling-averaged detections for each frame.'
     )
     parser.add_argument('--frame_folder', type = str,
                         default = config.FRAME_FOLDER,

@@ -39,7 +39,7 @@ NTH_HIGHEST_CONFIDENCE = 1
 
 ROLL_AVG_FRAMES_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_avg_frames.json'
 ROLL_AVG_VIDEO_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_avg_videos.json'
-
+ROLL_AVG_VIDEO_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_avg_videos.csv'
 
 ## Settings for comparing MegaDetector results with manual identification results
 CHECK_ACCURACY = True

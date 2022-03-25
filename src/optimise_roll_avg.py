@@ -3,7 +3,7 @@ import argparse
 
 # Functions imported from this project
 import config
-from shared_utils import make_output_path, VideoOptions
+from shared_utils import VideoOptions
 from rolling_avg import rolling_avg
 from vis_detections import load_detector_output
 
@@ -17,11 +17,7 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
 
-    # Set output file name and create output folder if not present
-    if options.roll_avg_frames_json is None: 
-        options.roll_avg_frames_json = make_output_path(
-            options.output_dir, options.input_dir, '_roll_avg_frames.json'
-        )
+    # Create output folder if not present
     os.makedirs(options.output_dir, exist_ok=True)
 
     images_full, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)

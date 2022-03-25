@@ -5,7 +5,7 @@ from datetime import datetime
 
 # Functions imported from this project
 import config
-from shared_utils import make_output_path, unique, VideoOptions
+from shared_utils import default_path_from_none, unique, VideoOptions
 
 # Functions imported from Microsoft/CameraTraps github repository
 from detection.video_utils import find_videos
@@ -13,8 +13,6 @@ from ct_utils import args_to_object
 
 
 def manual_ID_results(options):
-
-    options.manual_ID_csv = make_output_path(options.output_dir, options.input_dir, "_manual_ID.csv")
 
     input_dir_full_paths = find_videos(options.input_dir, recursive=True)
     vids_rel_paths = [os.path.relpath(s,options.input_dir) for s in input_dir_full_paths]
@@ -77,7 +75,13 @@ def manual_ID_results(options):
     true_vids_output = true_vids_output.fillna('NA')
     true_vids_output = true_vids_output[col_order]
 
+    ## Write output file
+    options.manual_ID_csv = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.manual_ID_csv, "_manual_ID.csv"
+    )
     true_vids_output.to_csv(options.manual_ID_csv, index = False)
+    print('Output file saved at {}'.format(options.manual_ID_csv))
 
 
 def main():
