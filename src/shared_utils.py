@@ -288,12 +288,12 @@ def json_to_csv(images, csv_file):
                 'FullVideoPath': video,
                 'frame_rate': frame_rate,
                 'category': 0,
-                'detected_obj': pd.NA,
-                'max_conf': pd.NA,
-                'bbox_x_min': pd.NA,
-                'bbox_y_min': pd.NA,
-                'bbox_w_rel': pd.NA,
-                'bbox_h_rel': pd.NA
+                'detected_obj': 'NA',
+                'max_conf': 'NA',
+                'bbox_x_min': 'NA',
+                'bbox_y_min': 'NA',
+                'bbox_w_rel': 'NA',
+                'bbox_h_rel': 'NA'
             }
             obj_row_pd = pd.DataFrame(obj_row, index = [0])
 

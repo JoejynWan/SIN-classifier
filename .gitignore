@@ -1,9 +1,12 @@
-## Ignore all data and results, except for the example_test_set
+## Ignore all models, data, and results, except for the example_test_set
 data/*
-data/splits/*
+!data/example_test_set
 results/*
 !results/example_test_set
-!data/example_test_set
+models/*
+
+## Keep README.md files
+!*README.md
 
 ## Ignore depreciated folder which contains old code/data
 depreciated/
