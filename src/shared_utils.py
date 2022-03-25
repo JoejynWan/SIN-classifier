@@ -294,14 +294,14 @@ def json_to_csv(images, csv_file):
 
             obj_row = {
                 'FullVideoPath': video,
-                'frame_rate': frame_rate,
-                'category': 0,
-                'detected_obj': 'NA',
-                'max_conf': 'NA',
-                'bbox_x_min': 'NA',
-                'bbox_y_min': 'NA',
-                'bbox_w_rel': 'NA',
-                'bbox_h_rel': 'NA'
+                'FrameRate': frame_rate,
+                'Category': 0,
+                'DetectedObj': 'NA',
+                'MaxConf': 'NA',
+                'BboxXmin': 'NA',
+                'BboxYmin': 'NA',
+                'BboxWrel': 'NA',
+                'BboxHrel': 'NA'
             }
             obj_row_pd = pd.DataFrame(obj_row, index = [0])
 
@@ -312,14 +312,14 @@ def json_to_csv(images, csv_file):
 
                 obj_row = {
                     'FullVideoPath': video,
-                    'frame_rate': frame_rate,
-                    'category': detection['category'],
-                    'detected_obj': detection['object_number'],
-                    'max_conf': detection['conf'],
-                    'bbox_x_min': detection['bbox'][0],
-                    'bbox_y_min': detection['bbox'][1],
-                    'bbox_w_rel': detection['bbox'][2],
-                    'bbox_h_rel': detection['bbox'][3]
+                    'FrameRate': frame_rate,
+                    'Category': detection['category'],
+                    'DetectedObj': detection['object_number'],
+                    'MaxConf': detection['conf'],
+                    'BboxXmin': detection['bbox'][0],
+                    'BboxYmin': detection['bbox'][1],
+                    'BboxWrel': detection['bbox'][2],
+                    'BboxHrel': detection['bbox'][3]
                 }
                 obj_row_pd = pd.DataFrame(obj_row, index = [0])
 
