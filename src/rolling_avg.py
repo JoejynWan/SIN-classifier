@@ -5,8 +5,12 @@ import numpy as np
 from collections import deque
 
 # Functions imported from this project
-from shared_utils import find_unqiue_videos, write_json_file, find_unique_objects, VideoOptions
+import config
+from shared_utils import find_unique_videos, write_json_file, find_unique_objects
+from shared_utils import VideoOptions, make_output_path
+from shared_utils import write_frame_results, write_roll_avg_video_results
 from vis_detections import load_detector_output, vis_detection_videos
+from run_det_video import write_frame_results
 
 # Imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
@@ -134,7 +138,7 @@ def add_video_layer(images):
         "video" = 'name of the video'
         "images" = 'details of each frame of that video'
     """
-    video_paths = find_unqiue_videos(images)
+    video_paths = find_unique_videos(images)
 
     videos = []
     for video_path in video_paths:
@@ -171,7 +175,7 @@ def add_object_number(videos, iou_threshold):
                     #first detection of the video is always a new unique object
                     if not objects: 
                         
-                        detection["object_number"] = "object_" + str(object_num)
+                        detection["object_number"] = "object_" + str(object_num).zfill(2)
 
                         objects.append(detection)
                         
@@ -204,7 +208,7 @@ def add_object_number(videos, iou_threshold):
                             # Since the detection is NOT an alr recorded object, 
                             # add in a new object
                             object_num = object_num + 1
-                            detection["object_number"] = "object_" + str(object_num)
+                            detection["object_number"] = "object_" + str(object_num).zfill(2)
 
                             objects.append(detection)
                             
@@ -297,18 +301,28 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
 
-    images_full, detector_label_map = load_detector_output(options.frames_json_file)
+    if options.roll_avg_frames_json is None: 
+        options.roll_avg_frames_json = make_output_path(
+            options.output_dir, options.input_dir, '_roll_avg_frames.json'
+        )
+
+    if options.roll_avg_video_json is None: 
+        options.roll_avg_video_json = make_output_path(
+            options.output_dir, options.input_dir, '_roll_avg_videos.json'
+        )
+
+    images_full, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
 
     roll_avg, output_images, output_videos, output_objects, output_roll_avg = rolling_avg(options, images_full)
 
-    write_results_to_file(roll_avg, options.frames_json_file)
+    write_frame_results(roll_avg, Fs, options.roll_avg_frames_json)
+    write_roll_avg_video_results(options)
 
-    Fs = [30,30,30,30,30,30] #TODO FIX only works for 6 videos
-    vis_detection_videos(options, Fs)
+    vis_detection_videos(options)
 
     ## Save outputs for checking
     output_file = os.path.splitext(
-        options.frames_json_file)[0] + '_conf_' + str(options.rendering_confidence_threshold) + '.json'
+        options.full_det_frames_json)[0] + '_conf_' + str(options.rendering_confidence_threshold) + '.json'
     write_results_to_file(output_images, output_file)
 
     videos_path = os.path.join(options.output_dir, "CT_models_test_videos.json")
@@ -325,40 +339,48 @@ def get_arg_parser():
     parser = argparse.ArgumentParser(
         description='Module to implement rolling prediction averaging on results from MegaDetector.')
     parser.add_argument('--output_dir', type=str,
-                        default = default_output_dir, 
+                        default = config.OUTPUT_DIR, 
                         help = 'Path to folder where videos will be saved.'
     )
-    parser.add_argument('--frames_json_file', type=str,
-                        default = default_frames_json_file, 
+    parser.add_argument('--input_dir', type=str, 
+                        default = config.INPUT_DIR, 
+                        help = 'Path to folder containing the video(s) to be processed.'
+    )
+    parser.add_argument('--full_det_frames_json', type=str,
+                        default = config.FULL_DET_FRAMES_JSON, 
                         help = '.json file depicting the detections for each frame of the video'
     )
+    parser.add_argument('--roll_avg_frames_json', type=str,
+                        default = config.ROLL_AVG_FRAMES_JSON, 
+                        help = 'Path of json file with rolling-averaged detections for each frame.'
+    )
     parser.add_argument('--frame_folder', type = str,
-                        default = default_frame_folder,
+                        default = config.FRAME_FOLDER,
                         help = 'Path to folder containing the video frames processed by det_videos.py'
     )
     parser.add_argument('--rendering_confidence_threshold', type=float,
-                        default = 0.8, 
+                        default = config.RENDERING_CONFIDENCE_THRESHOLD, 
                         help = "don't render boxes with confidence below this threshold"
     )
     parser.add_argument('--rolling_avg_size', type=float,
-                        default = 32, 
+                        default = config.ROLLING_AVG_SIZE, 
                         help = "Number of frames in which rolling prediction averaging will be calculated from. A larger number will remove more inconsistencies, but will cause delays in detecting an object."
     )
     parser.add_argument('--iou_threshold', type=float,
-                        default = 0.5, 
+                        default = config.IOU_THRESHOLD, 
                         help = "Threshold for Intersection over Union (IoU) to determine if bounding boxes are detecting the same object."
     )
     parser.add_argument('--conf_threshold_buf', type=float,
-                        default = 0.7, 
+                        default = config.CONF_THRESHOLD_BUF, 
                         help = "Buffer for the rendering confidence threshold to allow for 'poorer' detections to be included in rolling prediction averaging."
+    )
+    parser.add_argument('--nth_highest_confidence', type=float,
+                        default = config.NTH_HIGHEST_CONFIDENCE, 
+                        help="nth-highest-confidence frame to choose a confidence value for each video"
     )
     return parser
 
 
 if __name__ == '__main__':
-    ## Arguments
-    default_output_dir = "results/CT_models_test_2"
-    default_frames_json_file = "results/CT_models_test_2/CT_models_test_frames_det.json"
-    default_frame_folder = "results/CT_models_test_2/video_frames"
 
     main()

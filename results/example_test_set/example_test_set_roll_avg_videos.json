@@ -1,0 +1,138 @@
+{
+ "images": [
+  {
+   "file": "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0001.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "2",
+     "conf": 0.8635000000000002,
+     "bbox": [
+      0,
+      0.01072,
+      0.9765,
+      0.94
+     ],
+     "object_number": "object_01"
+    },
+    {
+     "category": "2",
+     "conf": 0.9989999999999996,
+     "bbox": [
+      0,
+      0.008223,
+      0.719,
+      0.9411
+     ],
+     "object_number": "object_07"
+    }
+   ],
+   "max_detection_conf": 0.9989999999999996
+  },
+  {
+   "file": "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0002.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "2",
+     "conf": 0.98134375,
+     "bbox": [
+      0,
+      0.09283,
+      0.2046,
+      0.8571
+     ],
+     "object_number": "object_01"
+    }
+   ],
+   "max_detection_conf": 0.98134375
+  },
+  {
+   "file": "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0003.AVI",
+   "frame_rate": 30,
+   "detections": [],
+   "max_detection_conf": 0
+  },
+  {
+   "file": "CT04_20211116_7A\\20211116_CT04\\IMG_0001.MP4",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "2",
+     "conf": 0.9565833333333332,
+     "bbox": [
+      0.3585,
+      0.005561,
+      0.6161,
+      0.9402
+     ],
+     "object_number": "object_01"
+    }
+   ],
+   "max_detection_conf": 0.9565833333333332
+  },
+  {
+   "file": "CT04_20211116_7A\\20211116_CT04\\IMG_0002.MP4",
+   "frame_rate": 30,
+   "detections": [],
+   "max_detection_conf": 0
+  },
+  {
+   "file": "CT04_20211116_7A\\20211116_CT04\\IMG_0003.MP4",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "2",
+     "conf": 0.9885625000000001,
+     "bbox": [
+      0.5411,
+      0.002064,
+      0.457,
+      0.9547
+     ],
+     "object_number": "object_01"
+    },
+    {
+     "category": "2",
+     "conf": 0.9951874999999999,
+     "bbox": [
+      0.8585,
+      0,
+      0.1414,
+      0.9761
+     ],
+     "object_number": "object_03"
+    }
+   ],
+   "max_detection_conf": 0.9951874999999999
+  }
+ ],
+ "detection_categories": {
+  "1": "animal",
+  "2": "person",
+  "3": "vehicle"
+ },
+ "videos": {
+  "num_videos": 6,
+  "video_names": [
+   "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0001.AVI",
+   "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0002.AVI",
+   "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0003.AVI",
+   "CT04_20211116_7A\\20211116_CT04\\IMG_0001.MP4",
+   "CT04_20211116_7A\\20211116_CT04\\IMG_0002.MP4",
+   "CT04_20211116_7A\\20211116_CT04\\IMG_0003.MP4"
+  ],
+  "frame_rates": [
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003,
+   30.0,
+   30.0,
+   30.0
+  ]
+ },
+ "info": {
+  "detection_completion_time": "2022-03-24 07:13:34",
+  "format_version": "1.0"
+ }
+}
