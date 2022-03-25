@@ -2,9 +2,8 @@ import multiprocessing
 
 
 ## Paths of inputs and outputs and must be filled in
-INPUT_DIR = 'data/20211119_test'
-OUTPUT_DIR = 'results/optimise_roll_avg_test'
-
+INPUT_DIR = 'data/20211119'
+OUTPUT_DIR = 'results/20211119'
 
 ## Paths to required datasets
 MODEL_FILE = 'models/md_v4.1.0.pb'
@@ -39,8 +38,8 @@ NTH_HIGHEST_CONFIDENCE = 1
 
 ROLL_AVG_FRAMES_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_avg_frames.json'
 ROLL_AVG_VIDEO_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_avg_videos.json'
-ROLL_AVG_VIDEO_CSV = 'results/20211119/20211119_roll_avg_videos.csv' #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_avg_videos.csv'
+ROLL_AVG_VIDEO_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_avg_videos.csv'
 
 ## Settings for comparing MegaDetector results with manual identification results
 CHECK_ACCURACY = True
-MANUAL_ID_CSV = 'results/20211119/20211119_manual_ID.csv' #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_ID.csv'
+MANUAL_ID_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_ID.csv'

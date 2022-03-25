@@ -286,7 +286,7 @@ def json_to_csv(images, csv_file):
 
     video_pd = pd.DataFrame()
     for image in images:
-        video = image['file']
+        video = image['file'].replace('\\','/')
         frame_rate = image['frame_rate']
         detections = image['detections']
 

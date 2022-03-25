@@ -63,10 +63,12 @@ def confusion_mat(true_cat, predicted_cat):
     nagative_categories = [0, 2, 3] #empty, human, and vehicle is negative classes
     both_cat = replace_pos_neg_cat(both_cat, positive_categories, nagative_categories)
 
-    both_cat['CategoryBoth'] = str(both_cat['CategoryTrue']) + str(both_cat['CategoryPredicted'])
+    both_cat['CategoryTrue'] = both_cat['CategoryTrue'].apply(str)
+    both_cat['CategoryPredicted'] = both_cat['CategoryPredicted'].apply(str)
+    both_cat['CategoryBoth'] = both_cat['CategoryTrue'] + both_cat['CategoryPredicted']
     both_cat = replace_TP_TN_FP_FN(both_cat)
 
-    confusion_matrix = both_cat.groupby(['CategoryBoth']).count()
+    confusion_matrix = both_cat.groupby(['CategoryBoth']).size().reset_index(name='counts')
 
     return confusion_matrix
 
