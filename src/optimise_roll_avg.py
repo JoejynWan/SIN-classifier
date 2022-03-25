@@ -68,7 +68,7 @@ def confusion_mat(true_cat, predicted_cat):
 
     confusion_matrix = both_cat.groupby(['CategoryBoth']).count()
 
-    return both_cat
+    return confusion_matrix
 
 
 def main():
