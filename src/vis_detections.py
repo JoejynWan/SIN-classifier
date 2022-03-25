@@ -6,6 +6,7 @@ import argparse
 import tempfile
 
 # Functions imported from this project
+import config
 from shared_utils import delete_temp_dir, find_unique_videos, VideoOptions
 
 # Imported from Microsoft/CameraTraps github repository
@@ -173,33 +174,28 @@ def get_arg_parser():
     parser = argparse.ArgumentParser(
         description='Module to draw bounding boxes of animals on videos using a trained MegaDetector model, where MegaDetector runs on each frame in a video (or every Nth frame).')
     parser.add_argument('--model_file', type=str, 
-                        default = default_model_file, 
+                        default = config.MODEL_FILE, 
                         help='Path to .pb MegaDetector model file.'
     )
     parser.add_argument('--output_dir', type=str,
-                        default = default_output_dir, 
+                        default = config.OUTPUT_DIR, 
                         help = 'Path to folder where videos will be saved.'
     )
     parser.add_argument('--frame_folder', type = str,
-                        default = default_input_frames_base_dir,
+                        default = config.FRAME_FOLDER,
                         help = 'Path to folder containing the video frames processed by det_videos.py'
     )
     parser.add_argument('--roll_avg_frames_json', type=str,
-                        default = default_input_frames_anno_file, 
+                        default = config.ROLL_AVG_FRAMES_JSON, 
                         help = '.json file depicting the detections for each frame of the video'
     )
     parser.add_argument('--rendering_confidence_threshold', type=float,
-                        default=0.8, help="don't render boxes with confidence below this threshold"
+                        default = config.RENDERING_CONFIDENCE_THRESHOLD, 
+                        help="don't render boxes with confidence below this threshold"
     )
     return parser
 
 
 if __name__ == '__main__':
-    ## Defining parameters within this script
-    # Comment out if passing arguments from terminal directly
-    default_model_file = 'MegaDetectorModel_v4.1/md_v4.1.0.pb'
-    default_input_frames_base_dir = 'C:/temp_for_SSD_speed/CT_models_test_frames'
-    default_input_frames_anno_file = 'C:/temp_for_SSD_speed/CT_models_test_frames/CT_models_test.frames.json'
-    default_output_dir = 'D:/CNN_Animal_ID/CamphoraClassifier/SIN-classifier/results/CT_models_test'
 
     main()

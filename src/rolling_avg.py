@@ -5,6 +5,7 @@ import numpy as np
 from collections import deque
 
 # Functions imported from this project
+import config
 from shared_utils import find_unique_videos, write_json_file, find_unique_objects
 from shared_utils import VideoOptions, make_output_path
 from shared_utils import write_frame_results, write_roll_avg_video_results
@@ -338,52 +339,48 @@ def get_arg_parser():
     parser = argparse.ArgumentParser(
         description='Module to implement rolling prediction averaging on results from MegaDetector.')
     parser.add_argument('--output_dir', type=str,
-                        default = default_output_dir, 
+                        default = config.OUTPUT_DIR, 
                         help = 'Path to folder where videos will be saved.'
     )
     parser.add_argument('--input_dir', type=str, 
-                        default = default_input_dir, 
+                        default = config.INPUT_DIR, 
                         help = 'Path to folder containing the video(s) to be processed.'
     )
     parser.add_argument('--full_det_frames_json', type=str,
-                        default = default_full_det_frames_json, 
+                        default = config.FULL_DET_FRAMES_JSON, 
                         help = '.json file depicting the detections for each frame of the video'
     )
     parser.add_argument('--roll_avg_frames_json', type=str,
-                        default = None, 
+                        default = config.ROLL_AVG_FRAMES_JSON, 
                         help = 'Path of json file with rolling-averaged detections for each frame.'
     )
     parser.add_argument('--frame_folder', type = str,
-                        default = default_frame_folder,
+                        default = config.FRAME_FOLDER,
                         help = 'Path to folder containing the video frames processed by det_videos.py'
     )
     parser.add_argument('--rendering_confidence_threshold', type=float,
-                        default = 0.8, 
+                        default = config.RENDERING_CONFIDENCE_THRESHOLD, 
                         help = "don't render boxes with confidence below this threshold"
     )
     parser.add_argument('--rolling_avg_size', type=float,
-                        default = 32, 
+                        default = config.ROLLING_AVG_SIZE, 
                         help = "Number of frames in which rolling prediction averaging will be calculated from. A larger number will remove more inconsistencies, but will cause delays in detecting an object."
     )
     parser.add_argument('--iou_threshold', type=float,
-                        default = 0.5, 
+                        default = config.IOU_THRESHOLD, 
                         help = "Threshold for Intersection over Union (IoU) to determine if bounding boxes are detecting the same object."
     )
     parser.add_argument('--conf_threshold_buf', type=float,
-                        default = 0.7, 
+                        default = config.CONF_THRESHOLD_BUF, 
                         help = "Buffer for the rendering confidence threshold to allow for 'poorer' detections to be included in rolling prediction averaging."
     )
     parser.add_argument('--nth_highest_confidence', type=float,
-                        default=1, help="nth-highest-confidence frame to choose a confidence value for each video"
+                        default = config.NTH_HIGHEST_CONFIDENCE, 
+                        help="nth-highest-confidence frame to choose a confidence value for each video"
     )
     return parser
 
 
 if __name__ == '__main__':
-    ## Arguments
-    default_input_dir = 'data/example_test_set'
-    default_frame_folder = "data/example_test_set/frames"
-    default_full_det_frames_json = "results/example_test_set/example_test_set_full_det_frames.json"
-    default_output_dir = "results/example_test_set"
 
     main()

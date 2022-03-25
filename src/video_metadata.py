@@ -1,18 +1,23 @@
 import os
+import argparse
 import pandas as pd
 from datetime import datetime
 
 # Functions imported from this project
-from shared_utils import make_output_path, unique
+import config
+from shared_utils import make_output_path, unique, VideoOptions
 
 # Functions imported from Microsoft/CameraTraps github repository
 from detection.video_utils import find_videos
+from ct_utils import args_to_object
 
 
-def manual_ID_csv(input_dir, species_database_file, csv_output_file):
+def manual_ID_results(options):
 
-    input_dir_full_paths = find_videos(input_dir, recursive=True)
-    vids_rel_paths = [os.path.relpath(s,input_dir) for s in input_dir_full_paths]
+    options.manual_ID_csv = make_output_path(options.output_dir, options.input_dir, "_manual_ID.csv")
+
+    input_dir_full_paths = find_videos(options.input_dir, recursive=True)
+    vids_rel_paths = [os.path.relpath(s,options.input_dir) for s in input_dir_full_paths]
     vids_rel_paths = [s.replace('\\','/') for s in vids_rel_paths]
 
     true_vids = pd.DataFrame()
@@ -27,7 +32,7 @@ def manual_ID_csv(input_dir, species_database_file, csv_output_file):
             quantity = 0
         file = os.path.join(station_sampledate, vid_name).replace('\\','/')
 
-        vid_full_path = os.path.join(input_dir, vids_rel_path)
+        vid_full_path = os.path.join(options.input_dir, vids_rel_path)
         creation_datetime = datetime.fromtimestamp(os.path.getctime(vid_full_path))
 
         true_vid_dict = {
@@ -48,7 +53,7 @@ def manual_ID_csv(input_dir, species_database_file, csv_output_file):
         true_vids = true_vids.append(true_vid_pd)
 
     ## Merge dataframes based on the FolderSpeciesName key from the species_database
-    species_database = pd.read_csv(species_database_file)
+    species_database = pd.read_csv(options.species_database_file)
     true_vids_output = pd.merge(true_vids, species_database, on = 'FolderSpeciesName', how = 'left')
     
     ## Check if there are missing species in the species_database
@@ -72,20 +77,44 @@ def manual_ID_csv(input_dir, species_database_file, csv_output_file):
     true_vids_output = true_vids_output.fillna('NA')
     true_vids_output = true_vids_output[col_order]
 
-    true_vids_output.to_csv(csv_output_file, index = False)
+    true_vids_output.to_csv(options.manual_ID_csv, index = False)
 
 
 def main():
 
-    os.makedirs(output_dir, exist_ok = True)
+    ## Process Command line arguments
+    parser = get_arg_parser()
+    args = parser.parse_args()
+    options = VideoOptions()
+    args_to_object(args, options)
 
-    manual_ID_csv(input_dir, species_database_file, csv_output_file)
+    os.makedirs(options.output_dir, exist_ok = True)
+
+    ## Produce and export .csv file containing manual identification results
+    manual_ID_results(options)
+
+
+def get_arg_parser():
+    parser = argparse.ArgumentParser(
+        description='Module to produce a csv depicting the true detections from manual identification based on folder names.')
+    parser.add_argument('--input_dir', type=str, 
+                        default = config.INPUT_DIR, 
+                        help = 'Path to folder containing the video(s) to be processed.'
+    )
+    parser.add_argument('--output_dir', type=str,
+                        default = config.OUTPUT_DIR, 
+                        help = 'Path to folder where videos will be saved.'
+    )
+    parser.add_argument('--species_database_file', type=str,
+                        default = config.SPECIES_DATABASE_FILE, 
+                        help = 'Path to the species_database.csv which describes details of species.'
+    )
+    parser.add_argument('--manual_ID_csv', type=str,
+                        default = config.MANUAL_ID_CSV, 
+                        help = 'Path to csv file that contains the results of manual identification.'
+    )
 
 
 if __name__ == '__main__':
-    input_dir = 'data/20211119'
-    output_dir = 'results/20211119_test'
-    species_database_file = 'data/species_database.csv'
-    csv_output_file = make_output_path(output_dir, input_dir, "_manual_ID.csv")
 
     main()
