@@ -1,12 +1,11 @@
 import os
-import sys
 import time
 import argparse
 import humanfriendly
 
 # Functions imported from this project
 import config
-from shared_utils import delete_temp_dir, VideoOptions
+from shared_utils import delete_temp_dir, VideoOptions, check_output_dir
 from run_det_video import video_dir_to_frames, det_frames
 from vis_detections import vis_detection_videos
 from manual_ID import manual_ID_results
@@ -15,19 +14,6 @@ from manual_ID import manual_ID_results
 from ct_utils import args_to_object
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
-
-
-def check_output_dir(options):
-    if os.path.exists(options.output_dir) and os.listdir(options.output_dir):
-        while True:
-            rewrite_input = input('\nThe output directory specified is not empty. Do you want to continue and rewrite the files in the directory? (y/n)')
-            if rewrite_input.lower() not in ('y', 'n'):
-                print('Input invalid. Please enter y or n.')
-            else:
-                break
-        
-        if rewrite_input.lower() == 'n':
-            sys.exit('Stopping script. Please input the correct output directory. ')
 
 
 def main(): 
@@ -49,6 +35,7 @@ def main():
     # sufficient space to save the frames and videos 
 
     ## Getting the results from manual detection
+    # Run this first to ensure that all species are in species_database.csv
     if options.check_accuracy:
         manual_ID_results(options)
 

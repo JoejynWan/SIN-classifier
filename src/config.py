@@ -2,8 +2,8 @@ import multiprocessing
 
 
 ## Paths of inputs and outputs and must be filled in
-INPUT_DIR = 'data/20211119'
-OUTPUT_DIR = 'results/20211119'
+INPUT_DIR = 'data/LCK_Ramboll/20211119'
+OUTPUT_DIR = 'results/optimise_roll_avg_test'
 
 ## Paths to required datasets
 MODEL_FILE = 'models/md_v4.1.0.pb'
@@ -14,7 +14,7 @@ SPECIES_DATABASE_FILE = 'data/species_database.csv'
 RECURSIVE = True 
 N_CORES = multiprocessing.cpu_count() - 1 # No. of available cores minus 1 to not over tax the system
 
-FULL_DET_FRAMES_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
+FULL_DET_FRAMES_JSON = 'data/LCK_Ramboll/20211119/20211119_full_det_frames.json' #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
 FULL_DET_VIDEO_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_videos.json'
 
 FRAME_SAMPLE = None
@@ -40,6 +40,14 @@ ROLL_AVG_FRAMES_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_
 ROLL_AVG_VIDEO_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_avg_videos.json'
 ROLL_AVG_VIDEO_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_avg_videos.csv'
 
+
 ## Settings for comparing MegaDetector results with manual identification results
 CHECK_ACCURACY = True
-MANUAL_ID_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_ID.csv'
+MANUAL_ID_CSV = 'data/LCK_Ramboll/20211119/20211119_manual_ID.csv' #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_ID.csv'
+
+
+## Settings for optimising rolling prediction averaging 
+ROLLING_AVG_SIZE_RANGE = [16, 32]
+IOU_THRESHOLD_RANGE = [0.4, 0.5]
+CONF_THRESHOLD_BUF_RANGE = [0.6, 0.7]
+OPTIMISE_ROLL_AVG_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_optimise_roll_avg.csv'

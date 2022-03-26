@@ -7,7 +7,8 @@ import tempfile
 
 # Functions imported from this project
 import config
-from shared_utils import delete_temp_dir, find_unique_videos, VideoOptions
+from shared_utils import delete_temp_dir, find_unique_videos
+from shared_utils import VideoOptions, load_detector_output
 
 # Imported from Microsoft/CameraTraps github repository
 from visualization import visualization_utils as vis_utils
@@ -26,23 +27,6 @@ DEFAULT_DETECTOR_LABEL_MAP = {
 
 
 #%% Functions
-
-def load_detector_output(detector_output_path):
-    with open(detector_output_path) as f:
-        detector_output = json.load(f)
-    assert 'images' in detector_output, (
-        'Detector output file should be a json with an "images" field.')
-    images = detector_output['images']
-
-    detector_label_map = DEFAULT_DETECTOR_LABEL_MAP
-    if 'detection_categories' in detector_output:
-        print('detection_categories provided')
-        detector_label_map = detector_output['detection_categories']
-
-    Fs = detector_output['videos']['frame_rates']
-
-    return images, detector_label_map, Fs
-
 
 def frames_to_video(images, Fs, output_file_name):
     """

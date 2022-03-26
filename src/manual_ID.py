@@ -76,12 +76,12 @@ def manual_ID_results(options):
     true_vids_output = true_vids_output[col_order]
 
     ## Write output file
-    options.manual_ID_csv = default_path_from_none(
+    options.manual_id_csv = default_path_from_none(
         options.output_dir, options.input_dir, 
-        options.manual_ID_csv, "_manual_ID.csv"
+        options.manual_id_csv, "_manual_ID.csv"
     )
-    true_vids_output.to_csv(options.manual_ID_csv, index = False)
-    print('Output file saved at {}'.format(options.manual_ID_csv))
+    true_vids_output.to_csv(options.manual_id_csv, index = False)
+    print('Output file saved at {}'.format(options.manual_id_csv))
 
 
 def main():
@@ -113,7 +113,7 @@ def get_arg_parser():
                         default = config.SPECIES_DATABASE_FILE, 
                         help = 'Path to the species_database.csv which describes details of species.'
     )
-    parser.add_argument('--manual_ID_csv', type=str,
+    parser.add_argument('--manual_id_csv', type=str,
                         default = config.MANUAL_ID_CSV, 
                         help = 'Path to csv file that contains the results of manual identification.'
     )

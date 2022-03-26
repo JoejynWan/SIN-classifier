@@ -8,8 +8,8 @@ from pickle import FALSE, TRUE
 # Functions imported from this project
 import config
 from shared_utils import delete_temp_dir, VideoOptions, default_path_from_none
-from shared_utils import write_frame_results, write_video_results, write_roll_avg_video_results
-from rolling_avg import rolling_avg, write_roll_avg_video_results
+from shared_utils import write_frame_results, write_video_results
+from rolling_avg import rolling_avg
 
 # Functions imported from Microsoft/CameraTraps github repository
 from detection.run_tf_detector_batch import load_and_run_detector_batch

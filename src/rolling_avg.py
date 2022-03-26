@@ -7,10 +7,9 @@ from collections import deque
 # Functions imported from this project
 import config
 from shared_utils import find_unique_videos, write_json_file, find_unique_objects
-from shared_utils import VideoOptions, default_path_from_none
+from shared_utils import VideoOptions, default_path_from_none, load_detector_output
 from shared_utils import write_frame_results, write_roll_avg_video_results
-from vis_detections import load_detector_output, vis_detection_videos
-from run_det_video import write_frame_results
+from vis_detections import vis_detection_videos
 
 # Imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
@@ -275,7 +274,7 @@ def remove_video_layer(roll_avg):
     return images_only
 
 
-def rolling_avg(options, images, Fs):
+def rolling_avg(options, images, Fs, mute = False):
     
     images = rm_bad_detections(options, images)
     output_images = copy.deepcopy(images)
@@ -297,8 +296,10 @@ def rolling_avg(options, images, Fs):
         options.roll_avg_frames_json, '_roll_avg_frames.json'
     )
 
-    write_frame_results(roll_avg_images, Fs, options.roll_avg_frames_json, options.frame_folder)
-    write_roll_avg_video_results(options)
+    write_frame_results(
+        roll_avg_images, Fs, 
+        options.roll_avg_frames_json, options.frame_folder, mute = mute)
+    write_roll_avg_video_results(options, mute = mute)
 
     return roll_avg_images, output_images, output_videos, output_objects, output_roll_avg
 

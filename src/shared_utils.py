@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import copy
 import json
@@ -10,6 +11,19 @@ from collections import defaultdict
 
 # Functions imported from Microsoft/CameraTraps github repository
 from detection.run_tf_detector import TFDetector
+
+
+def check_output_dir(options):
+    if os.path.exists(options.output_dir) and os.listdir(options.output_dir):
+        while True:
+            rewrite_input = input('\nThe output directory specified is not empty. Do you want to continue and rewrite the files in the directory? (y/n)')
+            if rewrite_input.lower() not in ('y', 'n'):
+                print('Input invalid. Please enter y or n.')
+            else:
+                break
+        
+        if rewrite_input.lower() == 'n':
+            sys.exit('Stopping script. Please input the correct output directory. ')
 
 
 def delete_temp_dir(directory):
@@ -121,7 +135,30 @@ class VideoOptions:
     roll_avg_video_csv = None
     
     check_accuracy = False
-    manual_ID_csv = None
+    manual_id_csv = None
+
+    rolling_avg_size_range = None
+    iou_threshold_range = None
+    conf_threshold_buf_range = None
+    optimise_roll_avg_csv = None
+
+
+def load_detector_output(detector_output_path):
+    with open(detector_output_path) as f:
+        detector_output = json.load(f)
+    assert 'images' in detector_output, (
+        'Detector output file should be a json with an "images" field.')
+    images = detector_output['images']
+
+    if 'detection_categories' in detector_output:
+        print('detection_categories provided')
+        detector_label_map = detector_output['detection_categories']
+    else:
+        detector_label_map = TFDetector.DEFAULT_DETECTOR_LABEL_MAP
+
+    Fs = detector_output['videos']['frame_rates']
+
+    return images, detector_label_map, Fs
 
 
 def default_path_from_none(output_dir, input_dir, file_path, file_suffix):
@@ -144,7 +181,7 @@ def default_path_from_none(output_dir, input_dir, file_path, file_suffix):
     return output_file_name
 
 
-def write_frame_results(results, Fs, output_file, relative_path_base=None):
+def write_frame_results(results, Fs, output_file, relative_path_base=None, mute = False):
     """
     Writes a list of detection results to a JSON output file. 
     Function is adapted from detection.run_tf_detector_batch.write_results_to_file, 
@@ -183,10 +220,12 @@ def write_frame_results(results, Fs, output_file, relative_path_base=None):
     }
     with open(output_file, 'w') as f:
         json.dump(final_output, f, indent=1)
-    print('Output file saved at {}'.format(output_file))
+
+    if not mute:
+        print('Output file saved at {}'.format(output_file))
 
 
-def write_video_results(input_file,output_file, nth_highest_confidence = 1):
+def write_video_results(input_file,output_file, nth_highest_confidence = 1, mute = False):
     """
     Given an API output file produced at the *frame* level, corresponding to a directory 
     created with video_folder_to_frames, map those frame-level results back to the 
@@ -263,7 +302,9 @@ def write_video_results(input_file,output_file, nth_highest_confidence = 1):
     # Write the output file
     with open(output_file,'w') as f:
         f.write(s)
-    print('Output file saved at {}'.format(output_file))
+    
+    if not mute:
+        print('Output file saved at {}'.format(output_file))
 
 
 def find_unique_objects(images):
@@ -328,7 +369,7 @@ def json_to_csv(images, csv_file):
     video_pd.to_csv(csv_file, index = False)
 
 
-def write_roll_avg_video_results(options):
+def write_roll_avg_video_results(options, mute = False):
     
     # Load frame-level results
     with open(options.roll_avg_frames_json,'r') as f:
@@ -388,11 +429,15 @@ def write_roll_avg_video_results(options):
 
     with open(options.roll_avg_video_json,'w') as f:
         f.write(s)
-    print('Output file saved at {}'.format(options.roll_avg_video_json))
+    
+    if not mute:
+        print('Output file saved at {}'.format(options.roll_avg_video_json))
 
     options.roll_avg_video_csv = default_path_from_none(
         options.output_dir, options.input_dir, 
         options.roll_avg_video_csv, '_roll_avg_videos.csv'
     )
     json_to_csv(output_images, options.roll_avg_video_csv)
-    print('Output file saved at {}'.format(options.roll_avg_video_csv))
+    
+    if not mute:
+        print('Output file saved at {}'.format(options.roll_avg_video_csv))
