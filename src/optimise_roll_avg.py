@@ -72,6 +72,13 @@ def confusion_mat(true_cat, predicted_cat):
 
     confusion_matrix = both_cat.groupby(['CategoryBoth']).size().reset_index(name='counts')
 
+    acc_mets = ['FN', 'FP', 'TN', 'TP']
+    for acc_met in acc_mets: 
+        if not (acc_met in confusion_matrix['CategoryBoth'].tolist()):
+            fill_0 = pd.DataFrame({'CategoryBoth': acc_met, 'counts': 0}, index = [0])
+
+            confusion_matrix = pd.concat([confusion_matrix, fill_0])
+
     return confusion_matrix
 
 
@@ -106,7 +113,7 @@ def true_vs_pred(options):
     confusion_matrix = confusion_mat(summ_manual, summ_md)
     
     acc_dict = acc_metrics(confusion_matrix)
-
+    
     return acc_dict
 
 
@@ -149,11 +156,11 @@ def optimise_roll_avg(options):
     
     all_combi_acc = all_combi_acc.sort_values(by = ['F1Score'], ascending = False)
     
-    options.optimise_roll_avg_csv = default_path_from_none(
+    options.roll_avg_acc_csv = default_path_from_none(
         options.output_dir, options.input_dir, 
-        options.optimise_roll_avg_csv, '_optimise_roll_avg.csv'
+        options.roll_avg_acc_csv, '_roll_avg_acc.csv'
     )
-    all_combi_acc.to_csv(options.optimise_roll_avg_csv, index = False)
+    all_combi_acc.to_csv(options.roll_avg_acc_csv, index = False)
 
 
 def main():
@@ -185,8 +192,8 @@ def get_arg_parser():
                         default = config.MANUAL_ID_CSV, 
                         help = 'Path to csv file containing the results of manual identification detections.'
     )
-    parser.add_argument('--optimise_roll_avg_csv', type=str,
-                        default = config.OPTIMISE_ROLL_AVG_CSV, 
+    parser.add_argument('--roll_avg_acc_csv', type=str,
+                        default = config.ROLL_AVG_ACC_CSV, 
                         help = 'Path to csv file for which the optimiser results will be saved.'
     )
     parser.add_argument('--full_det_frames_json', type=str,

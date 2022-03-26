@@ -1,110 +1,98 @@
 {
  "images": [
   {
-   "file": "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0001.AVI",
+   "file": "CT23_20211119\\Rattus sp. 1\\IMG_0002.AVI",
    "frame_rate": 30,
    "detections": [
     {
-     "category": "2",
-     "conf": 0.8635000000000002,
+     "category": "1",
+     "conf": 0.9825454545454544,
      "bbox": [
-      0,
-      0.01072,
-      0.9765,
-      0.94
+      0.3392,
+      0.4833,
+      0.026,
+      0.05746
      ],
      "object_number": "object_01"
     },
     {
-     "category": "2",
-     "conf": 0.9989999999999996,
+     "category": "1",
+     "conf": 0.9837187499999999,
      "bbox": [
-      0,
-      0.008223,
-      0.719,
-      0.9411
+      0.3374,
+      0.4644,
+      0.044,
+      0.07599
      ],
-     "object_number": "object_07"
-    }
-   ],
-   "max_detection_conf": 0.9989999999999996
-  },
-  {
-   "file": "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0002.AVI",
-   "frame_rate": 30,
-   "detections": [
-    {
-     "category": "2",
-     "conf": 0.98134375,
-     "bbox": [
-      0,
-      0.09283,
-      0.2046,
-      0.8571
-     ],
-     "object_number": "object_01"
-    }
-   ],
-   "max_detection_conf": 0.98134375
-  },
-  {
-   "file": "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0003.AVI",
-   "frame_rate": 30,
-   "detections": [],
-   "max_detection_conf": 0
-  },
-  {
-   "file": "CT04_20211116_7A\\20211116_CT04\\IMG_0001.MP4",
-   "frame_rate": 30,
-   "detections": [
-    {
-     "category": "2",
-     "conf": 0.9565833333333332,
-     "bbox": [
-      0.3585,
-      0.005561,
-      0.6161,
-      0.9402
-     ],
-     "object_number": "object_01"
-    }
-   ],
-   "max_detection_conf": 0.9565833333333332
-  },
-  {
-   "file": "CT04_20211116_7A\\20211116_CT04\\IMG_0002.MP4",
-   "frame_rate": 30,
-   "detections": [],
-   "max_detection_conf": 0
-  },
-  {
-   "file": "CT04_20211116_7A\\20211116_CT04\\IMG_0003.MP4",
-   "frame_rate": 30,
-   "detections": [
-    {
-     "category": "2",
-     "conf": 0.9885625000000001,
-     "bbox": [
-      0.5411,
-      0.002064,
-      0.457,
-      0.9547
-     ],
-     "object_number": "object_01"
+     "object_number": "object_02"
     },
     {
-     "category": "2",
-     "conf": 0.9951874999999999,
+     "category": "1",
+     "conf": 0.9554374999999997,
      "bbox": [
-      0.8585,
-      0,
-      0.1414,
-      0.9761
+      0.3286,
+      0.4705,
+      0.05542,
+      0.06516
      ],
      "object_number": "object_03"
     }
    ],
-   "max_detection_conf": 0.9951874999999999
+   "max_detection_conf": 0.9837187499999999
+  },
+  {
+   "file": "CT23_20211119\\Tupaia glis 1\\IMG_0001.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.97,
+     "bbox": [
+      0.03899,
+      0.6165,
+      0.1002,
+      0.1115
+     ],
+     "object_number": "object_01"
+    }
+   ],
+   "max_detection_conf": 0.97
+  },
+  {
+   "file": "CT7_20211119\\False triggers\\IMG_0031.AVI",
+   "frame_rate": 30,
+   "detections": [],
+   "max_detection_conf": 0
+  },
+  {
+   "file": "CT7_20211119\\False triggers\\IMG_0032.AVI",
+   "frame_rate": 30,
+   "detections": [],
+   "max_detection_conf": 0
+  },
+  {
+   "file": "CT7_20211119\\Non-targeted\\IMG_0001.AVI",
+   "frame_rate": 30,
+   "detections": [],
+   "max_detection_conf": 0
+  },
+  {
+   "file": "CT7_20211119\\Non-targeted\\IMG_0002.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "2",
+     "conf": 0.9968749999999998,
+     "bbox": [
+      0.00977,
+      0,
+      0.4694,
+      0.9503
+     ],
+     "object_number": "object_01"
+    }
+   ],
+   "max_detection_conf": 0.9968749999999998
   }
  ],
  "detection_categories": {
@@ -115,24 +103,24 @@
  "videos": {
   "num_videos": 6,
   "video_names": [
-   "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0001.AVI",
-   "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0002.AVI",
-   "CI_OH_CT_01_20210810_7E\\CI_OH_CT_01_20210810\\IMG_0003.AVI",
-   "CT04_20211116_7A\\20211116_CT04\\IMG_0001.MP4",
-   "CT04_20211116_7A\\20211116_CT04\\IMG_0002.MP4",
-   "CT04_20211116_7A\\20211116_CT04\\IMG_0003.MP4"
+   "CT23_20211119\\Rattus sp. 1\\IMG_0002.AVI",
+   "CT23_20211119\\Tupaia glis 1\\IMG_0001.AVI",
+   "CT7_20211119\\False triggers\\IMG_0031.AVI",
+   "CT7_20211119\\False triggers\\IMG_0032.AVI",
+   "CT7_20211119\\Non-targeted\\IMG_0001.AVI",
+   "CT7_20211119\\Non-targeted\\IMG_0002.AVI"
   ],
   "frame_rates": [
    30.00030000300003,
    30.00030000300003,
    30.00030000300003,
-   30.0,
-   30.0,
-   30.0
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003
   ]
  },
  "info": {
-  "detection_completion_time": "2022-03-24 07:13:34",
+  "detection_completion_time": "2022-03-26 10:27:42",
   "format_version": "1.0"
  }
 }

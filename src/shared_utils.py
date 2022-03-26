@@ -140,7 +140,7 @@ class VideoOptions:
     rolling_avg_size_range = None
     iou_threshold_range = None
     conf_threshold_buf_range = None
-    optimise_roll_avg_csv = None
+    roll_avg_acc_csv = None
 
 
 def load_detector_output(detector_output_path):
