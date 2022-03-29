@@ -136,6 +136,7 @@ class VideoOptions:
     
     check_accuracy = False
     manual_id_csv = None
+    manual_vs_md_csv = None
 
     rolling_avg_size_range = None
     iou_threshold_range = None
@@ -323,7 +324,7 @@ def find_unique_objects(images):
     return(unique_objs)
 
 
-def json_to_csv(images, csv_file):
+def json_to_csv(options, images):
 
     video_pd = pd.DataFrame()
     for image in images:
@@ -331,10 +332,17 @@ def json_to_csv(images, csv_file):
         frame_rate = image['frame_rate']
         detections = image['detections']
 
+        if options.check_accuracy:
+            station_sampledate, _, vid_name = video.split("/")
+            uniquefile = os.path.join(station_sampledate, vid_name).replace('\\','/')
+        else:
+            uniquefile = 'NA'
+
         if not detections: #no detections, so false trigger
 
             obj_row = {
                 'FullVideoPath': video,
+                'UniqueFileName': uniquefile, 
                 'FrameRate': frame_rate,
                 'Category': 0,
                 'DetectedObj': 'NA',
@@ -353,6 +361,7 @@ def json_to_csv(images, csv_file):
 
                 obj_row = {
                     'FullVideoPath': video,
+                    'UniqueFileName': uniquefile, 
                     'FrameRate': frame_rate,
                     'Category': detection['category'],
                     'DetectedObj': detection['object_number'],
@@ -366,7 +375,11 @@ def json_to_csv(images, csv_file):
 
                 video_pd = video_pd.append(obj_row_pd)
     
-    video_pd.to_csv(csv_file, index = False)
+    options.roll_avg_video_csv = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.roll_avg_video_csv, '_roll_avg_videos.csv'
+    )
+    video_pd.to_csv(options.roll_avg_video_csv, index = False)
 
 
 def write_roll_avg_video_results(options, mute = False):
@@ -433,11 +446,7 @@ def write_roll_avg_video_results(options, mute = False):
     if not mute:
         print('Output file saved at {}'.format(options.roll_avg_video_json))
 
-    options.roll_avg_video_csv = default_path_from_none(
-        options.output_dir, options.input_dir, 
-        options.roll_avg_video_csv, '_roll_avg_videos.csv'
-    )
-    json_to_csv(output_images, options.roll_avg_video_csv)
+    json_to_csv(options, output_images)
     
     if not mute:
         print('Output file saved at {}'.format(options.roll_avg_video_csv))

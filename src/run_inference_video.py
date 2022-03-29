@@ -98,14 +98,19 @@ def main():
 
     ## Comparing results of manual identification with MegaDetector detections
     if options.check_accuracy:
-        acc_dict = true_vs_pred(options)
-        acc_pd = pd.DataFrame(acc_dict, index = [0])
+        acc_pd, video_summ = true_vs_pred(options)
 
         options.roll_avg_acc_csv = default_path_from_none(
             options.output_dir, options.input_dir, 
             options.roll_avg_acc_csv, '_roll_avg_acc.csv'
         )
         acc_pd.to_csv(options.roll_avg_acc_csv, index = False)
+
+        options.manual_vs_md_csv = default_path_from_none(
+            options.output_dir, options.input_dir, 
+            options.manual_vs_md_csv, '_manual_vs_md.csv'
+        )
+        video_summ.to_csv(options.manual_vs_md_csv, index = False)
 
     checkpoint4_time = time.time()
 

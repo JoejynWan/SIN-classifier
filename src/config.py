@@ -44,10 +44,11 @@ ROLL_AVG_VIDEO_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_av
 ## Settings for comparing MegaDetector results with manual identification results
 CHECK_ACCURACY = True
 MANUAL_ID_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_ID.csv'
+MANUAL_VS_MD_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_vs_md.csv'
 
 
 ## Settings for optimising rolling prediction averaging 
-ROLLING_AVG_SIZE_RANGE = [32]
-IOU_THRESHOLD_RANGE = [0.5]
-CONF_THRESHOLD_BUF_RANGE = [0.7]
+ROLLING_AVG_SIZE_RANGE = [8, 16, 32]
+IOU_THRESHOLD_RANGE = [0.3, 0.4, 0.5]
+CONF_THRESHOLD_BUF_RANGE = [0.6, 0.7]
 ROLL_AVG_ACC_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_optimise_roll_avg.csv'

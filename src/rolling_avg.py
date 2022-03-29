@@ -105,8 +105,9 @@ def bbox_iou(bbox_1, bbox_2):
 
 
 def rm_bad_detections(options, images):
-    # provide some buffer and accept detections with a conf threshold 
-    # conf_threshold_buf% less for rolling prediction averaging
+    
+    ## Provide some buffer and accept detections with a conf threshold that is
+    ## conf_threshold_buf% less for rolling prediction averaging
     conf_threshold_limit = options.conf_threshold_buf * options.rendering_confidence_threshold 
 
     for image in images: 
@@ -174,7 +175,7 @@ def add_object_number(videos, iou_threshold):
                     #first detection of the video is always a new unique object
                     if not objects: 
                         
-                        detection["object_number"] = "object_" + str(object_num).zfill(2)
+                        detection['object_number'] = "object_" + str(object_num).zfill(2)
 
                         objects.append(detection)
                         
@@ -185,7 +186,7 @@ def add_object_number(videos, iou_threshold):
                         # Check if the detection is an alr recorded object
                         det_categorised = False
                         for object in objects: 
-                            object_number = object["object_number"]
+                            object_number = object['object_number']
                             bbox_object = object['bbox']
                             bbox_detection = detection['bbox']
                             
@@ -194,7 +195,7 @@ def add_object_number(videos, iou_threshold):
                             # Bounding boxes overlap significantly, 
                             # and so it is the same object
                             if iou >= iou_threshold:
-                                detection["object_number"] = object_number
+                                detection['object_number'] = object_number
 
                                 object = detection
                                 
@@ -207,7 +208,7 @@ def add_object_number(videos, iou_threshold):
                             # Since the detection is NOT an alr recorded object, 
                             # add in a new object
                             object_num = object_num + 1
-                            detection["object_number"] = "object_" + str(object_num).zfill(2)
+                            detection['object_number'] = "object_" + str(object_num).zfill(2)
 
                             objects.append(detection)
                             

@@ -1,5 +1,6 @@
 import os
 import argparse
+from numpy import dtype
 import pandas as pd
 from tqdm import tqdm
 
@@ -13,10 +14,10 @@ from rolling_avg import rolling_avg
 from ct_utils import args_to_object
 
 
-def summarise_cat(csv_file_path):
+def summarise_cat(full_df):
     """
-    Summarises dataset into two columns: 'FullVideoPath' and 'Category', 
-        where each row is a unique FullVideoPath. If a FullVideoPath has multiple 
+    Summarises dataset into two columns: 'UniqueFileName' and 'Category', 
+        where each row is a unique UniqueFileName. If a UniqueFileName has multiple 
         Categories (more than one detection or animal), they are summarised 
         using the following rules:
     1) Where there are multiples of the same category, only one is kept
@@ -25,13 +26,11 @@ def summarise_cat(csv_file_path):
     3) Where there is a human (2) and vehicle (3), the video is considered to be a human category (2)
     """
 
-    full_df = pd.read_csv(csv_file_path)
-
-    video_cat = full_df[['FullVideoPath', 'Category']]
+    video_cat = full_df[['UniqueFileName', 'Category']]
     summ_cat = video_cat.sort_values(
-        by = ['FullVideoPath', 'Category']
+        by = ['UniqueFileName', 'Category']
         ).drop_duplicates(
-        subset = ['FullVideoPath'], keep = 'first', ignore_index = True)
+        subset = ['UniqueFileName'], keep = 'first', ignore_index = True)
 
     return summ_cat
 
@@ -59,7 +58,7 @@ def confusion_mat(true_cat, predicted_cat):
     true_cat = true_cat.rename(columns = {'Category': 'CategoryTrue'})
     predicted_cat = predicted_cat.rename(columns = {'Category': 'CategoryPredicted'})
 
-    both_cat = pd.merge(true_cat, predicted_cat, on = ['FullVideoPath'])
+    both_cat = pd.merge(true_cat, predicted_cat, on = ['UniqueFileName'])
     
     positive_categories = [1] #animal is positive class
     nagative_categories = [0, 2, 3] #empty, human, and vehicle is negative classes
@@ -106,15 +105,82 @@ def acc_metrics(confusion_matrix):
     return acc_dict
 
 
+def condense_md(megadetector_df):
+
+    manual_df_subset = megadetector_df[['UniqueFileName', 'Category', 'DetectedObj']]
+
+    df_subset = manual_df_subset.copy()
+    df_subset['AllSpeciesMD'] = "cat_" + df_subset['Category'].map(str) + "_" + df_subset['DetectedObj'].map(str)
+
+    df_subset = df_subset.groupby(['UniqueFileName'])['AllSpeciesMD'].agg(lambda col: ','.join(col))
+
+    cat_summ = summarise_cat(megadetector_df)
+    cat_summ = cat_summ.rename(columns = {'Category': 'CategoryMD'})
+
+    condense_df = pd.merge(df_subset, cat_summ, on = ['UniqueFileName'])
+
+    return condense_df
+
+
+def condense_manual(manual_df):
+
+    manual_df_subset = manual_df[[
+        'UniqueFileName', 'Station', 'SamplingDate', 'DateTime', 'Remarks', 
+        'ScientificName', 'Quantity']]
+    
+    df_subset = manual_df_subset.copy()
+
+    df_subset['Quantity'] = df_subset['Quantity'].astype(str)
+    df_subset['SpeciesQty'] = df_subset[['ScientificName', 'Quantity']].agg(' '.join, axis = 1)
+
+    df_subset['AllSpeciesManual'] = df_subset.groupby(
+        ['UniqueFileName']
+        )['SpeciesQty'].transform(lambda x: ','.join(x))
+
+    df_subset = df_subset.drop(['ScientificName', 'Quantity', 'SpeciesQty'], axis = 1)
+
+    cat_summ = summarise_cat(manual_df)
+    cat_summ = cat_summ.rename(columns = {'Category': 'CategoryManual'})
+    
+    condense_df = pd.merge(df_subset, cat_summ, on = ['UniqueFileName'])
+    
+    return condense_df
+
+
 def true_vs_pred(options):
-    summ_manual = summarise_cat(options.manual_id_csv)
-    summ_md = summarise_cat(options.roll_avg_video_csv)
+
+    ## Load true and predicted results
+    manual_df = pd.read_csv(options.manual_id_csv, dtype=str)
+    megadetector_df = pd.read_csv(options.roll_avg_video_csv, dtype=str)
+    
+    ## Calculate recall, precision, and F1 score
+    summ_manual = summarise_cat(manual_df)
+    summ_md = summarise_cat(megadetector_df)
     
     confusion_matrix = confusion_mat(summ_manual, summ_md)
     
     acc_dict = acc_metrics(confusion_matrix)
     
-    return acc_dict
+    roll_avg_args_dict = {
+        'ManualIDCsv': options.manual_id_csv,
+        'RollAvgCsv': options.roll_avg_video_csv,
+        'RollAvgSize': options.rolling_avg_size,
+        'IOUThreshold': options.iou_threshold,
+        'RenderingConfThreshold': options.rendering_confidence_threshold, 
+        'ConfThresholdBuffer': options.conf_threshold_buf
+    }
+    
+    roll_avg_args_dict.update(acc_dict)
+    
+    acc_pd = pd.DataFrame(roll_avg_args_dict, index = [0])
+
+    ## Export comparision file for one video per row
+    video_summ_manual = condense_manual(manual_df)
+    video_summ_md = condense_md(megadetector_df)
+
+    video_summ_pd = pd.merge(video_summ_manual, video_summ_md, on = ['UniqueFileName'])
+    
+    return acc_pd, video_summ_pd
 
 
 def optimise_roll_avg(options):
@@ -138,19 +204,21 @@ def optimise_roll_avg(options):
                     # options.roll_avg_video_csv automatically 
                     rolling_avg(options, md_images, Fs, mute = True) 
 
-                    acc_dict = true_vs_pred(options)
+                    acc_pd, video_summ_pd = true_vs_pred(options)
                     
-                    roll_avg_results_dict = {
-                        'ManualIDCsv': options.manual_id_csv,
-                        'RollAvgCsv': options.roll_avg_video_csv,
-                        'RollAvgSize': options.rolling_avg_size,
-                        'IOUThreshold': options.iou_threshold,
-                        'ConfThresholdBuffer': options.conf_threshold_buf
-                    }
-                    
-                    roll_avg_results_dict.update(acc_dict)
-                    combi_pd = pd.DataFrame(roll_avg_results_dict, index = [0])
-                    all_combi_acc = pd.concat([all_combi_acc, combi_pd])
+                    all_combi_acc = pd.concat([all_combi_acc, acc_pd])
+
+                    options.manual_vs_md_csv = None
+                    options.manual_vs_md_csv = default_path_from_none(
+                        options.output_dir, options.input_dir, 
+                        options.manual_vs_md_csv, 
+                        "_manual_vs_md_size_{}_iou_{}_buf_{}.csv".format(
+                            options.rolling_avg_size, 
+                            options.iou_threshold,
+                            options.conf_threshold_buf
+                        )
+                    )
+                    video_summ_pd.to_csv(options.manual_vs_md_csv, index = False)
 
                     pbar.update(1)
     
@@ -211,6 +279,10 @@ def get_arg_parser():
     parser.add_argument('--conf_threshold_buf_range', type=str,
                         default = config.CONF_THRESHOLD_BUF_RANGE, 
                         help = 'Range of confidence threshold buffer values to test.'
+    )
+    parser.add_argument('--check_accuracy', type=bool,
+                        default = config.CHECK_ACCURACY, 
+                        help="Whether to run accuracy test against manual ID"
     )
     return parser
     

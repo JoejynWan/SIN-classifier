@@ -27,7 +27,7 @@ def manual_ID_results(options):
         species, _, quantity_remarks = species_quantity.partition(" ")
         quantity, _, remarks = quantity_remarks.partition(" ")
         if quantity == "":
-            quantity = 0
+            quantity = 1
         file = os.path.join(station_sampledate, vid_name).replace('\\','/')
 
         vid_full_path = os.path.join(options.input_dir, vids_rel_path)
