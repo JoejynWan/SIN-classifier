@@ -1,8 +1,11 @@
 import os
 import argparse
+from matplotlib.pyplot import close
 from numpy import dtype
 import pandas as pd
 from tqdm import tqdm
+from itertools import product
+import multiprocessing as mp
 
 # Functions imported from this project
 import config
@@ -37,8 +40,8 @@ def summarise_cat(full_df):
 
 def replace_pos_neg_cat(cat_data, positive_cat, negative_cat):
 
-    cat_data = cat_data.replace(dict.fromkeys(positive_cat, 1))
-    cat_data = cat_data.replace(dict.fromkeys(negative_cat, 0))
+    cat_data = cat_data.replace(dict.fromkeys(positive_cat, '1'))
+    cat_data = cat_data.replace(dict.fromkeys(negative_cat, '0'))
 
     return cat_data
 
@@ -60,12 +63,12 @@ def confusion_mat(true_cat, predicted_cat):
 
     both_cat = pd.merge(true_cat, predicted_cat, on = ['UniqueFileName'])
     
-    positive_categories = [1] #animal is positive class
-    nagative_categories = [0, 2, 3] #empty, human, and vehicle is negative classes
-    both_cat = replace_pos_neg_cat(both_cat, positive_categories, nagative_categories)
-
+    positive_categories = ['1'] #animal is positive class
+    nagative_categories = ['0', '2', '3'] #empty, human, and vehicle is negative classes
     both_cat['CategoryTrue'] = both_cat['CategoryTrue'].apply(str)
     both_cat['CategoryPredicted'] = both_cat['CategoryPredicted'].apply(str)
+    both_cat = replace_pos_neg_cat(both_cat, positive_categories, nagative_categories)
+
     both_cat['CategoryBoth'] = both_cat['CategoryTrue'] + both_cat['CategoryPredicted']
     both_cat = replace_TP_TN_FP_FN(both_cat)
 
@@ -179,56 +182,100 @@ def true_vs_pred(options):
     video_summ_md = condense_md(megadetector_df)
 
     video_summ_pd = pd.merge(video_summ_manual, video_summ_md, on = ['UniqueFileName'])
-    
+
+    positive_categories = ['1'] #animal is positive class
+    nagative_categories = ['0', '2', '3'] #empty, human, and vehicle is negative classes
+    video_summ_pd = replace_pos_neg_cat(video_summ_pd, positive_categories, nagative_categories)
+
+    video_summ_pd['CategoryManual'] = video_summ_pd['CategoryManual'].apply(str)
+    video_summ_pd['CategoryMD'] = video_summ_pd['CategoryMD'].apply(str)
+    video_summ_pd['CategoryBoth'] = video_summ_pd['CategoryManual'] + video_summ_pd['CategoryMD']
+    video_summ_pd = replace_TP_TN_FP_FN(video_summ_pd)
+
+    video_summ_pd['ManualCheckRemarks'] = ""
+
     return acc_pd, video_summ_pd
 
 
-def optimise_roll_avg(options):
+def roll_avg_combi(options, images, Fs, arg_combi):
+    options.rolling_avg_size = arg_combi[0]
+    options.iou_threshold = arg_combi[1]
+    options.conf_threshold_buf = arg_combi[2]
+
+    ## Run rolling prediction averaging using the unique combination of arguments
+    ## roll_avg_video_csv will be exported to be used later in true_vs_pred()
+    rolling_avg(options, images, Fs, mute = True) 
+
+    ## Compare the manual ID with the rolling prediction averaging results just conducted
+    acc_pd, video_summ_pd = true_vs_pred(options)
+
+    ## Export out manual_vs_md.csv for each unique combination of rolling average arguments
+    options.manual_vs_md_csv = None
+    options.manual_vs_md_csv = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.manual_vs_md_csv, 
+        "_manual_vs_md_size_{}_iou_{}_buf_{}.csv".format(
+            options.rolling_avg_size, 
+            options.iou_threshold,
+            options.conf_threshold_buf
+        )
+    )
+    video_summ_pd.to_csv(options.manual_vs_md_csv, index = False)
+
+    return acc_pd
+
+
+def optimise_roll_avg(options, parallel = True):
     
+    print("Loading MegaDetector detections from {}...".format(options.full_det_frames_json))
     md_images, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
     
-    all_combi_acc = pd.DataFrame()
     num_combi = len(options.rolling_avg_size_range) * len(options.iou_threshold_range) * len(options.conf_threshold_buf_range)
     
-    with tqdm(total = num_combi) as pbar:
-        for rolling_avg_size in options.rolling_avg_size_range:
-            options.rolling_avg_size = rolling_avg_size
-            
-            for iou_threshold in options.iou_threshold_range:
-                options.iou_threshold = iou_threshold
-                
-                for conf_threshold_buf in options.conf_threshold_buf_range:
-                    options.conf_threshold_buf = conf_threshold_buf
-                    
-                    # results of rolling avg with each combination of args will be saved in 
-                    # options.roll_avg_video_csv automatically 
-                    rolling_avg(options, md_images, Fs, mute = True) 
+    arg_combis = list(product(
+        options.rolling_avg_size_range, 
+        options.iou_threshold_range,
+        options.conf_threshold_buf_range))
 
-                    acc_pd, video_summ_pd = true_vs_pred(options)
-                    
-                    all_combi_acc = pd.concat([all_combi_acc, acc_pd])
-
-                    options.manual_vs_md_csv = None
-                    options.manual_vs_md_csv = default_path_from_none(
-                        options.output_dir, options.input_dir, 
-                        options.manual_vs_md_csv, 
-                        "_manual_vs_md_size_{}_iou_{}_buf_{}.csv".format(
-                            options.rolling_avg_size, 
-                            options.iou_threshold,
-                            options.conf_threshold_buf
-                        )
-                    )
-                    video_summ_pd.to_csv(options.manual_vs_md_csv, index = False)
-
-                    pbar.update(1)
+    print("Running rolling prediction averaging for {} unique combination of arguments.".format(len(arg_combis)))
     
-    all_combi_acc = all_combi_acc.sort_values(by = ['F1Score'], ascending = False)
+    if parallel: 
+        all_combi_acc = []
+        def callback_func(result):
+            
+            all_combi_acc.append(result)
+            pbar.update()
+
+        pool = mp.Pool(mp.cpu_count())
+
+        pbar = tqdm(total = len(arg_combis))
+        for arg_combi in arg_combis:
+            pool.apply_async(
+                roll_avg_combi, args = (options, md_images, Fs, arg_combi), 
+                callback = callback_func)
+
+        pool.close()
+        pool.join()
+
+        ## Concatenate into one dataframe
+        all_combi_acc_pd = pd.concat(all_combi_acc)
+
+    else:
+        all_combi_acc_pd = pd.DataFrame()
+        for arg_combi in tqdm(arg_combis):
+
+            acc_pd = roll_avg_combi(
+                options, md_images, Fs, arg_combi)
+
+            all_combi_acc_pd = pd.concat([all_combi_acc_pd, acc_pd])
+    
+    all_combi_acc_pd = all_combi_acc_pd.sort_values(by = ['F1Score'], ascending = False)
     
     options.roll_avg_acc_csv = default_path_from_none(
         options.output_dir, options.input_dir, 
         options.roll_avg_acc_csv, '_roll_avg_acc.csv'
     )
-    all_combi_acc.to_csv(options.roll_avg_acc_csv, index = False)
+    all_combi_acc_pd.to_csv(options.roll_avg_acc_csv, index = False)
 
 
 def main():
@@ -259,10 +306,6 @@ def get_arg_parser():
     parser.add_argument('--manual_id_csv', type=str,
                         default = config.MANUAL_ID_CSV, 
                         help = 'Path to csv file containing the results of manual identification detections.'
-    )
-    parser.add_argument('--roll_avg_acc_csv', type=str,
-                        default = config.ROLL_AVG_ACC_CSV, 
-                        help = 'Path to csv file for which the optimiser results will be saved.'
     )
     parser.add_argument('--full_det_frames_json', type=str,
                         default = config.FULL_DET_FRAMES_JSON, 
