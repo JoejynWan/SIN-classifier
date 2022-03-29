@@ -225,7 +225,7 @@ def roll_avg_combi(options, images, Fs, arg_combi):
     return acc_pd
 
 
-def optimise_roll_avg(options, parallel = True):
+def optimise_roll_avg(options, parallel = False):
     
     print("Loading MegaDetector detections from {}...".format(options.full_det_frames_json))
     md_images, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
@@ -239,7 +239,7 @@ def optimise_roll_avg(options, parallel = True):
 
     print("Running rolling prediction averaging for {} unique combination of arguments.".format(len(arg_combis)))
     
-    if parallel: 
+    if parallel: #problems with memory. Should parallel the rolling_avg instead
         all_combi_acc = []
         def callback_func(result):
             
