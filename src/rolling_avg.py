@@ -2,18 +2,19 @@ import os
 import copy
 import argparse
 import numpy as np
+from tqdm import tqdm
+import multiprocessing as mp
 from collections import deque
 
 # Functions imported from this project
 import config
-from shared_utils import find_unique_videos, write_json_file, find_unique_objects
+from shared_utils import find_unique_videos, find_unique_objects
 from shared_utils import VideoOptions, default_path_from_none, load_detector_output
 from shared_utils import write_frame_results, write_roll_avg_video_results
 from vis_detections import vis_detection_videos
 
 # Imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
-from detection.run_tf_detector_batch import write_results_to_file
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
 
@@ -28,34 +29,6 @@ def limit_wh_rel(coord):
     if coord > 1:
         coord = 1
     return coord
-
-
-def bbbox_buffer(bbox_shape, buffer_scale):
-    """
-    NOT USED.
-    bbox_shape = list, containing x_min, y_min, w_rel, h_rel. 
-        These values are from 0 to 1
-        x_min and y_min denotes the position of the top left corner
-        w_rel denotes the length of the width proportional to the width of the image
-        h_rel denotes the length of the height proportional to the height of the image
-    
-    buffer_scale = float, size of the buffer. 
-        E.g., 1.1 denotes that the buffer will be 10% larger than the bounding box
-    """
-
-    x_min, y_min, w_rel, h_rel = bbox_shape
-    w_rel_new = w_rel * buffer_scale
-    x_min_new = x_min - (w_rel_new - w_rel)
-    h_rel_new = h_rel * buffer_scale
-    y_min_new = y_min - (h_rel_new - h_rel)
-
-    x_min_buf = limit_xy_min(x_min_new)
-    y_min_buf = limit_xy_min(y_min_new)
-    w_rel_buf = limit_wh_rel(w_rel_new)
-    h_rel_buf = limit_wh_rel(h_rel_new)
-
-    buf_shape = [x_min_buf, y_min_buf, w_rel_buf, h_rel_buf]
-    return buf_shape
 
 
 def bbox_iou(bbox_1, bbox_2):
@@ -130,166 +103,141 @@ def rm_bad_detections(options, images):
     return images
 
 
-def add_video_layer(images):
-    """
-    Converts the list of images into a list of videos by adding an 
-    additional "layer" above the images "layer". 
-    Each item in the video list is a dictionary containing:
-        "video" = 'name of the video'
-        "images" = 'details of each frame of that video'
-    """
-    video_paths = find_unique_videos(images)
+def id_object(frames, iou_threshold):
+    '''
+    Function to identify individual objects based on the intersection over union (IOU) between 
+    the bounding boxes of the current and previous frame. 
 
-    videos = []
-    for video_path in video_paths:
-        frames = []
-        for image in images:
-            frame_path = os.path.dirname(image['file'])
-            if frame_path == video_path:
-                frames.append(image)
-        video = {
-            'video': video_path,
-            'images': frames}
-        videos.append(video)
-
-    return videos
-
-
-def add_object_number(videos, iou_threshold):
-    
-    updated_videos = copy.copy(videos)
-
-    for video in updated_videos:
+    Args:
+    frames: list of frames from one video
+    '''
+    objects = []
+    object_num = 1
+    for frame in frames: 
         
-        frames = video['images']
-        objects = []
-        object_num = 1
-        for frame in frames:
-            # print(frame['file'])
-            detections = frame['detections']
-            
-            if detections:
-                for det_idx, detection in enumerate(detections):
-                    
-                    # print('Detection number {}'.format(det_idx))
-                    #first detection of the video is always a new unique object
-                    if not objects: 
-                        
-                        detection['object_number'] = "object_" + str(object_num).zfill(2)
-
-                        objects.append(detection)
-                        
-                        # print("Creating new object {}".format(detection["object_number"]))                         
-                    
-                    else:
-                            
-                        # Check if the detection is an alr recorded object
-                        det_categorised = False
-                        for object in objects: 
-                            object_number = object['object_number']
-                            bbox_object = object['bbox']
-                            bbox_detection = detection['bbox']
-                            
-                            iou = bbox_iou(bbox_object, bbox_detection)
-                            
-                            # Bounding boxes overlap significantly, 
-                            # and so it is the same object
-                            if iou >= iou_threshold:
-                                detection['object_number'] = object_number
-
-                                object = detection
-                                
-                                # print("Same object, which is {}".format(detection["object_number"]))
-                                det_categorised = True
-
-                                break #break the objects for loop
-                        
-                        if not det_categorised:
-                            # Since the detection is NOT an alr recorded object, 
-                            # add in a new object
-                            object_num = object_num + 1
-                            detection['object_number'] = "object_" + str(object_num).zfill(2)
-
-                            objects.append(detection)
-                            
-                            # print("Creating new object {}".format(detection["object_number"]))                           
-                                
-    return updated_videos
-
-
-def rolling_pred_avg(objects, rolling_avg_size):
-
-    updated_objects = copy.copy(objects)
-    
-    for video in updated_objects: 
+        detections = frame['detections']
         
-        frames = video['images']
-
-        unique_objects = find_unique_objects(frames)
-        Q_objs = []
-        for unique_object in unique_objects:
-            Q_obj = {
-                'object_number': unique_object,
-                'object_Q': deque(maxlen = rolling_avg_size)
-            }
-            Q_objs.append(Q_obj)
-
-        for frame in frames: 
-            
-            for Q_obj in Q_objs:
-                Q_obj['object_Q'].append([0,0,0])
-            
-            detections = frame['detections']
-
-            if detections: 
-                for detection in detections: 
-                    det_cat = int(detection['category'])
-                    det_conf = detection['conf']
-                    det_obj_num = detection['object_number']
-
-                    Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
-                    Q[-1][det_cat-1] = det_conf
+        if detections:
+            for detection in detections:
                 
-                for detection in detections: 
-                    det_obj_num = detection['object_number']
-                    Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
+                #first detection of the video is always a new unique object
+                if not objects: 
+                    
+                    detection['object_number'] = "object_" + str(object_num).zfill(2)
+                    objects.append(detection)
+                                           
+                else:
+                        
+                    # Check if the detection is an alr recorded object
+                    det_categorised = False
+                    for object in objects: 
+                        object_number = object['object_number']
+                        bbox_object = object['bbox']
+                        bbox_detection = detection['bbox']
+                        
+                        iou = bbox_iou(bbox_object, bbox_detection)
+                        
+                        # Same object if bounding boxes overlap significantly
+                        if iou >= iou_threshold:
+                            
+                            detection['object_number'] = object_number
+                            object = detection
+                            
+                            det_categorised = True
 
-                    # find the rolling prediction average...
-                    np_mean = np.array(Q).mean(axis = 0)
+                            break #break the objects for loop
+                    
+                    # Add in new object since the detection is NOT an alr recorded object
+                    if not det_categorised:
+                        
+                        object_num = object_num + 1
+                        detection['object_number'] = "object_" + str(object_num).zfill(2)
+                        objects.append(detection)
 
-                    # update the conf and cat of the detection 
-                    max_conf = max(np_mean)
-                    max_index = np.where(np_mean == max_conf)[0].tolist()[0] + 1
+    return frames
 
-                    detection['conf'] = max_conf
-                    detection['category'] = str(max_index)                
+
+def rpa_calc(frames, rolling_avg_size):
+
+    unique_objects = find_unique_objects(frames)
+
+    ## Create deque to store conf for each unique object
+    Q_objs = []
+    for unique_object in unique_objects:
+        Q_obj = {
+            'object_number': unique_object,
+            'object_Q': deque(maxlen = rolling_avg_size)
+        }
+        Q_objs.append(Q_obj)
+
+    ## Run rpa for frames
+    for frame in frames: 
+        
+        for Q_obj in Q_objs:
+            Q_obj['object_Q'].append([0,0,0])
+        
+        detections = frame['detections']
+
+        if detections: 
+            for detection in detections: 
+                det_cat = int(detection['category'])
+                det_conf = detection['conf']
+                det_obj_num = detection['object_number']
+
+                Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
+                Q[-1][det_cat-1] = det_conf
+            
+            for detection in detections: 
+                det_obj_num = detection['object_number']
+                Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
+
+                # find the rolling prediction average...
+                np_mean = np.array(Q).mean(axis = 0)
+
+                # update the conf and cat of the detection 
+                max_conf = max(np_mean)
+                max_index = np.where(np_mean == max_conf)[0].tolist()[0] + 1
+
+                detection['conf'] = max_conf
+                detection['category'] = str(max_index)    
+
+    return frames
+
+
+def rpa_video(options, images, video_path):
     
-    return updated_objects
+    images_copy = copy.deepcopy(images)
 
+    frames = [image for image in images_copy if os.path.dirname(image['file']) == video_path]
+    
+    frames = id_object(frames, options.iou_threshold)
 
-def remove_video_layer(roll_avg):
-    images_only = []
-    for video in roll_avg:
-        images_only = images_only + video['images']
+    frames = rpa_calc(frames, options.rolling_avg_size)
 
-    return images_only
+    return frames
 
 
 def rolling_avg(options, images, Fs, mute = False):
     
     images = rm_bad_detections(options, images)
-    output_images = copy.deepcopy(images)
 
-    videos = add_video_layer(images)
-    output_videos = copy.deepcopy(videos)
+    video_paths = find_unique_videos(images)
 
-    objects = add_object_number(videos, options.iou_threshold)
-    output_objects = copy.deepcopy(objects)
+    roll_avg = []
+    def callback_func(result):
+        roll_avg.extend(result)
+        pbar.update()
 
-    roll_avg = rolling_pred_avg(objects, options.rolling_avg_size)
-    output_roll_avg = copy.deepcopy(roll_avg)
+    pool = mp.Pool(mp.cpu_count())
+    pbar = tqdm(total = len(video_paths))
 
-    roll_avg_images = remove_video_layer(roll_avg)
+    for video_path in video_paths: 
+        pool.apply_async(
+            rpa_video, args = (options, images, video_path), callback = callback_func
+        )
+
+    pool.close()
+    pool.join()
 
     ## Write the output files
     options.roll_avg_frames_json = default_path_from_none(
@@ -298,11 +246,11 @@ def rolling_avg(options, images, Fs, mute = False):
     )
 
     write_frame_results(
-        roll_avg_images, Fs, 
+        roll_avg, Fs, 
         options.roll_avg_frames_json, options.frame_folder, mute = mute)
     write_roll_avg_video_results(options, mute = mute)
 
-    return roll_avg_images, output_images, output_videos, output_objects, output_roll_avg
+    return roll_avg
 
 
 def main():
@@ -314,25 +262,9 @@ def main():
 
     images_full, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
 
-    roll_avg, output_images, output_videos, output_objects, output_roll_avg = rolling_avg(options, images_full, Fs)
-
-    write_roll_avg_video_results(options)
+    roll_avg = rolling_avg(options, images_full, Fs)
 
     vis_detection_videos(options)
-
-    ## Save outputs for checking
-    output_file = os.path.splitext(
-        options.full_det_frames_json)[0] + '_conf_' + str(options.rendering_confidence_threshold) + '.json'
-    write_results_to_file(output_images, output_file)
-
-    videos_path = os.path.join(options.output_dir, "CT_models_test_videos.json")
-    write_json_file(output_videos, videos_path)
-
-    objects_path = os.path.join(options.output_dir, "CT_models_test_objects.json")
-    write_json_file(output_objects, objects_path)
-
-    roll_avg_path = os.path.join(options.output_dir, "CT_models_test_videos_rolling_avg.json")
-    write_json_file(output_roll_avg, roll_avg_path)
 
 
 def get_arg_parser():
