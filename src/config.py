@@ -49,6 +49,6 @@ MANUAL_VS_MD_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_vs
 
 ## Settings for optimising rolling prediction averaging 
 ROLLING_AVG_SIZE_RANGE = [8]
-IOU_THRESHOLD_RANGE = [0.2, 0.3]
-CONF_THRESHOLD_BUF_RANGE = [0.5, 0.6]
+IOU_THRESHOLD_RANGE = [0.3]
+CONF_THRESHOLD_BUF_RANGE = [0.6]
 ROLL_AVG_ACC_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_optimise_roll_avg.csv'

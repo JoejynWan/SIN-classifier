@@ -177,7 +177,7 @@ def true_vs_pred(options):
     
     acc_pd = pd.DataFrame(roll_avg_args_dict, index = [0])
 
-    ## Export comparision file for one video per row
+    ## Export comparision file for one video per row (manual_vs_md.csv)
     video_summ_manual = condense_manual(manual_df)
     video_summ_md = condense_md(megadetector_df)
 
@@ -192,7 +192,7 @@ def true_vs_pred(options):
     video_summ_pd['CategoryBoth'] = video_summ_pd['CategoryManual'] + video_summ_pd['CategoryMD']
     video_summ_pd = replace_TP_TN_FP_FN(video_summ_pd)
 
-    video_summ_pd['ManualCheckRemarks'] = ""
+    video_summ_pd['SecondCheckRemarks'] = ""
 
     return acc_pd, video_summ_pd
 
@@ -225,12 +225,10 @@ def roll_avg_combi(options, images, Fs, arg_combi):
     return acc_pd
 
 
-def optimise_roll_avg(options, parallel = False):
+def optimise_roll_avg(options):
     
     print("Loading MegaDetector detections from {}...".format(options.full_det_frames_json))
     md_images, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
-    
-    num_combi = len(options.rolling_avg_size_range) * len(options.iou_threshold_range) * len(options.conf_threshold_buf_range)
     
     arg_combis = list(product(
         options.rolling_avg_size_range, 
@@ -239,35 +237,13 @@ def optimise_roll_avg(options, parallel = False):
 
     print("Running rolling prediction averaging for {} unique combination of arguments.".format(len(arg_combis)))
     
-    if parallel: #problems with memory. Should parallel the rolling_avg instead
-        all_combi_acc = []
-        def callback_func(result):
-            
-            all_combi_acc.append(result)
-            pbar.update()
+    all_combi_acc_pd = pd.DataFrame()
+    for arg_combi in tqdm(arg_combis):
 
-        pool = mp.Pool(mp.cpu_count())
+        acc_pd = roll_avg_combi(
+            options, md_images, Fs, arg_combi)
 
-        pbar = tqdm(total = len(arg_combis))
-        for arg_combi in arg_combis:
-            pool.apply_async(
-                roll_avg_combi, args = (options, md_images, Fs, arg_combi), 
-                callback = callback_func)
-
-        pool.close()
-        pool.join()
-
-        ## Concatenate into one dataframe
-        all_combi_acc_pd = pd.concat(all_combi_acc)
-
-    else:
-        all_combi_acc_pd = pd.DataFrame()
-        for arg_combi in tqdm(arg_combis):
-
-            acc_pd = roll_avg_combi(
-                options, md_images, Fs, arg_combi)
-
-            all_combi_acc_pd = pd.concat([all_combi_acc_pd, acc_pd])
+        all_combi_acc_pd = pd.concat([all_combi_acc_pd, acc_pd])
     
     all_combi_acc_pd = all_combi_acc_pd.sort_values(by = ['F1Score'], ascending = False)
     
@@ -289,7 +265,7 @@ def main():
     os.makedirs(options.output_dir, exist_ok=True)
 
     ## Run optimiser
-    optimise_roll_avg(options) #TODO [not impt] parallise for faster speed
+    optimise_roll_avg(options) 
 
 
 def get_arg_parser():
