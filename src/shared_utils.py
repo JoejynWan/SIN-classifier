@@ -1,16 +1,29 @@
 import os
+import sys
 import json
 import copy
 import json
 import shutil
 import pandas as pd
-from tqdm import tqdm
 from typing import Container
 from datetime import datetime
 from collections import defaultdict
 
 # Functions imported from Microsoft/CameraTraps github repository
 from detection.run_tf_detector import TFDetector
+
+
+def check_output_dir(options):
+    if os.path.exists(options.output_dir) and os.listdir(options.output_dir):
+        while True:
+            rewrite_input = input('\nThe output directory specified is not empty. Do you want to continue and rewrite the files in the directory? (y/n)')
+            if rewrite_input.lower() not in ('y', 'n'):
+                print('Input invalid. Please enter y or n.')
+            else:
+                break
+        
+        if rewrite_input.lower() == 'n':
+            sys.exit('Stopping script. Please input the correct output directory. ')
 
 
 def delete_temp_dir(directory):
@@ -90,51 +103,86 @@ def write_json_file(output_object, output_path):
 
 class VideoOptions:
 
-    model_file = ''
     input_dir = ''
-    recursive = True 
-    
     output_dir = None
+
+    model_file = ''
+    species_database_file = None
+
+    recursive = True 
+    n_cores = 1
     
     full_det_frames_json = None
     full_det_video_json = None
-    roll_avg_frames_json = None
-    roll_avg_video_json = None
+
+    frame_sample = None
+    debug_max_frames = -1
+    reuse_results_if_available = False
+    json_confidence_threshold = 0.0 # Outdated: will be overridden by rolling prediction averaging. Description: don't include boxes in the .json file with confidence below this threshold
 
     render_output_video = False
     delete_output_frames = True
     frame_folder = None
-    
     rendering_confidence_threshold = 0.8
-    frame_sample = None
-    
+
     rolling_avg_size = 32
     iou_threshold = 0.5
     conf_threshold_buf = 0.7
     nth_highest_confidence = 1
 
-    n_cores = 1
-
-    json_confidence_threshold = 0.0 # Outdated: will be overridden by rolling prediction averaging. Description: don't include boxes in the .json file with confidence below this threshold
-    debug_max_frames = -1
-    reuse_results_if_available = False
-
+    roll_avg_frames_json = None
+    roll_avg_video_json = None
+    roll_avg_video_csv = None
+    
     check_accuracy = False
-    species_database_file = None
+    manual_id_csv = None
+    manual_vs_md_csv = None
+
+    rolling_avg_size_range = None
+    iou_threshold_range = None
+    conf_threshold_buf_range = None
+    roll_avg_acc_csv = None
 
 
-def make_output_path(output_dir, input_dir, file_suffix):
-    if output_dir is None:
-        output_file_name = input_dir + file_suffix
-       
+def load_detector_output(detector_output_path):
+    with open(detector_output_path) as f:
+        detector_output = json.load(f)
+    assert 'images' in detector_output, (
+        'Detector output file should be a json with an "images" field.')
+    images = detector_output['images']
+
+    if 'detection_categories' in detector_output:
+        print('detection_categories provided')
+        detector_label_map = detector_output['detection_categories']
     else:
-        input_folder_name = os.path.basename(input_dir)
-        output_file_name = os.path.join(output_dir, input_folder_name + file_suffix)
+        detector_label_map = TFDetector.DEFAULT_DETECTOR_LABEL_MAP
+
+    Fs = detector_output['videos']['frame_rates']
+
+    return images, detector_label_map, Fs
+
+
+def default_path_from_none(output_dir, input_dir, file_path, file_suffix):
+    """
+    Creates the default path for the output files if not defined by the user.
+    Default path is based on the output_dir, input_dir, and file_suffix. 
+    """
+    if file_path is None: 
+    
+        if output_dir is None:
+            output_file_name = input_dir + file_suffix
+        
+        else:
+            input_folder_name = os.path.basename(input_dir)
+            output_file_name = os.path.join(output_dir, input_folder_name + file_suffix)
+
+    else:
+        output_file_name = file_path
 
     return output_file_name
 
 
-def write_frame_results(results, Fs, output_file, relative_path_base=None):
+def write_frame_results(results, Fs, output_file, relative_path_base=None, mute = False):
     """
     Writes a list of detection results to a JSON output file. 
     Function is adapted from detection.run_tf_detector_batch.write_results_to_file, 
@@ -173,10 +221,12 @@ def write_frame_results(results, Fs, output_file, relative_path_base=None):
     }
     with open(output_file, 'w') as f:
         json.dump(final_output, f, indent=1)
-    print('Output file saved at {}'.format(output_file))
+
+    if not mute:
+        print('Output file saved at {}'.format(output_file))
 
 
-def write_video_results(input_file,output_file, nth_highest_confidence = 1):
+def write_video_results(input_file,output_file, nth_highest_confidence = 1, mute = False):
     """
     Given an API output file produced at the *frame* level, corresponding to a directory 
     created with video_folder_to_frames, map those frame-level results back to the 
@@ -198,7 +248,7 @@ def write_video_results(input_file,output_file, nth_highest_confidence = 1):
     
     video_to_frames = defaultdict(list) 
     
-    for im in tqdm(images):
+    for im in images:
         
         fn = im['file']
         video_name = os.path.dirname(fn)
@@ -206,11 +256,8 @@ def write_video_results(input_file,output_file, nth_highest_confidence = 1):
         video_to_frames[video_name].append(im)
     
     ## For each video...
-    print('Converting {} frame-level results to {} video-level results by keeping only one detection per category.'.format(
-        len(images), len(video_to_frames)))
-
     output_images = []
-    for video_name, fs in tqdm(zip(video_to_frames, Fs)):
+    for video_name, fs in zip(video_to_frames, Fs):
         
         frames = video_to_frames[video_name]
         
@@ -256,6 +303,9 @@ def write_video_results(input_file,output_file, nth_highest_confidence = 1):
     # Write the output file
     with open(output_file,'w') as f:
         f.write(s)
+    
+    if not mute:
+        print('Output file saved at {}'.format(output_file))
 
 
 def find_unique_objects(images):
@@ -274,26 +324,33 @@ def find_unique_objects(images):
     return(unique_objs)
 
 
-def json_to_csv(images, csv_file):
+def json_to_csv(options, images):
 
     video_pd = pd.DataFrame()
     for image in images:
-        video = image['file']
+        video = image['file'].replace('\\','/')
         frame_rate = image['frame_rate']
         detections = image['detections']
+
+        if options.check_accuracy:
+            station_sampledate, _, vid_name = video.split("/")
+            uniquefile = os.path.join(station_sampledate, vid_name).replace('\\','/')
+        else:
+            uniquefile = 'NA'
 
         if not detections: #no detections, so false trigger
 
             obj_row = {
                 'FullVideoPath': video,
-                'frame_rate': frame_rate,
-                'category': 0,
-                'detected_obj': 'NA',
-                'max_conf': 'NA',
-                'bbox_x_min': 'NA',
-                'bbox_y_min': 'NA',
-                'bbox_w_rel': 'NA',
-                'bbox_h_rel': 'NA'
+                'UniqueFileName': uniquefile, 
+                'FrameRate': frame_rate,
+                'Category': 0,
+                'DetectedObj': 'NA',
+                'MaxConf': 'NA',
+                'BboxXmin': 'NA',
+                'BboxYmin': 'NA',
+                'BboxWrel': 'NA',
+                'BboxHrel': 'NA'
             }
             obj_row_pd = pd.DataFrame(obj_row, index = [0])
 
@@ -304,23 +361,28 @@ def json_to_csv(images, csv_file):
 
                 obj_row = {
                     'FullVideoPath': video,
-                    'frame_rate': frame_rate,
-                    'category': detection['category'],
-                    'detected_obj': detection['object_number'],
-                    'max_conf': detection['conf'],
-                    'bbox_x_min': detection['bbox'][0],
-                    'bbox_y_min': detection['bbox'][1],
-                    'bbox_w_rel': detection['bbox'][2],
-                    'bbox_h_rel': detection['bbox'][3]
+                    'UniqueFileName': uniquefile, 
+                    'FrameRate': frame_rate,
+                    'Category': detection['category'],
+                    'DetectedObj': detection['object_number'],
+                    'MaxConf': detection['conf'],
+                    'BboxXmin': detection['bbox'][0],
+                    'BboxYmin': detection['bbox'][1],
+                    'BboxWrel': detection['bbox'][2],
+                    'BboxHrel': detection['bbox'][3]
                 }
                 obj_row_pd = pd.DataFrame(obj_row, index = [0])
 
                 video_pd = video_pd.append(obj_row_pd)
     
-    video_pd.to_csv(csv_file, index = False)
+    options.roll_avg_video_csv = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.roll_avg_video_csv, '_roll_avg_videos.csv'
+    )
+    video_pd.to_csv(options.roll_avg_video_csv, index = False)
 
 
-def write_roll_avg_video_results(options):
+def write_roll_avg_video_results(options, mute = False):
     
     # Load frame-level results
     with open(options.roll_avg_frames_json,'r') as f:
@@ -332,11 +394,8 @@ def write_roll_avg_video_results(options):
     # Find one object detection for each video
     unique_videos = find_unique_videos(images)
 
-    print('Converting {} frame-level results to {} video-level results by keeping only one detection per object.'.format(
-        len(images), len(unique_videos)))
-
     output_images = []
-    for unique_video, fs in tqdm(zip(unique_videos, Fs)):
+    for unique_video, fs in zip(unique_videos, Fs):
         frames = [im for im in images if unique_video in im['file']]
 
         unique_objs = find_unique_objects(frames)
@@ -376,8 +435,18 @@ def write_roll_avg_video_results(options):
     s = json.dumps(output_data,indent=1)
     
     # Write the output file
+    options.roll_avg_video_json = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.roll_avg_video_json, '_roll_avg_videos.json'
+    )
+
     with open(options.roll_avg_video_json,'w') as f:
         f.write(s)
+    
+    if not mute:
+        print('Output file saved at {}'.format(options.roll_avg_video_json))
 
-    roll_avg_video_csv = os.path.splitext(options.roll_avg_video_json)[0] + '.csv'
-    json_to_csv(output_images, roll_avg_video_csv)
+    json_to_csv(options, output_images)
+    
+    if not mute:
+        print('Output file saved at {}'.format(options.roll_avg_video_csv))

@@ -7,9 +7,9 @@ from pickle import FALSE, TRUE
 
 # Functions imported from this project
 import config
-from shared_utils import delete_temp_dir, VideoOptions, make_output_path
-from shared_utils import write_frame_results, write_video_results, write_roll_avg_video_results
-from rolling_avg import rolling_avg, write_roll_avg_video_results
+from shared_utils import delete_temp_dir, VideoOptions, default_path_from_none
+from shared_utils import write_frame_results, write_video_results
+from rolling_avg import rolling_avg
 
 # Functions imported from Microsoft/CameraTraps github repository
 from detection.run_tf_detector_batch import load_and_run_detector_batch
@@ -17,26 +17,6 @@ from detection.video_utils import video_folder_to_frames
 from ct_utils import args_to_object
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
-
-
-def make_default_json(options):
-    if options.full_det_frames_json is None:
-        options.full_det_frames_json = make_output_path(
-            options.output_dir, options.input_dir, '_full_det_frames.json')
-
-    if options.full_det_video_json is None:
-        options.full_det_video_json = make_output_path(
-            options.output_dir, options.input_dir, '_full_det_videos.json')
-
-    if options.roll_avg_frames_json is None:
-        options.roll_avg_frames_json = make_output_path(
-            options.output_dir, options.input_dir, '_roll_avg_frames.json')
-
-    if options.roll_avg_video_json is None:
-        options.roll_avg_video_json = make_output_path(
-            options.output_dir, options.input_dir, '_roll_avg_videos.json')
-    
-    return options
 
 
 def video_dir_to_frames(options):
@@ -66,8 +46,7 @@ def video_dir_to_frames(options):
 
 
 def det_frames(options, image_file_names, Fs):
-    ## Create the paths to save the .json file describing detections for each frame and video    
-    options = make_default_json(options)
+    
     os.makedirs(options.output_dir, exist_ok=True)
 
     ## Run detections on each frame
@@ -78,15 +57,20 @@ def det_frames(options, image_file_names, Fs):
         n_cores=options.n_cores)
 
     ## Save and export results of full detection
+    options.full_det_frames_json = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.full_det_frames_json, '_full_det_frames.json'
+    )
     write_frame_results(results, Fs, options.full_det_frames_json, options.frame_folder)
+    
+    options.full_det_video_json = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.full_det_video_json, '_full_det_video.json'
+    )
     write_video_results(options.full_det_frames_json, options.full_det_video_json)
 
     ## Rolling prediction average 
-    roll_avg, _, _, _, _ = rolling_avg(options, results)
-
-    ## Save and export results of rolling average
-    write_frame_results(roll_avg, Fs, options.roll_avg_frames_json, options.frame_folder)
-    write_roll_avg_video_results(options)
+    rolling_avg(options, results, Fs)
 
 
 def main(): 
@@ -123,22 +107,6 @@ def get_arg_parser():
     parser.add_argument('--recursive', type=bool, 
                         default = config.RECURSIVE, 
                         help='recurse into [input_dir]; only meaningful if a folder is specified as input'
-    )
-    parser.add_argument('--full_det_frames_json', type=str,
-                        default = config.FULL_DET_FRAMES_JSON, 
-                        help = 'Path of json file with all detections for each frame.'
-    )
-    parser.add_argument('--full_det_video_json', type=str,
-                        default = config.FULL_DET_VIDEO_JSON, 
-                        help = 'Path of json file with consolidated detections (consolidated across categories) for each video.'
-    )
-    parser.add_argument('--roll_avg_frames_json', type=str,
-                        default = config.ROLL_AVG_FRAMES_JSON, 
-                        help = 'Path of json file with rolling-averaged detections for each frame.'
-    )
-    parser.add_argument('--roll_avg_video_json', type=str,
-                        default = config.ROLL_AVG_VIDEO_JSON, 
-                        help = 'Path of json file with consolidated rolling-averaged detections (consolidated across categories) for each video.'
     )
     parser.add_argument('--render_output_video', type=bool,
                         default = config.RENDER_OUTPUT_VIDEO, 

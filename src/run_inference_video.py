@@ -1,15 +1,17 @@
 import os
-import sys
+import pandas as pd
 import time
 import argparse
 import humanfriendly
 
 # Functions imported from this project
 import config
-from shared_utils import delete_temp_dir, VideoOptions
+from shared_utils import delete_temp_dir, VideoOptions, check_output_dir
+from shared_utils import default_path_from_none
 from run_det_video import video_dir_to_frames, det_frames
 from vis_detections import vis_detection_videos
-from video_metadata import manual_ID_results
+from manual_ID import manual_ID_results
+from optimise_roll_avg import true_vs_pred
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
@@ -17,18 +19,39 @@ from ct_utils import args_to_object
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
 
 
-def check_output_dir(options):
-    if os.path.exists(options.output_dir) and os.listdir(options.output_dir):
-        while True:
-            rewrite_input = input('\nThe output directory specified is not empty. Do you want to continue and rewrite the files in the directory? (y/n)')
-            if rewrite_input.lower() not in ('y', 'n'):
-                print('Input invalid. Please enter y or n.')
-            else:
-                break
-        
-        if rewrite_input.lower() == 'n':
-            sys.exit('Stopping script. Please input the correct output directory. ')
+def runtime_txt(options, script_start_time, checkpoint1_time, checkpoint2_time, checkpoint3_time, checkpoint4_time):
 
+    if options.check_accuracy:
+        manual_id_elapsed = checkpoint1_time - script_start_time
+        true_vs_pred_elapsed = checkpoint4_time - checkpoint3_time
+        check_acc_elapsed = manual_id_elapsed + true_vs_pred_elapsed
+    else:
+        check_acc_elapsed = 0
+
+    megadetector_elapsed = checkpoint2_time - checkpoint1_time
+
+    if options.render_output_video:
+        vis_elapsed = checkpoint3_time - checkpoint2_time
+    else:
+        vis_elapsed = 0
+
+    script_elapsed = time.time() - script_start_time
+
+    lines = [
+        'Runtime for MegaDetector = {}'.format(humanfriendly.format_timespan(megadetector_elapsed)),
+        'Runtime for visualisation of bounding boxes = {}'.format(humanfriendly.format_timespan(vis_elapsed)),
+        'Runtime for manual identification vs MegaDetector detections comparison = {}'.format(humanfriendly.format_timespan(check_acc_elapsed)),
+        'Total script runtime = {}'.format(humanfriendly.format_timespan(script_elapsed))
+    ]
+
+    runtime_txt_file = os.path.join(options.output_dir, 'script_runtime.txt')
+    with open(runtime_txt_file, 'w') as f:
+        for line in lines:
+            f.write(line)
+            f.write('\n')
+
+    return script_elapsed
+    
 
 def main(): 
     script_start_time = time.time()
@@ -48,15 +71,19 @@ def main():
     # Check the memory of the output_dir and temp_dir to ensure that there is 
     # sufficient space to save the frames and videos 
 
-    ## Getting the results from manual detection
+    ## Getting the results from manual identifications
+    # Run this first to ensure that all species are in species_database.csv
     if options.check_accuracy:
-        
         manual_ID_results(options)
+
+    checkpoint1_time = time.time()
 
     ## Detecting subjects in each video frame using MegaDetector
     image_file_names, Fs = video_dir_to_frames(options)
     det_frames(options, image_file_names, Fs)
-
+    
+    checkpoint2_time = time.time()
+    
     ## Annotating and exporting to video
     if options.render_output_video:
         vis_detection_videos(options)
@@ -67,7 +94,29 @@ def main():
     else:
         print('Frames saved in {}'.format(options.frame_folder))
 
-    script_elapsed = time.time() - script_start_time
+    checkpoint3_time = time.time()
+
+    ## Comparing results of manual identification with MegaDetector detections
+    if options.check_accuracy:
+        acc_pd, video_summ = true_vs_pred(options)
+
+        options.roll_avg_acc_csv = default_path_from_none(
+            options.output_dir, options.input_dir, 
+            options.roll_avg_acc_csv, '_roll_avg_acc.csv'
+        )
+        acc_pd.to_csv(options.roll_avg_acc_csv, index = False)
+
+        options.manual_vs_md_csv = default_path_from_none(
+            options.output_dir, options.input_dir, 
+            options.manual_vs_md_csv, '_manual_vs_md.csv'
+        )
+        video_summ.to_csv(options.manual_vs_md_csv, index = False)
+
+    checkpoint4_time = time.time()
+
+    script_elapsed = runtime_txt(
+        options, script_start_time, 
+        checkpoint1_time, checkpoint2_time, checkpoint3_time, checkpoint4_time)
     print('Completed! Script successfully excecuted in {}'.format(humanfriendly.format_timespan(script_elapsed)))
 
 
@@ -89,22 +138,6 @@ def get_arg_parser():
     parser.add_argument('--output_dir', type=str,
                         default = config.OUTPUT_DIR, 
                         help = 'Path to folder where videos will be saved.'
-    )
-    parser.add_argument('--full_det_frames_json', type=str,
-                        default = config.FULL_DET_FRAMES_JSON, 
-                        help = 'Path of json file with all detections for each frame.'
-    )
-    parser.add_argument('--full_det_video_json', type=str,
-                        default = config.FULL_DET_VIDEO_JSON, 
-                        help = 'Path of json file with consolidated detections (consolidated across categories) for each video.'
-    )
-    parser.add_argument('--roll_avg_frames_json', type=str,
-                        default = config.ROLL_AVG_FRAMES_JSON, 
-                        help = 'Path of json file with rolling-averaged detections for each frame.'
-    )
-    parser.add_argument('--roll_avg_video_json', type=str,
-                        default = config.ROLL_AVG_VIDEO_JSON, 
-                        help = 'Path of json file with consolidated rolling-averaged detections (consolidated across categories) for each video.'
     )
     parser.add_argument('--render_output_video', type=bool,
                         default = config.RENDER_OUTPUT_VIDEO, 

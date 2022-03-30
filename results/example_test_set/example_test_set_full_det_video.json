@@ -1,0 +1,254 @@
+{
+ "images": [
+  {
+   "file": "CT23_20211119\\Rattus sp. 1\\IMG_0002.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.991,
+     "bbox": [
+      0.3315,
+      0.4659,
+      0.05101,
+      0.07166
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.00481,
+     "bbox": [
+      0.3382,
+      0.275,
+      0.04813,
+      0.2665
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 0.000235,
+     "bbox": [
+      0.3355,
+      0.3173,
+      0.05233,
+      0.2252
+     ]
+    }
+   ],
+   "max_detection_conf": 0.991
+  },
+  {
+   "file": "CT23_20211119\\Tupaia glis 1\\IMG_0001.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.998,
+     "bbox": [
+      0.009106,
+      0.6311,
+      0.1251,
+      0.0938
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.0199,
+     "bbox": [
+      0.5692,
+      0.01375,
+      0.08011,
+      0.4458
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 9.2e-05,
+     "bbox": [
+      0.6866,
+      0.4652,
+      0.0515,
+      0.2084
+     ]
+    }
+   ],
+   "max_detection_conf": 0.998
+  },
+  {
+   "file": "CT7_20211119\\False triggers\\IMG_0031.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.612,
+     "bbox": [
+      0.7442,
+      0.6554,
+      0.08881,
+      0.1047
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.0253,
+     "bbox": [
+      0.1669,
+      0.8346,
+      0.0686,
+      0.1188
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 0.000665,
+     "bbox": [
+      0.9965,
+      0.3709,
+      0.00316,
+      0.08751
+     ]
+    }
+   ],
+   "max_detection_conf": 0.612
+  },
+  {
+   "file": "CT7_20211119\\False triggers\\IMG_0032.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.423,
+     "bbox": [
+      0.8545,
+      0.3079,
+      0.02046,
+      0.0178
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.00369,
+     "bbox": [
+      0.006341,
+      0.4324,
+      0.07584,
+      0.2768
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 0.000827,
+     "bbox": [
+      0.9978,
+      0.2082,
+      0.002032,
+      0.08133
+     ]
+    }
+   ],
+   "max_detection_conf": 0.423
+  },
+  {
+   "file": "CT7_20211119\\Non-targeted\\IMG_0001.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.931,
+     "bbox": [
+      0,
+      0,
+      1.0,
+      0.9587
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.998,
+     "bbox": [
+      0.0005869,
+      0.3172,
+      0.3988,
+      0.6405
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 0.0363,
+     "bbox": [
+      0,
+      0,
+      1.0,
+      0.9607
+     ]
+    }
+   ],
+   "max_detection_conf": 0.998
+  },
+  {
+   "file": "CT7_20211119\\Non-targeted\\IMG_0002.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.495,
+     "bbox": [
+      4.475e-05,
+      0.004046,
+      0.08889,
+      0.3
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.999,
+     "bbox": [
+      0.001753,
+      0.003206,
+      0.5958,
+      0.9458
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 0.264,
+     "bbox": [
+      0.0006198,
+      0.002739,
+      0.6749,
+      0.8407
+     ]
+    }
+   ],
+   "max_detection_conf": 0.999
+  }
+ ],
+ "detection_categories": {
+  "1": "animal",
+  "2": "person",
+  "3": "vehicle"
+ },
+ "videos": {
+  "num_videos": 6,
+  "video_names": [
+   "CT23_20211119\\Rattus sp. 1\\IMG_0002.AVI",
+   "CT23_20211119\\Tupaia glis 1\\IMG_0001.AVI",
+   "CT7_20211119\\False triggers\\IMG_0031.AVI",
+   "CT7_20211119\\False triggers\\IMG_0032.AVI",
+   "CT7_20211119\\Non-targeted\\IMG_0001.AVI",
+   "CT7_20211119\\Non-targeted\\IMG_0002.AVI"
+  ],
+  "frame_rates": [
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003
+  ]
+ },
+ "info": {
+  "detection_completion_time": "2022-03-29 06:18:19",
+  "format_version": "1.0"
+ }
+}
