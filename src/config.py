@@ -5,6 +5,7 @@ import multiprocessing
 INPUT_DIR = 'data/LCK_Ramboll/20211119'
 OUTPUT_DIR = 'results/LCK_Ramboll/20211119'
 
+
 ## Paths to required datasets
 MODEL_FILE = 'models/md_v4.1.0.pb'
 SPECIES_DATABASE_FILE = 'data/species_database.csv'
@@ -45,6 +46,7 @@ ROLL_AVG_VIDEO_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_av
 CHECK_ACCURACY = True
 MANUAL_ID_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_ID.csv'
 MANUAL_VS_MD_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_vs_md.csv'
+SPECIES_LIST_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_species_list.csv'
 
 
 ## Settings for optimising rolling prediction averaging 

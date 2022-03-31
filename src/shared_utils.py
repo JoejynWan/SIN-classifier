@@ -137,6 +137,7 @@ class VideoOptions:
     check_accuracy = False
     manual_id_csv = None
     manual_vs_md_csv = None
+    species_list_csv = None
 
     rolling_avg_size_range = None
     iou_threshold_range = None

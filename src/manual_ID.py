@@ -12,6 +12,18 @@ from detection.video_utils import find_videos
 from ct_utils import args_to_object
 
 
+def species_list(options, manual_csv):
+
+    species_pd = manual_csv.groupby(['ScientificName']).size().reset_index(name = 'NumVideos')
+
+    options.species_list_csv = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.species_list_csv, "_species_list.csv"
+    )
+    species_pd.to_csv(options.species_list_csv, index = False)
+    print('Output file saved at {}'.format(options.species_list_csv))
+
+
 def manual_ID_results(options):
 
     input_dir_full_paths = find_videos(options.input_dir, recursive=True)
@@ -75,7 +87,10 @@ def manual_ID_results(options):
     true_vids_output = true_vids_output.fillna('NA')
     true_vids_output = true_vids_output[col_order]
 
-    ## Write output file
+    ## Write species_list.csv output file
+    species_list(options, true_vids_output)
+
+    ## Write manual_id.csv output file
     options.manual_id_csv = default_path_from_none(
         options.output_dir, options.input_dir, 
         options.manual_id_csv, "_manual_ID.csv"
@@ -117,6 +132,11 @@ def get_arg_parser():
                         default = config.MANUAL_ID_CSV, 
                         help = 'Path to csv file that contains the results of manual identification.'
     )
+    parser.add_argument('--species_list_csv', type=str,
+                        default = config.SPECIES_LIST_CSV, 
+                        help = 'Path to csv file that shows the number of videos of each species.'
+    )
+    return parser
 
 
 if __name__ == '__main__':
