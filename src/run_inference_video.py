@@ -1,6 +1,7 @@
 import os
-import pandas as pd
 import time
+import tqdm
+import shutil
 import argparse
 import humanfriendly
 
@@ -51,7 +52,24 @@ def runtime_txt(options, script_start_time, checkpoint1_time, checkpoint2_time, 
             f.write('\n')
 
     return script_elapsed
-    
+
+
+def export_fn(options, video_summ):
+
+    video_summ_copy = video_summ.copy()
+    export_pd = video_summ_copy[video_summ_copy['AccClass'] == 'FN']
+    export_pd = export_pd.reset_index()
+
+    root = os.path.abspath(os.curdir)
+
+    for idx, row in tqdm(export_pd.iterrows(), total=export_pd.shape[0]):
+        
+        input_vid = os.path.join(root, options.output_dir, row['FullVideoPath'])
+        output_vid_dir = os.path.join(root, options.output_dir, 'false_nagative_videos', os.path.dirname(row['UniqueFileName']))
+        os.makedirs(output_vid_dir, exist_ok = True)
+
+        _ = shutil.copy2(input_vid, output_vid_dir)
+
 
 def main(): 
     script_start_time = time.time()
@@ -111,6 +129,8 @@ def main():
             options.manual_vs_md_csv, '_manual_vs_md.csv'
         )
         video_summ.to_csv(options.manual_vs_md_csv, index = False)
+
+        export_fn(options, video_summ)
 
     checkpoint4_time = time.time()
 

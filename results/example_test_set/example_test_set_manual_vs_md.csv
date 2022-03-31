@@ -1,7 +1,7 @@
 UniqueFileName,FullVideoPath,Station,SamplingDate,DateTime,Manual_Remarks,Manual_AllSpecies,Manual_Cat,Manual_Human_Qty,Manual_Animal_Qty,MD_AllSpecies,MD_Cat,MD_Human_Qty,MD_Animal_Qty,AccClass,Diff_Human_Qty,Diff_Animal_Qty,Total_Overestimation,SmallAnimal,FastMoving,EdgeOfFrame,Unidentified,WrongManualID,SecondCheckRemarks
 CT23_20211119/IMG_0002.AVI,CT23_20211119/Rattus sp. 1/IMG_0002.AVI,CT23,20211119,30:47.6,,Rattus spp. 1,1,0,1,"cat_1_object_01,cat_1_object_02,cat_1_object_03",1,0,3,TP,0,2,2,,,,,,
-CT23_20211119/IMG_0001.AVI,CT23_20211119/Tupaia glis 1/IMG_0001.AVI,CT23,20211119,30:48.4,,Tupaia glis 1,1,0,1,cat_1_object_01,1,0,1,TP,0,0,0,,,,,,
+CT23_20211119/IMG_0001.AVI,CT23_20211119/Tupaia glis 1/IMG_0001.AVI,CT23,20211119,30:48.4,,Tupaia glis 1,1,0,1,cat_1_object_01,1,0,1,FN,0,0,0,,,,,,
 CT7_20211119/IMG_0031.AVI,CT7_20211119/False triggers/IMG_0031.AVI,CT7,20211119,30:48.9,,False trigger 1,0,1,0,cat_0_nan,0,1,0,TN,0,0,0,,,,,,
-CT7_20211119/IMG_0032.AVI,CT7_20211119/False triggers/IMG_0032.AVI,CT7,20211119,30:49.3,,False trigger 1,0,1,0,cat_0_nan,0,1,0,TN,0,0,0,,,,,,
+CT7_20211119/IMG_0032.AVI,CT7_20211119/False triggers/IMG_0032.AVI,CT7,20211119,30:49.3,,False trigger 1,0,1,0,cat_0_nan,0,1,0,FN,0,0,0,,,,,,
 CT7_20211119/IMG_0001.AVI,CT7_20211119/Non-targeted/IMG_0001.AVI,CT7,20211119,30:49.6,,Homo sapiens 1,0,1,0,cat_0_nan,0,1,0,TN,0,0,0,,,,,,
 CT7_20211119/IMG_0002.AVI,CT7_20211119/Non-targeted/IMG_0002.AVI,CT7,20211119,30:50.0,,Homo sapiens 1,0,1,0,cat_0_object_01,0,1,0,TN,0,0,0,,,,,,
