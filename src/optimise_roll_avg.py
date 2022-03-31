@@ -62,12 +62,44 @@ def acc_metrics(confusion_matrix):
         'TN': TN,
         'FP': FP,
         'FN': FN,
-        'Recall': recall, 
-        'Precision': precision,
-        'F1Score': f1_score
+        'Recall': round(recall*100, 1), 
+        'Precision': round(precision*100, 1),
+        'F1Score': round(f1_score*100, 1)
     }
 
     return acc_dict
+
+
+def quantity_acc(video_summ_pd):
+
+    qty = video_summ_pd.copy()
+    qty = qty[['Total_Qty_Diff', 'UniqueFileName']]
+    
+    qty['QtyAcc'] = ""
+    qty.loc[qty['Total_Qty_Diff'] > 0, 'QtyAcc'] = "Overestimation"
+    qty.loc[qty['Total_Qty_Diff'] == 0, 'QtyAcc'] = "CorrectQuantity"
+    qty.loc[qty['Total_Qty_Diff'] < 0, 'QtyAcc'] = "Underestimation"
+    
+    qty_acc = qty.groupby(['QtyAcc']).size().reset_index(name='counts')
+    
+    correct = qty_acc['counts'][qty_acc['QtyAcc'] == 'CorrectQuantity']
+    over = qty_acc['counts'][qty_acc['QtyAcc'] == 'Overestimation']
+    under = qty_acc['counts'][qty_acc['QtyAcc'] == 'Underestimation']
+    print(over)
+    if over.empty: 
+        over = 0
+
+    if under.empty: 
+        under = 0
+
+    qty_dict = {
+        'Num_CorrectQty': correct,
+        'Num_Overestimated': over,
+        'Num_Underestimated': under,
+        'Perc_CorrectQty': round(correct/(correct+over+under)*100, 1)
+    }
+
+    return qty_dict
 
 
 def summarise_cat(full_df):
@@ -195,7 +227,7 @@ def true_vs_pred(options):
     # Columns for difference in quantity number
     video_summ_pd['Diff_Human_Qty'] = video_summ_pd['MD_Human_Qty'] - video_summ_pd['Manual_Human_Qty']
     video_summ_pd['Diff_Animal_Qty'] = video_summ_pd['MD_Animal_Qty'] - video_summ_pd['Manual_Animal_Qty']
-    video_summ_pd['Total_Overestimation'] = video_summ_pd['Diff_Human_Qty'] + video_summ_pd['Diff_Animal_Qty']
+    video_summ_pd['Total_Qty_Diff'] = video_summ_pd['Diff_Human_Qty'] + video_summ_pd['Diff_Animal_Qty']
 
     # Columns for second check of false negatives
     video_summ_pd['SmallAnimal'] = ""
@@ -207,11 +239,15 @@ def true_vs_pred(options):
 
     video_summ_pd = video_summ_pd.sort_values(by = ['Station', 'AccClass'])
 
-    ## Calculate accuracy metrics (recall, precision, and F1 score) for all videos
+    ## Calculate accuracy metrics for all videos
+    # Recall, precision and F1 score 
     confusion_matrix = confusion_mat(video_summ_pd)
-    
     acc_dict = acc_metrics(confusion_matrix)
-    
+
+    # Percetage of correct quantities
+    qty_dict = quantity_acc(video_summ_pd)
+
+    # Merge dictionaries and convert to pandas df
     roll_avg_args_dict = {
         'ManualIDCsv': options.manual_id_csv,
         'RollAvgCsv': options.roll_avg_video_csv,
@@ -221,6 +257,7 @@ def true_vs_pred(options):
         'ConfThresholdBuffer': options.conf_threshold_buf
     }
     
+    roll_avg_args_dict.update(qty_dict)
     roll_avg_args_dict.update(acc_dict)
     
     acc_pd = pd.DataFrame(roll_avg_args_dict, index = [0])
