@@ -1,11 +1,8 @@
 import os
 import argparse
-from matplotlib.pyplot import close
-from numpy import dtype
 import pandas as pd
 from tqdm import tqdm
 from itertools import product
-import multiprocessing as mp
 
 # Functions imported from this project
 import config
@@ -15,6 +12,62 @@ from rolling_avg import rolling_avg
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
+
+
+def replace_pos_neg_cat(cat_data, positive_cat, negative_cat):
+
+    cat_data = cat_data.replace(dict.fromkeys(positive_cat, '1'))
+    cat_data = cat_data.replace(dict.fromkeys(negative_cat, '0'))
+
+    return cat_data
+
+
+def replace_TP_TN_FP_FN(cat_data):
+
+    cat_data = cat_data.replace('00', 'TN') #true negatives
+    cat_data = cat_data.replace('01', 'FP') #true negatives
+    cat_data = cat_data.replace('10', 'FN') #true negatives
+    cat_data = cat_data.replace('11', 'TP') #true negatives
+
+    return(cat_data)
+
+
+def confusion_mat(video_summ_pd):
+
+    confusion_matrix = video_summ_pd.groupby(['AccClass']).size().reset_index(name='counts')
+
+    acc_mets = ['FN', 'FP', 'TN', 'TP']
+    for acc_met in acc_mets: 
+        if not (acc_met in confusion_matrix['AccClass'].tolist()):
+            fill_0 = pd.DataFrame({'AccClass': acc_met, 'counts': 0}, index = [0])
+
+            confusion_matrix = pd.concat([confusion_matrix, fill_0])
+
+    return confusion_matrix
+
+
+def acc_metrics(confusion_matrix):
+
+    FN = int(confusion_matrix['counts'][confusion_matrix['AccClass'] == 'FN'])
+    FP = int(confusion_matrix['counts'][confusion_matrix['AccClass'] == 'FP'])
+    TN = int(confusion_matrix['counts'][confusion_matrix['AccClass'] == 'TN'])
+    TP = int(confusion_matrix['counts'][confusion_matrix['AccClass'] == 'TP'])
+
+    recall = TP / (TP + FN)
+    precision = TP / (TP + FP)
+    f1_score = 2 * (precision * recall) / (precision + recall)
+
+    acc_dict = {
+        'TP': TP,
+        'TN': TN,
+        'FP': FP,
+        'FN': FN,
+        'Recall': recall, 
+        'Precision': precision,
+        'F1Score': f1_score
+    }
+
+    return acc_dict
 
 
 def summarise_cat(full_df):
@@ -38,114 +91,85 @@ def summarise_cat(full_df):
     return summ_cat
 
 
-def replace_pos_neg_cat(cat_data, positive_cat, negative_cat):
-
-    cat_data = cat_data.replace(dict.fromkeys(positive_cat, '1'))
-    cat_data = cat_data.replace(dict.fromkeys(negative_cat, '0'))
-
-    return cat_data
-
-
-def replace_TP_TN_FP_FN(cat_data):
-
-    cat_data = cat_data.replace('00', 'TN') #true negatives
-    cat_data = cat_data.replace('01', 'FP') #true negatives
-    cat_data = cat_data.replace('10', 'FN') #true negatives
-    cat_data = cat_data.replace('11', 'TP') #true negatives
-
-    return(cat_data)
-
-
-def confusion_mat(true_cat, predicted_cat):
-
-    true_cat = true_cat.rename(columns = {'Category': 'CategoryTrue'})
-    predicted_cat = predicted_cat.rename(columns = {'Category': 'CategoryPredicted'})
-
-    both_cat = pd.merge(true_cat, predicted_cat, on = ['UniqueFileName'])
+def condense_md(megadetector_df):
     
+    megadetector_df_copy = megadetector_df.copy()
+    megadetector_df_copy['Category'] = megadetector_df_copy['Category'].astype(str)
     positive_categories = ['1'] #animal is positive class
     nagative_categories = ['0', '2', '3'] #empty, human, and vehicle is negative classes
-    both_cat['CategoryTrue'] = both_cat['CategoryTrue'].apply(str)
-    both_cat['CategoryPredicted'] = both_cat['CategoryPredicted'].apply(str)
-    both_cat = replace_pos_neg_cat(both_cat, positive_categories, nagative_categories)
+    megadetector_df_copy = replace_pos_neg_cat(megadetector_df_copy, positive_categories, nagative_categories)
 
-    both_cat['CategoryBoth'] = both_cat['CategoryTrue'] + both_cat['CategoryPredicted']
-    both_cat = replace_TP_TN_FP_FN(both_cat)
+    ## Summarising quantity per class
+    md_qty_subset = megadetector_df_copy[['UniqueFileName', 'Category']]
+    md_cat_qty = md_qty_subset.copy()
+    
+    df_summ_qty = md_cat_qty.groupby(['UniqueFileName', 'Category']).size().reset_index(name = "Quantity")
+    
+    df_summ_qty = df_summ_qty.pivot_table(index = 'UniqueFileName', columns = 'Category', values = 'Quantity')
+    df_summ_qty = df_summ_qty.rename(columns = {
+        '0': 'MD_Human_Qty', '1': 'MD_Animal_Qty'
+    }).fillna(0)
 
-    confusion_matrix = both_cat.groupby(['CategoryBoth']).size().reset_index(name='counts')
+    ## Creating AllSpeciesMD column
+    md_as_subset = megadetector_df_copy[['UniqueFileName', 'Category', 'DetectedObj']]
 
-    acc_mets = ['FN', 'FP', 'TN', 'TP']
-    for acc_met in acc_mets: 
-        if not (acc_met in confusion_matrix['CategoryBoth'].tolist()):
-            fill_0 = pd.DataFrame({'CategoryBoth': acc_met, 'counts': 0}, index = [0])
+    md_as = md_as_subset.copy()
+    md_as['MD_AllSpecies'] = "cat_" + md_as['Category'].map(str) + "_" + md_as['DetectedObj'].map(str)
 
-            confusion_matrix = pd.concat([confusion_matrix, fill_0])
+    md_as = md_as.groupby(['UniqueFileName'])['MD_AllSpecies'].agg(lambda col: ','.join(col))
 
-    return confusion_matrix
+    ## Create unique category for each video 
+    cat_summ = summarise_cat(megadetector_df_copy)
+    cat_summ = cat_summ.rename(columns = {'Category': 'MD_Cat'})
 
-
-def acc_metrics(confusion_matrix):
-
-    FN = int(confusion_matrix['counts'][confusion_matrix['CategoryBoth'] == 'FN'])
-    FP = int(confusion_matrix['counts'][confusion_matrix['CategoryBoth'] == 'FP'])
-    TN = int(confusion_matrix['counts'][confusion_matrix['CategoryBoth'] == 'TN'])
-    TP = int(confusion_matrix['counts'][confusion_matrix['CategoryBoth'] == 'TP'])
-
-    recall = TP / (TP + FN)
-    precision = TP / (TP + FP)
-    f1_score = 2 * (precision * recall) / (precision + recall)
-
-    acc_dict = {
-        'TP': TP,
-        'TN': TN,
-        'FP': FP,
-        'FN': FN,
-        'Recall': recall, 
-        'Precision': precision,
-        'F1Score': f1_score
-    }
-
-    return acc_dict
-
-
-def condense_md(megadetector_df):
-
-    manual_df_subset = megadetector_df[['UniqueFileName', 'Category', 'DetectedObj']]
-
-    df_subset = manual_df_subset.copy()
-    df_subset['AllSpeciesMD'] = "cat_" + df_subset['Category'].map(str) + "_" + df_subset['DetectedObj'].map(str)
-
-    df_subset = df_subset.groupby(['UniqueFileName'])['AllSpeciesMD'].agg(lambda col: ','.join(col))
-
-    cat_summ = summarise_cat(megadetector_df)
-    cat_summ = cat_summ.rename(columns = {'Category': 'CategoryMD'})
-
-    condense_df = pd.merge(df_subset, cat_summ, on = ['UniqueFileName'])
-
+    ## Merge the dataframes into one
+    condense_df = pd.merge(md_as, cat_summ, on = ['UniqueFileName'])
+    condense_df = pd.merge(condense_df, df_summ_qty, on = ['UniqueFileName'])
+    
     return condense_df
 
 
 def condense_manual(manual_df):
 
-    manual_df_subset = manual_df[[
-        'UniqueFileName', 'Station', 'SamplingDate', 'DateTime', 'Remarks', 
+    manual_df_copy = manual_df.copy()
+    manual_df_copy['Quantity'] = manual_df_copy['Quantity'].astype(int)
+    manual_df_copy['Category'] = manual_df_copy['Category'].astype(str)
+    positive_categories = ['1'] #animal is positive class
+    nagative_categories = ['0', '2', '3'] #empty, human, and vehicle is negative classes
+    manual_df_copy = replace_pos_neg_cat(manual_df_copy, positive_categories, nagative_categories)
+
+    ## Summarising quantity per class
+    man_qty_subset = manual_df_copy[['UniqueFileName', 'Category', 'Quantity']]
+    man_cat_qty = man_qty_subset.copy()
+
+    df_summ_qty = man_cat_qty.groupby(['UniqueFileName', 'Category']).sum()
+    df_summ_qty = df_summ_qty.pivot_table(index = 'UniqueFileName', columns = 'Category', values = 'Quantity')
+    df_summ_qty = df_summ_qty.rename(columns = {
+        '0': 'Manual_Human_Qty', '1': 'Manual_Animal_Qty'
+    }).fillna(0)
+
+    ## Creating AllSpeciesManual column
+    df_subset = manual_df_copy[[
+        'UniqueFileName', 'FullVideoPath', 'Station', 'SamplingDate', 'DateTime', 'Manual_Remarks', 
         'ScientificName', 'Quantity']]
-    
-    df_subset = manual_df_subset.copy()
+    df_all_species = df_subset.copy()
 
-    df_subset['Quantity'] = df_subset['Quantity'].astype(str)
-    df_subset['SpeciesQty'] = df_subset[['ScientificName', 'Quantity']].agg(' '.join, axis = 1)
+    df_all_species['Quantity'] = df_all_species['Quantity'].astype(str)
+    df_all_species['SpeciesQty'] = df_all_species[['ScientificName', 'Quantity']].agg(' '.join, axis = 1)
 
-    df_subset['AllSpeciesManual'] = df_subset.groupby(
+    df_all_species['Manual_AllSpecies'] = df_all_species.groupby(
         ['UniqueFileName']
         )['SpeciesQty'].transform(lambda x: ','.join(x))
 
-    df_subset = df_subset.drop(['ScientificName', 'Quantity', 'SpeciesQty'], axis = 1)
+    df_all_species = df_all_species.drop(['ScientificName', 'Quantity', 'SpeciesQty'], axis = 1)
 
-    cat_summ = summarise_cat(manual_df)
-    cat_summ = cat_summ.rename(columns = {'Category': 'CategoryManual'})
+    ## Create unique category for each video 
+    cat_summ = summarise_cat(manual_df_copy)
+    cat_summ = cat_summ.rename(columns = {'Category': 'Manual_Cat'})
     
-    condense_df = pd.merge(df_subset, cat_summ, on = ['UniqueFileName'])
+    ## Merge the dataframes into one
+    condense_df = pd.merge(df_all_species, cat_summ, on = ['UniqueFileName'])
+    condense_df = pd.merge(condense_df, df_summ_qty, on = ['UniqueFileName'])
     
     return condense_df
 
@@ -155,12 +179,36 @@ def true_vs_pred(options):
     ## Load true and predicted results
     manual_df = pd.read_csv(options.manual_id_csv, dtype=str)
     megadetector_df = pd.read_csv(options.roll_avg_video_csv, dtype=str)
-    
-    ## Calculate recall, precision, and F1 score
-    summ_manual = summarise_cat(manual_df)
-    summ_md = summarise_cat(megadetector_df)
-    
-    confusion_matrix = confusion_mat(summ_manual, summ_md)
+
+    ## Create comparision file for one video per row (manual_vs_md.csv)
+    video_summ_manual = condense_manual(manual_df)
+    video_summ_md = condense_md(megadetector_df)
+
+    video_summ_pd = pd.merge(video_summ_manual, video_summ_md, on = ['UniqueFileName'])
+
+    # Replace positive and negative categories to accuracy class
+    video_summ_pd['Manual_Cat'] = video_summ_pd['Manual_Cat'].apply(str)
+    video_summ_pd['MD_Cat'] = video_summ_pd['MD_Cat'].apply(str)
+    video_summ_pd['AccClass'] = video_summ_pd['Manual_Cat'] + video_summ_pd['MD_Cat']
+    video_summ_pd = replace_TP_TN_FP_FN(video_summ_pd)
+
+    # Columns for difference in quantity number
+    video_summ_pd['Diff_Human_Qty'] = video_summ_pd['MD_Human_Qty'] - video_summ_pd['Manual_Human_Qty']
+    video_summ_pd['Diff_Animal_Qty'] = video_summ_pd['MD_Animal_Qty'] - video_summ_pd['Manual_Animal_Qty']
+    video_summ_pd['Total_Overestimation'] = video_summ_pd['Diff_Human_Qty'] + video_summ_pd['Diff_Animal_Qty']
+
+    # Columns for second check of false negatives
+    video_summ_pd['SmallAnimal'] = ""
+    video_summ_pd['FastMoving'] = ""
+    video_summ_pd['EdgeOfFrame'] = ""
+    video_summ_pd['Unidentified'] = ""
+    video_summ_pd['WrongManualID'] = ""
+    video_summ_pd['SecondCheckRemarks'] = ""
+
+    video_summ_pd = video_summ_pd.sort_values(by = ['Station', 'AccClass'])
+
+    ## Calculate accuracy metrics (recall, precision, and F1 score) for all videos
+    confusion_matrix = confusion_mat(video_summ_pd)
     
     acc_dict = acc_metrics(confusion_matrix)
     
@@ -176,23 +224,6 @@ def true_vs_pred(options):
     roll_avg_args_dict.update(acc_dict)
     
     acc_pd = pd.DataFrame(roll_avg_args_dict, index = [0])
-
-    ## Export comparision file for one video per row (manual_vs_md.csv)
-    video_summ_manual = condense_manual(manual_df)
-    video_summ_md = condense_md(megadetector_df)
-
-    video_summ_pd = pd.merge(video_summ_manual, video_summ_md, on = ['UniqueFileName'])
-
-    positive_categories = ['1'] #animal is positive class
-    nagative_categories = ['0', '2', '3'] #empty, human, and vehicle is negative classes
-    video_summ_pd = replace_pos_neg_cat(video_summ_pd, positive_categories, nagative_categories)
-
-    video_summ_pd['CategoryManual'] = video_summ_pd['CategoryManual'].apply(str)
-    video_summ_pd['CategoryMD'] = video_summ_pd['CategoryMD'].apply(str)
-    video_summ_pd['CategoryBoth'] = video_summ_pd['CategoryManual'] + video_summ_pd['CategoryMD']
-    video_summ_pd = replace_TP_TN_FP_FN(video_summ_pd)
-
-    video_summ_pd['SecondCheckRemarks'] = ""
 
     return acc_pd, video_summ_pd
 

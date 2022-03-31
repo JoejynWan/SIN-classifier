@@ -44,7 +44,7 @@ def manual_ID_results(options):
             'DateTime': str(creation_datetime),
             'FolderSpeciesName': str(genus + " " + species),
             'Quantity': quantity,
-            'Remarks': remarks
+            'Manual_Remarks': remarks
         }
         
         true_vid_pd = pd.DataFrame(true_vid_dict, index = [0])

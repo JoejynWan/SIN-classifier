@@ -6,7 +6,7 @@
    "detections": [
     {
      "category": "1",
-     "conf": 0.9825454545454544,
+     "conf": 0.9824545454545454,
      "bbox": [
       0.3392,
       0.4833,
@@ -17,11 +17,11 @@
     },
     {
      "category": "1",
-     "conf": 0.9837187499999999,
+     "conf": 0.9836874999999999,
      "bbox": [
       0.3374,
       0.4644,
-      0.044,
+      0.04399,
       0.07599
      ],
      "object_number": "object_02"
@@ -38,7 +38,7 @@
      "object_number": "object_03"
     }
    ],
-   "max_detection_conf": 0.9837187499999999
+   "max_detection_conf": 0.9836874999999999
   },
   {
    "file": "CT23_20211119\\Tupaia glis 1\\IMG_0001.AVI",
@@ -84,9 +84,9 @@
      "category": "2",
      "conf": 0.9968749999999998,
      "bbox": [
-      0.00977,
+      0.009745,
       0,
-      0.4694,
+      0.4695,
       0.9503
      ],
      "object_number": "object_01"
@@ -120,7 +120,7 @@
   ]
  },
  "info": {
-  "detection_completion_time": "2022-03-30 03:38:34",
+  "detection_completion_time": "2022-03-31 07:21:04",
   "format_version": "1.0"
  }
 }

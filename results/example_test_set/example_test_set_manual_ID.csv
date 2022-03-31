@@ -1,7 +1,7 @@
-FullVideoPath,UniqueFileName,FileName,Station,SamplingDate,Date,Time,DateTime,Kingdom,Class,Order,Family,Genus,Species,ScientificName,CommonName,Category,Quantity,Remarks
-CT23_20211119/Rattus sp. 1/IMG_0002.AVI,CT23_20211119/IMG_0002.AVI,IMG_0002.AVI,CT23,20211119,2022-03-30,10:50:01.824232,2022-03-30 10:50:01.824232,Animalia,Mammalia,Rodentia,Muridae,Rattus,spp.,Rattus spp.,Rats spp.,1,1,
-CT23_20211119/Tupaia glis 1/IMG_0001.AVI,CT23_20211119/IMG_0001.AVI,IMG_0001.AVI,CT23,20211119,2022-03-30,10:50:01.983232,2022-03-30 10:50:01.983232,Animalia,Mammalia,Scandentia,Tupaiidae,Tupaia,glis,Tupaia glis,Common treeshrew,1,1,
-CT7_20211119/False triggers/IMG_0031.AVI,CT7_20211119/IMG_0031.AVI,IMG_0031.AVI,CT7,20211119,2022-03-30,10:50:02.162231,2022-03-30 10:50:02.162231,NA,NA,NA,NA,NA,NA,False trigger,False trigger,0,1,
-CT7_20211119/False triggers/IMG_0032.AVI,CT7_20211119/IMG_0032.AVI,IMG_0032.AVI,CT7,20211119,2022-03-30,10:50:02.341231,2022-03-30 10:50:02.341231,NA,NA,NA,NA,NA,NA,False trigger,False trigger,0,1,
-CT7_20211119/Non-targeted/IMG_0001.AVI,CT7_20211119/IMG_0001.AVI,IMG_0001.AVI,CT7,20211119,2022-03-30,10:50:02.515232,2022-03-30 10:50:02.515232,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Humans,2,1,
-CT7_20211119/Non-targeted/IMG_0002.AVI,CT7_20211119/IMG_0002.AVI,IMG_0002.AVI,CT7,20211119,2022-03-30,10:50:02.672231,2022-03-30 10:50:02.672231,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Humans,2,1,
+FullVideoPath,UniqueFileName,FileName,Station,SamplingDate,Date,Time,DateTime,Kingdom,Class,Order,Family,Genus,Species,ScientificName,CommonName,Category,Quantity,Manual_Remarks
+CT23_20211119/Rattus sp. 1/IMG_0002.AVI,CT23_20211119/IMG_0002.AVI,IMG_0002.AVI,CT23,20211119,2022-03-30,17:30:47.614405,2022-03-30 17:30:47.614405,Animalia,Mammalia,Rodentia,Muridae,Rattus,spp.,Rattus spp.,Rats spp.,1,1,
+CT23_20211119/Tupaia glis 1/IMG_0001.AVI,CT23_20211119/IMG_0001.AVI,IMG_0001.AVI,CT23,20211119,2022-03-30,17:30:48.375453,2022-03-30 17:30:48.375453,Animalia,Mammalia,Scandentia,Tupaiidae,Tupaia,glis,Tupaia glis,Common treeshrew,1,1,
+CT7_20211119/False triggers/IMG_0031.AVI,CT7_20211119/IMG_0031.AVI,IMG_0031.AVI,CT7,20211119,2022-03-30,17:30:48.866811,2022-03-30 17:30:48.866811,NA,NA,NA,NA,NA,NA,False trigger,False trigger,0,1,
+CT7_20211119/False triggers/IMG_0032.AVI,CT7_20211119/IMG_0032.AVI,IMG_0032.AVI,CT7,20211119,2022-03-30,17:30:49.310243,2022-03-30 17:30:49.310243,NA,NA,NA,NA,NA,NA,False trigger,False trigger,0,1,
+CT7_20211119/Non-targeted/IMG_0001.AVI,CT7_20211119/IMG_0001.AVI,IMG_0001.AVI,CT7,20211119,2022-03-30,17:30:49.633747,2022-03-30 17:30:49.633747,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Humans,2,1,
+CT7_20211119/Non-targeted/IMG_0002.AVI,CT7_20211119/IMG_0002.AVI,IMG_0002.AVI,CT7,20211119,2022-03-30,17:30:50.048933,2022-03-30 17:30:50.048933,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Humans,2,1,
