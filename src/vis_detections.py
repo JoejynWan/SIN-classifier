@@ -1,9 +1,9 @@
 import os
 import cv2
-import json
-from tqdm import tqdm
 import argparse
 import tempfile
+from tqdm import tqdm
+import multiprocessing as mp
 
 # Functions imported from this project
 import config
@@ -107,8 +107,13 @@ def vis_detector_output(options, images, detector_label_map, out_dir, output_ima
 
     return annotated_img_paths
 
-def vis_detection_video(options, images_set, detector_label_map, video_name, video_Fs):
+def vis_detection_video(options, images, detector_label_map, fs_video):
     
+    video_name = fs_video[0]
+    video_Fs = fs_video[1]
+
+    images_set = [s for s in images if video_name in s['file']]
+
     tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
     rendering_output_dir = os.path.join(tempdir, 'detection_frames')
 
@@ -116,7 +121,6 @@ def vis_detection_video(options, images_set, detector_label_map, video_name, vid
         images_set, detector_label_map, rendering_output_dir)
     
     output_video_file = os.path.join(options.output_dir, video_name)
-    os.makedirs(os.path.split(output_video_file)[0], exist_ok=True)
     frames_to_video(detected_frame_files, video_Fs, output_video_file)
     
     delete_temp_dir(rendering_output_dir)
@@ -134,15 +138,29 @@ def vis_detection_videos(options):
     images, detector_label_map, Fs = load_detector_output(options.roll_avg_frames_json)
 
     unique_videos = find_unique_videos(images, options.output_dir)
-
+    
     print('Rendering detections above a confidence threshold of {} for {} videos...'.format(
         options.rendering_confidence_threshold, len(unique_videos)))
     
-    for unique_video, fs in tqdm(zip(unique_videos, Fs), total = len(unique_videos)):
-        images_set = [s for s in images if unique_video in s['file']]
+    fs_videos = list(zip(unique_videos, Fs))
 
-        vis_detection_video(options, images_set, detector_label_map, unique_video, fs)
+    result_list = []
+    def callback_func(result):
+        result_list.append(result)
+        pbar.update()
 
+    pool = mp.Pool(mp.cpu_count())
+    pbar = tqdm(total = len(fs_videos))
+
+    for fs_video in fs_videos:
+        
+        pool.apply_async(
+            vis_detection_video, args = (options, images, detector_label_map, fs_video),
+            callback = callback_func
+        )
+
+    pool.close()
+    pool.join()
 
 def main():
     ## Process Command line arguments

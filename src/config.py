@@ -15,7 +15,7 @@ SPECIES_DATABASE_FILE = 'data/species_database.csv'
 RECURSIVE = True 
 N_CORES = multiprocessing.cpu_count() - 1 # No. of available cores minus 1 to not over tax the system
 
-FULL_DET_FRAMES_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
+FULL_DET_FRAMES_JSON = 'results/LCK_Ramboll/20211119/20211119_full_det_frames.json' #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
 FULL_DET_VIDEO_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_videos.json'
 
 FRAME_SAMPLE = None
@@ -44,7 +44,7 @@ ROLL_AVG_VIDEO_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_av
 
 ## Settings for comparing MegaDetector results with manual identification results
 CHECK_ACCURACY = True
-MANUAL_ID_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_ID.csv'
+MANUAL_ID_CSV = 'results/LCK_Ramboll/20211119/20211119_manual_ID.csv' #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_ID.csv'
 MANUAL_VS_MD_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_vs_md.csv'
 SPECIES_LIST_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_species_list.csv'
 
@@ -52,5 +52,5 @@ SPECIES_LIST_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_species_l
 ## Settings for optimising rolling prediction averaging 
 ROLLING_AVG_SIZE_RANGE = [8]
 IOU_THRESHOLD_RANGE = [0.3]
-CONF_THRESHOLD_BUF_RANGE = [0.6]
+CONF_THRESHOLD_BUF_RANGE = [0.7]
 ROLL_AVG_ACC_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_optimise_roll_avg.csv'

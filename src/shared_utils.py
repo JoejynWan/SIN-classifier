@@ -71,7 +71,8 @@ def find_unique_videos(images, output_dir = None):
         frames_paths.append(frames_path)
         
         if output_dir: 
-            video_save_paths.append(os.path.join(output_dir, (frames_path)))
+            video_path = os.path.dirname(frames_path)
+            video_save_paths.append(os.path.join(output_dir, (video_path)))
 
     if output_dir: 
         [os.makedirs(make_path, exist_ok=True) for make_path in unique(video_save_paths)]

@@ -85,7 +85,7 @@ def quantity_acc(video_summ_pd):
     correct = qty_acc['counts'][qty_acc['QtyAcc'] == 'CorrectQuantity']
     over = qty_acc['counts'][qty_acc['QtyAcc'] == 'Overestimation']
     under = qty_acc['counts'][qty_acc['QtyAcc'] == 'Underestimation']
-    print(over)
+    
     if over.empty: 
         over = 0
 
