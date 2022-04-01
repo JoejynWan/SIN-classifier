@@ -81,24 +81,33 @@ def quantity_acc(video_summ_pd):
     qty.loc[qty['Total_Qty_Diff'] < 0, 'QtyAcc'] = "Underestimation"
     
     qty_acc = qty.groupby(['QtyAcc']).size().reset_index(name='counts')
-    
-    correct = qty_acc['counts'][qty_acc['QtyAcc'] == 'CorrectQuantity']
+
     over = qty_acc['counts'][qty_acc['QtyAcc'] == 'Overestimation']
     under = qty_acc['counts'][qty_acc['QtyAcc'] == 'Underestimation']
-    
+    correct = qty_acc['counts'][qty_acc['QtyAcc'] == 'CorrectQuantity']
+
     if over.empty: 
         over = 0
+    else:
+        over = int(over)
 
     if under.empty: 
         under = 0
+    else:
+        under = int(under)
 
+    if correct.empty: 
+        correct = 0
+    else:
+        correct = int(correct)
+    
     qty_dict = {
         'Num_CorrectQty': correct,
         'Num_Overestimated': over,
         'Num_Underestimated': under,
-        'Perc_CorrectQty': round(correct/(correct+over+under)*100, 1)
+        'Perc_CorrectQty': float(round(correct/(correct+over+under)*100, 1))
     }
-
+    
     return qty_dict
 
 
@@ -246,7 +255,7 @@ def true_vs_pred(options):
 
     # Percetage of correct quantities
     qty_dict = quantity_acc(video_summ_pd)
-
+    
     # Merge dictionaries and convert to pandas df
     roll_avg_args_dict = {
         'ManualIDCsv': options.manual_id_csv,
