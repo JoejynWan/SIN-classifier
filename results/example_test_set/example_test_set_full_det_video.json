@@ -1,0 +1,254 @@
+{
+ "images": [
+  {
+   "file": "CT11_20211119\\Caprimulgus macrurus 1\\IMG_0034.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.997,
+     "bbox": [
+      0.6994,
+      0.6666,
+      0.1302,
+      0.2811
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.904,
+     "bbox": [
+      0.0002768,
+      0.3581,
+      0.1628,
+      0.601
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 0.00882,
+     "bbox": [
+      0.2309,
+      0.339,
+      0.09902,
+      0.06501
+     ]
+    }
+   ],
+   "max_detection_conf": 0.997
+  },
+  {
+   "file": "CT11_20211119\\Sus scrofa 1\\IMG_0042.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.999,
+     "bbox": [
+      0.1273,
+      0.4569,
+      0.1236,
+      0.346
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.134,
+     "bbox": [
+      0.1746,
+      0.4606,
+      0.07948,
+      0.2745
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 0.0011,
+     "bbox": [
+      0.1706,
+      0.4726,
+      0.09248,
+      0.2816
+     ]
+    }
+   ],
+   "max_detection_conf": 0.999
+  },
+  {
+   "file": "CT11_20211119\\Unidentified\\IMG_0045.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.657,
+     "bbox": [
+      0.627,
+      0.3745,
+      0.365,
+      0.5426
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.0405,
+     "bbox": [
+      0.1036,
+      0.008469,
+      0.6502,
+      0.2005
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 0.00299,
+     "bbox": [
+      0.713,
+      0.2851,
+      0.2838,
+      0.6145
+     ]
+    }
+   ],
+   "max_detection_conf": 0.657
+  },
+  {
+   "file": "CT7_20211119\\False triggers\\IMG_0031.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.612,
+     "bbox": [
+      0.7442,
+      0.6554,
+      0.08881,
+      0.1047
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.0253,
+     "bbox": [
+      0.1669,
+      0.8346,
+      0.0686,
+      0.1188
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 0.000665,
+     "bbox": [
+      0.9965,
+      0.3709,
+      0.00316,
+      0.08751
+     ]
+    }
+   ],
+   "max_detection_conf": 0.612
+  },
+  {
+   "file": "CT7_20211119\\False triggers\\IMG_0032.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.423,
+     "bbox": [
+      0.8545,
+      0.3079,
+      0.02046,
+      0.0178
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.00369,
+     "bbox": [
+      0.006341,
+      0.4324,
+      0.07584,
+      0.2768
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 0.000827,
+     "bbox": [
+      0.9978,
+      0.2082,
+      0.002032,
+      0.08133
+     ]
+    }
+   ],
+   "max_detection_conf": 0.423
+  },
+  {
+   "file": "CT7_20211119\\Non-targeted\\IMG_0002.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.495,
+     "bbox": [
+      4.475e-05,
+      0.004046,
+      0.08889,
+      0.3
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.999,
+     "bbox": [
+      0.001753,
+      0.003206,
+      0.5958,
+      0.9458
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 0.264,
+     "bbox": [
+      0.0006198,
+      0.002739,
+      0.6749,
+      0.8407
+     ]
+    }
+   ],
+   "max_detection_conf": 0.999
+  }
+ ],
+ "detection_categories": {
+  "1": "animal",
+  "2": "person",
+  "3": "vehicle"
+ },
+ "videos": {
+  "num_videos": 6,
+  "video_names": [
+   "CT11_20211119\\Caprimulgus macrurus 1\\IMG_0034.AVI",
+   "CT11_20211119\\Sus scrofa 1\\IMG_0042.AVI",
+   "CT11_20211119\\Unidentified\\IMG_0045.AVI",
+   "CT7_20211119\\False triggers\\IMG_0031.AVI",
+   "CT7_20211119\\False triggers\\IMG_0032.AVI",
+   "CT7_20211119\\Non-targeted\\IMG_0002.AVI"
+  ],
+  "frame_rates": [
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003
+  ]
+ },
+ "info": {
+  "detection_completion_time": "2022-04-01 09:07:50",
+  "format_version": "1.0"
+ }
+}

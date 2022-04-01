@@ -1,0 +1,115 @@
+{
+ "images": [
+  {
+   "file": "CT11_20211119\\Caprimulgus macrurus 1\\IMG_0034.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "2",
+     "conf": 0.895,
+     "bbox": [
+      0.0007994,
+      0.1233,
+      0.2126,
+      0.8413
+     ],
+     "object_number": "object_01"
+    }
+   ],
+   "max_detection_conf": 0.895
+  },
+  {
+   "file": "CT11_20211119\\Sus scrofa 1\\IMG_0042.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.9989999999999996,
+     "bbox": [
+      0.01157,
+      0.4529,
+      0.1506,
+      0.5009
+     ],
+     "object_number": "object_07"
+    },
+    {
+     "category": "1",
+     "conf": 0.9989999999999996,
+     "bbox": [
+      0.000191,
+      0.4148,
+      0.1674,
+      0.5407
+     ],
+     "object_number": "object_08"
+    }
+   ],
+   "max_detection_conf": 0.9989999999999996
+  },
+  {
+   "file": "CT11_20211119\\Unidentified\\IMG_0045.AVI",
+   "frame_rate": 30,
+   "detections": [],
+   "max_detection_conf": 0
+  },
+  {
+   "file": "CT7_20211119\\False triggers\\IMG_0031.AVI",
+   "frame_rate": 30,
+   "detections": [],
+   "max_detection_conf": 0
+  },
+  {
+   "file": "CT7_20211119\\False triggers\\IMG_0032.AVI",
+   "frame_rate": 30,
+   "detections": [],
+   "max_detection_conf": 0
+  },
+  {
+   "file": "CT7_20211119\\Non-targeted\\IMG_0002.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "2",
+     "conf": 0.9968749999999998,
+     "bbox": [
+      0.00977,
+      0,
+      0.4694,
+      0.9503
+     ],
+     "object_number": "object_01"
+    }
+   ],
+   "max_detection_conf": 0.9968749999999998
+  }
+ ],
+ "detection_categories": {
+  "1": "animal",
+  "2": "person",
+  "3": "vehicle"
+ },
+ "videos": {
+  "num_videos": 6,
+  "video_names": [
+   "CT11_20211119\\Caprimulgus macrurus 1\\IMG_0034.AVI",
+   "CT11_20211119\\Sus scrofa 1\\IMG_0042.AVI",
+   "CT11_20211119\\Unidentified\\IMG_0045.AVI",
+   "CT7_20211119\\False triggers\\IMG_0031.AVI",
+   "CT7_20211119\\False triggers\\IMG_0032.AVI",
+   "CT7_20211119\\Non-targeted\\IMG_0002.AVI"
+  ],
+  "frame_rates": [
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003,
+   30.00030000300003
+  ]
+ },
+ "info": {
+  "detection_completion_time": "2022-04-01 09:08:05",
+  "format_version": "1.0"
+ }
+}
