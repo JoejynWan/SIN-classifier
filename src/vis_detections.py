@@ -107,26 +107,31 @@ def vis_detector_output(options, images, detector_label_map, out_dir, output_ima
 
     return annotated_img_paths
 
+
 def vis_detection_video(options, images, detector_label_map, fs_video):
     
-    video_name = fs_video[0]
-    video_Fs = fs_video[1]
+    video_name, video_Fs = fs_video
 
     images_set = [s for s in images if video_name in s['file']]
-
+    
     tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
-    rendering_output_dir = os.path.join(tempdir, 'detection_frames')
-
+    
+    video_id = video_name.replace('\\', '~')
+    rendering_output_dir = os.path.join(tempdir, f'detection_frames_{video_id}')
+    
     detected_frame_files = vis_detector_output(options, 
         images_set, detector_label_map, rendering_output_dir)
     
     output_video_file = os.path.join(options.output_dir, video_name)
+    os.makedirs(os.path.dirname(output_video_file), exist_ok = True)
     frames_to_video(detected_frame_files, video_Fs, output_video_file)
     
     delete_temp_dir(rendering_output_dir)
 
+    return video_name
 
-def vis_detection_videos(options):
+
+def vis_detection_videos(options, parallel = True):
     """
     Args:
     input_frames_anno_file = str, path to .json file describing the detections for each frame
@@ -137,30 +142,36 @@ def vis_detection_videos(options):
     """
     images, detector_label_map, Fs = load_detector_output(options.roll_avg_frames_json)
 
-    unique_videos = find_unique_videos(images, options.output_dir)
+    unique_videos = find_unique_videos(images)
     
     print('Rendering detections above a confidence threshold of {} for {} videos...'.format(
         options.rendering_confidence_threshold, len(unique_videos)))
     
     fs_videos = list(zip(unique_videos, Fs))
 
-    result_list = []
-    def callback_func(result):
-        result_list.append(result)
-        pbar.update()
+    if parallel: 
+        result_list = []
+        def callback_func(result):
+            result_list.append(result)
+            pbar.update()
 
-    pool = mp.Pool(mp.cpu_count())
-    pbar = tqdm(total = len(fs_videos))
+        pool = mp.Pool(mp.cpu_count())
+        pbar = tqdm(total = len(fs_videos))
 
-    for fs_video in fs_videos:
-        
-        pool.apply_async(
-            vis_detection_video, args = (options, images, detector_label_map, fs_video),
-            callback = callback_func
-        )
+        for fs_video in fs_videos:
+            pool.apply_async(
+                vis_detection_video, args = (options, images, detector_label_map, fs_video),
+                callback = callback_func
+            )
 
-    pool.close()
-    pool.join()
+        pool.close()
+        pool.join()
+
+    else:
+
+        for fs_video in tqdm(fs_videos):
+            vis_detection_video(options, images, detector_label_map, fs_video)
+ 
 
 def main():
     ## Process Command line arguments

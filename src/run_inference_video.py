@@ -1,9 +1,9 @@
 import os
 import time
-import tqdm
 import shutil
 import argparse
 import humanfriendly
+from tqdm import tqdm
 
 # Functions imported from this project
 import config
@@ -24,7 +24,7 @@ def runtime_txt(options, script_start_time, checkpoint1_time, checkpoint2_time, 
 
     if options.check_accuracy:
         manual_id_elapsed = checkpoint1_time - script_start_time
-        true_vs_pred_elapsed = checkpoint4_time - checkpoint3_time
+        true_vs_pred_elapsed = checkpoint3_time - checkpoint2_time
         check_acc_elapsed = manual_id_elapsed + true_vs_pred_elapsed
     else:
         check_acc_elapsed = 0
@@ -32,7 +32,7 @@ def runtime_txt(options, script_start_time, checkpoint1_time, checkpoint2_time, 
     megadetector_elapsed = checkpoint2_time - checkpoint1_time
 
     if options.render_output_video:
-        vis_elapsed = checkpoint3_time - checkpoint2_time
+        vis_elapsed = checkpoint4_time - checkpoint3_time
     else:
         vis_elapsed = 0
 
@@ -64,7 +64,7 @@ def export_fn(options, video_summ):
 
     for idx, row in tqdm(export_pd.iterrows(), total=export_pd.shape[0]):
         
-        input_vid = os.path.join(root, options.output_dir, row['FullVideoPath'])
+        input_vid = os.path.join(root, options.input_dir, row['FullVideoPath'])
         output_vid_dir = os.path.join(root, options.output_dir, 'false_nagative_videos', os.path.dirname(row['UniqueFileName']))
         os.makedirs(output_vid_dir, exist_ok = True)
 
@@ -85,7 +85,7 @@ def main():
 
     check_output_dir(options)
 
-    ## TODO
+    ## TODO [Not priority]
     # Check the memory of the output_dir and temp_dir to ensure that there is 
     # sufficient space to save the frames and videos 
 
@@ -101,18 +101,6 @@ def main():
     det_frames(options, image_file_names, Fs)
     
     checkpoint2_time = time.time()
-    
-    ## Annotating and exporting to video
-    if options.render_output_video:
-        vis_detection_videos(options)
-
-    ## Delete the frames stored in the temp folder (if delete_output_frames == TRUE)
-    if options.delete_output_frames:
-        delete_temp_dir(options.frame_folder)
-    else:
-        print('Frames saved in {}'.format(options.frame_folder))
-
-    checkpoint3_time = time.time()
 
     ## Comparing results of manual identification with MegaDetector detections
     if options.check_accuracy:
@@ -131,6 +119,18 @@ def main():
         video_summ.to_csv(options.manual_vs_md_csv, index = False)
 
         export_fn(options, video_summ)
+
+    checkpoint3_time = time.time()
+
+    ## Annotating and exporting to video
+    if options.render_output_video:
+        vis_detection_videos(options)
+
+    ## Delete the frames stored in the temp folder (if delete_output_frames == TRUE)
+    if options.delete_output_frames:
+        delete_temp_dir(options.frame_folder)
+    else:
+        print('Frames saved in {}'.format(options.frame_folder))
 
     checkpoint4_time = time.time()
 
@@ -194,6 +194,14 @@ def get_arg_parser():
     parser.add_argument('--species_database_file', type=str,
                         default = config.SPECIES_DATABASE_FILE, 
                         help = 'Path to the species_database.csv which describes details of species.'
+    )
+    parser.add_argument('--roll_avg_video_csv', type=str,
+                        default = config.ROLL_AVG_VIDEO_CSV, 
+                        help = 'Path to the roll_avg_video csv file.'
+    )
+    parser.add_argument('--roll_avg_frames_json', type=str,
+                        default = config.ROLL_AVG_FRAMES_JSON, 
+                        help = 'Path to the roll_avg_frames_json file.'
     )
     return parser
 

@@ -246,7 +246,7 @@ def true_vs_pred(options):
     video_summ_pd['WrongManualID'] = ""
     video_summ_pd['SecondCheckRemarks'] = ""
 
-    video_summ_pd = video_summ_pd.sort_values(by = ['Station', 'AccClass'])
+    video_summ_pd = video_summ_pd.sort_values(by = ['AccClass', 'Station'])
 
     ## Calculate accuracy metrics for all videos
     # Recall, precision and F1 score 
