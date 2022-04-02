@@ -219,6 +219,8 @@ def rpa_video(options, images, video_path):
 
 def rolling_avg(options, images, Fs, mute = False):
     
+    print("Conducting rolling prediction averaging now...")
+    
     images = rm_bad_detections(options, images)
 
     video_paths = find_unique_videos(images)

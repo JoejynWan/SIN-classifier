@@ -16,6 +16,8 @@ def species_list(options, manual_csv):
 
     species_pd = manual_csv.groupby(['ScientificName']).size().reset_index(name = 'NumVideos')
 
+    species_pd = species_pd.sort_values(by = ['NumVideos'], ascending = False)
+
     options.species_list_csv = default_path_from_none(
         options.output_dir, options.input_dir, 
         options.species_list_csv, "_species_list.csv"

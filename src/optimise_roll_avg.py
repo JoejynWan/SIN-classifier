@@ -217,6 +217,8 @@ def condense_manual(manual_df):
 
 def true_vs_pred(options):
 
+    print("Comparing MegaDetector detections to manual ID results now...")
+    
     ## Load true and predicted results
     manual_df = pd.read_csv(options.manual_id_csv, dtype=str)
     megadetector_df = pd.read_csv(options.roll_avg_video_csv, dtype=str)

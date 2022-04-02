@@ -56,6 +56,8 @@ def runtime_txt(options, script_start_time, checkpoint1_time, checkpoint2_time, 
 
 def export_fn(options, video_summ):
 
+    print("Copying false negative videos to output directory now...")
+
     video_summ_copy = video_summ.copy()
     export_pd = video_summ_copy[video_summ_copy['AccClass'] == 'FN']
     export_pd = export_pd.reset_index()
@@ -104,6 +106,7 @@ def main():
 
     ## Comparing results of manual identification with MegaDetector detections
     if options.check_accuracy:
+        
         acc_pd, video_summ = true_vs_pred(options)
 
         options.roll_avg_acc_csv = default_path_from_none(
@@ -130,7 +133,7 @@ def main():
     if options.delete_output_frames:
         delete_temp_dir(options.frame_folder)
     else:
-        print('Frames saved in {}'.format(options.frame_folder))
+        print('Frames of videos not deleted and saved in {}'.format(options.frame_folder))
 
     checkpoint4_time = time.time()
 
@@ -202,6 +205,22 @@ def get_arg_parser():
     parser.add_argument('--roll_avg_frames_json', type=str,
                         default = config.ROLL_AVG_FRAMES_JSON, 
                         help = 'Path to the roll_avg_frames_json file.'
+    )
+    parser.add_argument('--rolling_avg_size', type=float,
+                        default = config.ROLLING_AVG_SIZE, 
+                        help = "Number of frames in which rolling prediction averaging will be calculated from. A larger number will remove more inconsistencies, but will cause delays in detecting an object."
+    )
+    parser.add_argument('--iou_threshold', type=float,
+                        default = config.IOU_THRESHOLD, 
+                        help = "Threshold for Intersection over Union (IoU) to determine if bounding boxes are detecting the same object."
+    )
+    parser.add_argument('--conf_threshold_buf', type=float,
+                        default = config.CONF_THRESHOLD_BUF, 
+                        help = "Buffer for the rendering confidence threshold to allow for 'poorer' detections to be included in rolling prediction averaging."
+    )
+    parser.add_argument('--nth_highest_confidence', type=float,
+                        default = config.NTH_HIGHEST_CONFIDENCE, 
+                        help="nth-highest-confidence frame to choose a confidence value for each video"
     )
     return parser
 
