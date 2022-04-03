@@ -173,12 +173,18 @@ def rpa_calc(frames, rolling_avg_size):
     ## Run rpa for frames
     for frame in frames: 
         
+        # Pre-allocate a confidence of zero for all classes for all objects.
+        # This means that for objects without a detection in this frame, 
+        # the confidence of the classes will be set to 0. 
         for Q_obj in Q_objs:
             Q_obj['object_Q'].append([0,0,0])
         
         detections = frame['detections']
 
         if detections: 
+            
+            # Fill in the confidence of each detection into their respective 
+            # object deque
             for detection in detections: 
                 det_cat = int(detection['category'])
                 det_conf = detection['conf']
@@ -186,7 +192,9 @@ def rpa_calc(frames, rolling_avg_size):
 
                 Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
                 Q[-1][det_cat-1] = det_conf
-            
+
+            # Calculate the mean confidence for each object and replace
+            # the confidence value in the detection
             for detection in detections: 
                 det_obj_num = detection['object_number']
                 Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
@@ -219,7 +227,7 @@ def rpa_video(options, images, video_path):
 
 def rolling_avg(options, images, Fs, mute = False):
     
-    print("Conducting rolling prediction averaging now...")
+    print("\nConducting rolling prediction averaging now...")
     
     images = rm_bad_detections(options, images)
 

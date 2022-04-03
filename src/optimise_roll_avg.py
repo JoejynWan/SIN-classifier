@@ -276,7 +276,7 @@ def gen_roll_avg_acc_row(options, video_summ_pd):
 
 def true_vs_pred(options):
 
-    print("Comparing MegaDetector detections to manual ID results now...")
+    print("\nComparing MegaDetector detections to manual ID results now...")
 
     ## Load true and predicted results
     manual_df = pd.read_csv(options.manual_id_csv, dtype=str)
