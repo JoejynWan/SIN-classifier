@@ -73,6 +73,7 @@ def acc_metrics(confusion_matrix):
 def quantity_acc(video_summ_pd):
 
     qty = video_summ_pd.copy()
+    qty = qty[qty['AccClass'] == 'TP']
     qty = qty[['Total_Qty_Diff', 'UniqueFileName']]
     
     qty['QtyAcc'] = ""
@@ -215,15 +216,8 @@ def condense_manual(manual_df):
     return condense_df
 
 
-def true_vs_pred(options):
-
-    print("Comparing MegaDetector detections to manual ID results now...")
+def gen_manual_vs_md(manual_df, megadetector_df):
     
-    ## Load true and predicted results
-    manual_df = pd.read_csv(options.manual_id_csv, dtype=str)
-    megadetector_df = pd.read_csv(options.roll_avg_video_csv, dtype=str)
-
-    ## Create comparision file for one video per row (manual_vs_md.csv)
     video_summ_manual = condense_manual(manual_df)
     video_summ_md = condense_md(megadetector_df)
 
@@ -250,7 +244,11 @@ def true_vs_pred(options):
 
     video_summ_pd = video_summ_pd.sort_values(by = ['AccClass', 'Station'])
 
-    ## Calculate accuracy metrics for all videos
+    return video_summ_pd
+
+
+def gen_roll_avg_acc_row(options, video_summ_pd):
+
     # Recall, precision and F1 score 
     confusion_matrix = confusion_mat(video_summ_pd)
     acc_dict = acc_metrics(confusion_matrix)
@@ -273,6 +271,23 @@ def true_vs_pred(options):
     
     acc_pd = pd.DataFrame(roll_avg_args_dict, index = [0])
 
+    return acc_pd
+
+
+def true_vs_pred(options):
+
+    print("Comparing MegaDetector detections to manual ID results now...")
+
+    ## Load true and predicted results
+    manual_df = pd.read_csv(options.manual_id_csv, dtype=str)
+    megadetector_df = pd.read_csv(options.roll_avg_video_csv, dtype=str)
+
+    ## Create comparision file for one video per row (manual_vs_md.csv)
+    video_summ_pd = gen_manual_vs_md(manual_df, megadetector_df)
+
+    ## Calculate accuracy metrics for all videos
+    acc_pd = gen_roll_avg_acc_row(options, video_summ_pd)
+
     return acc_pd, video_summ_pd
 
 
@@ -289,7 +304,7 @@ def roll_avg_combi(options, images, Fs, arg_combi):
     acc_pd, video_summ_pd = true_vs_pred(options)
 
     ## Export out manual_vs_md.csv for each unique combination of rolling average arguments
-    options.manual_vs_md_csv = None
+    options.manual_vs_md_csv = None #reset the name of manual_vs_md.csv
     options.manual_vs_md_csv = default_path_from_none(
         options.output_dir, options.input_dir, 
         options.manual_vs_md_csv, 
@@ -312,7 +327,7 @@ def optimise_roll_avg(options):
     arg_combis = list(product(
         options.rolling_avg_size_range, 
         options.iou_threshold_range,
-        options.conf_threshold_buf_range))
+        options.conf_threshold_buf_range)) 
 
     print("Running rolling prediction averaging for {} unique combination of arguments.".format(len(arg_combis)))
     
