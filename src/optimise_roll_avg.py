@@ -179,7 +179,7 @@ def condense_manual(manual_df):
     positive_categories = ['1'] #animal is positive class
     nagative_categories = ['0', '2', '3'] #empty, human, and vehicle is negative classes
     manual_df_copy = replace_pos_neg_cat(manual_df_copy, positive_categories, nagative_categories)
-
+    
     ## Summarising quantity per class
     man_qty_subset = manual_df_copy[['UniqueFileName', 'Category', 'Quantity']]
     man_cat_qty = man_qty_subset.copy()
@@ -281,7 +281,7 @@ def true_vs_pred(options):
     ## Load true and predicted results
     manual_df = pd.read_csv(options.manual_id_csv, dtype=str)
     megadetector_df = pd.read_csv(options.roll_avg_video_csv, dtype=str)
-
+    
     ## Create comparision file for one video per row (manual_vs_md.csv)
     video_summ_pd = gen_manual_vs_md(manual_df, megadetector_df)
 

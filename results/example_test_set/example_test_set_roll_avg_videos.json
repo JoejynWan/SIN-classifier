@@ -8,10 +8,10 @@
      "category": "2",
      "conf": 0.895,
      "bbox": [
-      0.0007994,
+      0.0007982,
       0.1233,
       0.2126,
-      0.8413
+      0.8412
      ],
      "object_number": "object_01"
     }
@@ -24,25 +24,36 @@
    "detections": [
     {
      "category": "1",
-     "conf": 0.9989999999999996,
+     "conf": 0.9219062499999999,
      "bbox": [
-      0.01157,
-      0.4529,
-      0.1506,
-      0.5009
+      0.1678,
+      0.4743,
+      0.09343,
+      0.2646
      ],
-     "object_number": "object_07"
+     "object_number": "object_01"
+    },
+    {
+     "category": "1",
+     "conf": 0.99815625,
+     "bbox": [
+      0.09958,
+      0.4818,
+      0.1425,
+      0.3717
+     ],
+     "object_number": "object_02"
     },
     {
      "category": "1",
      "conf": 0.9989999999999996,
      "bbox": [
-      0.000191,
-      0.4148,
-      0.1674,
-      0.5407
+      0.03382,
+      0.4607,
+      0.1489,
+      0.485
      ],
-     "object_number": "object_08"
+     "object_number": "object_03"
     }
    ],
    "max_detection_conf": 0.9989999999999996
@@ -73,9 +84,9 @@
      "category": "2",
      "conf": 0.9968749999999998,
      "bbox": [
-      0.00977,
+      0.009751,
       0,
-      0.4694,
+      0.4695,
       0.9503
      ],
      "object_number": "object_01"
@@ -109,7 +120,7 @@
   ]
  },
  "info": {
-  "detection_completion_time": "2022-04-01 09:08:05",
+  "detection_completion_time": "2022-04-03 15:47:13",
   "format_version": "1.0"
  }
 }
