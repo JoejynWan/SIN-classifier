@@ -237,6 +237,7 @@ def gen_manual_vs_md(manual_df, megadetector_df):
     # Columns for second check of false negatives
     video_summ_pd['SmallAnimal'] = ""
     video_summ_pd['FastMoving'] = ""
+    video_summ_pd['CoverEntireFrame'] = ""
     video_summ_pd['EdgeOfFrame'] = ""
     video_summ_pd['Unidentified'] = ""
     video_summ_pd['WrongManualID'] = ""

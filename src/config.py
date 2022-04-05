@@ -2,8 +2,8 @@ import multiprocessing
 
 
 ## Paths of inputs and outputs and must be filled in
-INPUT_DIR = 'data/example_test_set'
-OUTPUT_DIR = 'results/example_test_set'
+INPUT_DIR = 'data/LCK_Ramboll/20211119'
+OUTPUT_DIR = 'results/LCK_Ramboll/20211119'
 
 
 ## Paths to required datasets
