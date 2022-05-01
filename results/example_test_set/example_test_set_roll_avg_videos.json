@@ -3,20 +3,8 @@
   {
    "file": "CT11_20211119\\Caprimulgus macrurus 1\\IMG_0034.AVI",
    "frame_rate": 30,
-   "detections": [
-    {
-     "category": "2",
-     "conf": 0.895,
-     "bbox": [
-      0.0007994,
-      0.1233,
-      0.2126,
-      0.8413
-     ],
-     "object_number": "object_01"
-    }
-   ],
-   "max_detection_conf": 0.895
+   "detections": [],
+   "max_detection_conf": 0
   },
   {
    "file": "CT11_20211119\\Sus scrofa 1\\IMG_0042.AVI",
@@ -120,7 +108,7 @@
   ]
  },
  "info": {
-  "detection_completion_time": "2022-05-01 10:23:01",
+  "detection_completion_time": "2022-05-01 11:55:37",
   "format_version": "1.0"
  }
 }

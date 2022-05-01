@@ -164,9 +164,12 @@ def rpa_calc(frames, rolling_avg_size):
     ## Create deque to store conf for each unique object
     Q_objs = []
     for unique_object in unique_objects:
+        
+        initial_deque = [[0,0,0]] * 3 #start deque with 3 "empty frames" to remove any errornous first frames
+
         Q_obj = {
             'object_number': unique_object,
-            'object_Q': deque(maxlen = rolling_avg_size)
+            'object_Q': deque(initial_deque, maxlen = rolling_avg_size)
         }
         Q_objs.append(Q_obj)
 
@@ -236,7 +239,7 @@ def rolling_avg(options, images, Fs, mute = False):
     roll_avg = []
     def callback_func(result):
         roll_avg.extend(result)
-        pbar.update()
+        pbar.update(1)
 
     pool = mp.Pool(mp.cpu_count())
     pbar = tqdm(total = len(video_paths))
@@ -248,6 +251,7 @@ def rolling_avg(options, images, Fs, mute = False):
 
     pool.close()
     pool.join()
+    pbar.close()
 
     ## Write the output files
     options.roll_avg_frames_json = default_path_from_none(
