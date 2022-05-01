@@ -1,4 +1,4 @@
-Runtime for MegaDetector = 15 minutes and 44.63 seconds
-Runtime for visualisation of bounding boxes = 15.03 seconds
-Runtime for manual identification vs MegaDetector detections comparison = 0.33 seconds
-Total script runtime = 15 minutes and 60 seconds
+Runtime for MegaDetector = 9 minutes and 11.13 seconds
+Runtime for visualisation of bounding boxes = 11.4 seconds
+Runtime for manual identification vs MegaDetector detections comparison = 4.29 seconds
+Total script runtime = 9 minutes and 26.81 seconds

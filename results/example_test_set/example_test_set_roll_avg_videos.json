@@ -8,10 +8,10 @@
      "category": "2",
      "conf": 0.895,
      "bbox": [
-      0.0007982,
+      0.0007994,
       0.1233,
       0.2126,
-      0.8412
+      0.8413
      ],
      "object_number": "object_01"
     }
@@ -84,9 +84,9 @@
      "category": "2",
      "conf": 0.9968749999999998,
      "bbox": [
-      0.009751,
+      0.00977,
       0,
-      0.4695,
+      0.4694,
       0.9503
      ],
      "object_number": "object_01"
@@ -120,7 +120,7 @@
   ]
  },
  "info": {
-  "detection_completion_time": "2022-04-03 15:47:13",
+  "detection_completion_time": "2022-05-01 10:23:01",
   "format_version": "1.0"
  }
 }

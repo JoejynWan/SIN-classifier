@@ -10,7 +10,7 @@ from datetime import datetime
 from collections import defaultdict
 
 # Functions imported from Microsoft/CameraTraps github repository
-from detection.tf_detector import TFDetector
+from detection.run_detector import DEFAULT_DETECTOR_LABEL_MAP
 
 
 def check_output_dir(options):
@@ -157,7 +157,7 @@ def load_detector_output(detector_output_path):
         print('detection_categories provided')
         detector_label_map = detector_output['detection_categories']
     else:
-        detector_label_map = TFDetector.DEFAULT_DETECTOR_LABEL_MAP
+        detector_label_map = DEFAULT_DETECTOR_LABEL_MAP
 
     Fs = detector_output['videos']['frame_rates']
 
@@ -210,7 +210,7 @@ def write_frame_results(results, Fs, output_file, relative_path_base=None, mute 
 
     final_output = {
         'images': results,
-        'detection_categories': TFDetector.DEFAULT_DETECTOR_LABEL_MAP,
+        'detection_categories': DEFAULT_DETECTOR_LABEL_MAP,
         'videos':{
             'num_videos': len(unique_videos),
             'video_names': unique_videos,
