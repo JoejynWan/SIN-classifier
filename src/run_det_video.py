@@ -12,7 +12,7 @@ from shared_utils import write_frame_results, write_video_results
 from rolling_avg import rolling_avg
 
 # Functions imported from Microsoft/CameraTraps github repository
-from detection.run_tf_detector_batch import load_and_run_detector_batch
+from detection.run_detector_batch import load_and_run_detector_batch
 from detection.video_utils import video_folder_to_frames
 from ct_utils import args_to_object
 

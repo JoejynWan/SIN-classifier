@@ -10,7 +10,7 @@ from datetime import datetime
 from collections import defaultdict
 
 # Functions imported from Microsoft/CameraTraps github repository
-from detection.run_tf_detector import TFDetector
+from detection.tf_detector import TFDetector
 
 
 def check_output_dir(options):
