@@ -140,6 +140,9 @@ def vis_detection_videos(options, parallel = True):
     output_dir = str, path to the base folder where the annotated videos will be saved
     confidence = float, confidence threshold above which annotations will be rendered
     """
+    ## Check arguments
+    assert os.path.isdir(options.frame_folder),'{} is not a folder path for the video frames.'.format(options.frame_folder)
+
     images, detector_label_map, Fs = load_detector_output(options.roll_avg_frames_json)
 
     unique_videos = find_unique_videos(images)

@@ -81,7 +81,7 @@ def main():
     args = parser.parse_args()
     options = VideoOptions()
     args_to_object(args, options)
-
+    
     ## Check arguments
     assert os.path.isdir(options.input_dir),'{} is not a folder'.format(options.input_dir)
 
@@ -198,6 +198,10 @@ def get_arg_parser():
     parser.add_argument('--species_database_file', type=str,
                         default = config.SPECIES_DATABASE_FILE, 
                         help = 'Path to the species_database.csv which describes details of species.'
+    )
+    parser.add_argument('--manual_id_csv', type=str,
+                        default = config.MANUAL_ID_CSV, 
+                        help = 'Path to csv file containing the results of manual identification detections.'
     )
     parser.add_argument('--roll_avg_video_csv', type=str,
                         default = config.ROLL_AVG_VIDEO_CSV, 
