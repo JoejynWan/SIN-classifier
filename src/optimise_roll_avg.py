@@ -239,7 +239,8 @@ def gen_manual_vs_md(manual_df, megadetector_df):
     video_summ_pd['FastMoving'] = ""
     video_summ_pd['CoverEntireFrame'] = ""
     video_summ_pd['EdgeOfFrame'] = ""
-    video_summ_pd['Unidentified'] = ""
+    video_summ_pd['NightVideo'] = ""
+    video_summ_pd['UnidentifiableSpecies'] = ""
     video_summ_pd['WrongManualID'] = ""
     video_summ_pd['SecondCheckRemarks'] = ""
 
