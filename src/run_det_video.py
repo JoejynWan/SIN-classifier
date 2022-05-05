@@ -55,6 +55,8 @@ def det_frames(options, image_file_names, Fs):
         options.model_file, image_file_names,
         confidence_threshold=options.json_confidence_threshold,
         n_cores=options.n_cores)
+    ##TODO Memory error in line 354 of run_detector_batch.py(results.append(result)
+    ## in load_and_run_detector_batch)
 
     ## Save and export results of full detection
     options.full_det_frames_json = default_path_from_none(

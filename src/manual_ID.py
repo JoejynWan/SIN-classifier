@@ -57,7 +57,7 @@ def manual_ID_results(options):
             'Time': str(creation_datetime.time()),
             'DateTime': str(creation_datetime),
             'FolderSpeciesName': str(genus + " " + species),
-            'Quantity': quantity,
+            'Quantity': int(quantity),
             'Manual_Remarks': remarks
         }
         

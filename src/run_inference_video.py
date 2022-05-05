@@ -90,6 +90,7 @@ def main():
     ## TODO [Not priority]
     # Check the memory of the output_dir and temp_dir to ensure that there is 
     # sufficient space to save the frames and videos 
+    # Splitting of video into frames requires approximately twice the space of the data folder
 
     ## Getting the results from manual identifications
     # Run this first to ensure that all species are in species_database.csv
