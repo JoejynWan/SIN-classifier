@@ -54,7 +54,7 @@ def det_frames(options, image_file_names, Fs):
     results = load_and_run_detector_batch(
         options.model_file, image_file_names,
         confidence_threshold=options.json_confidence_threshold,
-        n_cores=options.n_cores)
+        n_cores=options.n_cores, quiet = True)
     ##TODO Memory error in line 354 of run_detector_batch.py(results.append(result)
     ## in load_and_run_detector_batch)
 
