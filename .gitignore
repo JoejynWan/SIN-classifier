@@ -5,11 +5,15 @@ results/*
 !results/example_test_set
 models/*
 
+## Ignore depreciated folder which contains old code/data
+depreciated/
+
+## Ignore pycache folder
+src/__pycache__/
+
 ## Keep Species_Database.csv
 !data/Species_Database.csv
 
 ## Keep README.md files
 !*README.md
 
-## Ignore depreciated folder which contains old code/data
-depreciated/
