@@ -246,10 +246,10 @@ def write_video_results(output_file,
         with open(frames_json_inputfile,'r') as f:
             input_data = json.load(f)
 
-        images = input_data['images']
+        results = input_data['images']
         detection_categories = input_data['detection_categories']
         Fs = input_data['videos']['frame_rates']
-    
+        
     elif results:
         detection_categories = DEFAULT_DETECTOR_LABEL_MAP
     
@@ -277,6 +277,7 @@ def write_video_results(output_file,
         
         # frame = frames[0]
         for frame in frames:
+            print(frame)
             all_detections_this_video.extend(frame['detections'])
             
         # At most one detection for each category for the whole video
