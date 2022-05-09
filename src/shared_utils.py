@@ -184,17 +184,11 @@ def default_path_from_none(output_dir, input_dir, file_path, file_suffix):
     return output_file_name
 
 
-def write_frame_results(results, Fs, output_file, relative_path_base=None, mute = False):
+def process_frame_results(results, Fs, relative_path_base=None):
     """
-    Writes a list of detection results to a JSON output file. 
+    Preps the results from MegaDetector for saving into the frames.json file.
     Function is adapted from detection.run_tf_detector_batch.write_results_to_file, 
     except video info is added. 
-
-    Args
-    - results: list of dict, each dict represents detections on one image
-    - Fs: list of int, where each int represents the frame rate for each unique video.
-    - output_file: str, path to JSON output file, should end in '.json'
-    - relative_path_base: str, path to a directory as the base for relative paths
     """
     if relative_path_base is not None:
         results_relative = []
@@ -208,7 +202,7 @@ def write_frame_results(results, Fs, output_file, relative_path_base=None, mute 
     if len(unique_videos) != len(Fs):
         raise IndexError("The number of frame rates provided do not match the number of unique videos.")
 
-    final_output = {
+    frame_results = {
         'images': results,
         'detection_categories': DEFAULT_DETECTOR_LABEL_MAP,
         'videos':{
@@ -221,17 +215,11 @@ def write_frame_results(results, Fs, output_file, relative_path_base=None, mute 
             'format_version': '1.0'
         }
     }
-    with open(output_file, 'w') as f:
-        json.dump(final_output, f, indent=1)
 
-    if not mute:
-        print('Output file saved at {}'.format(output_file))
+    return frame_results
 
 
-def write_video_results(output_file, 
-    results = None, Fs = None, 
-    frames_json_inputfile = None, 
-    nth_highest_confidence = 1, mute = False):
+def process_video_results(frame_results, nth_highest_confidence):
     """
     Given an API output file produced at the *frame* level, corresponding to a directory 
     created with video_folder_to_frames, map those frame-level results back to the 
@@ -240,27 +228,15 @@ def write_video_results(output_file,
     Function adapted from detection.video_utils.frame_results_to_video_results, except
     frame rate is added.
     """
-        
-    # Load results
-    if frames_json_inputfile:
-        with open(frames_json_inputfile,'r') as f:
-            input_data = json.load(f)
 
-        results = input_data['images']
-        detection_categories = input_data['detection_categories']
-        Fs = input_data['videos']['frame_rates']
-        
-    elif results:
-        detection_categories = DEFAULT_DETECTOR_LABEL_MAP
-    
-    else:
-        raise ValueError("Please input either results or path of full_det_frames.json")
-
+    images = frame_results['images']
+    detection_categories = frame_results['detection_categories']
+    Fs = frame_results['videos']['frame_rates']
     
     ## Break into videos
     video_to_frames = defaultdict(list) 
     
-    for im in results:
+    for im in images:
         
         fn = im['file']
         video_name = os.path.dirname(fn)
@@ -308,13 +284,88 @@ def write_video_results(output_file,
         
     # ...for each video
     
-    output_data = input_data
-    output_data['images'] = output_images
-    s = json.dumps(output_data,indent=1)
+    video_results = frame_results
+    video_results['images'] = output_images
+
+    return video_results
+
+
+def write_results(options, results, Fs,  
+    relative_path_base=None, 
+    nth_highest_confidence = 1, mute = False):
+    """
+    Writes a list of detection results to a JSON output file. 
+
+    Args
+    - results: list of dict, each dict represents detections on one image
+    - Fs: list of int, where each int represents the frame rate for each unique video.
+    - output_file: str, path to JSON output file, should end in '.json'
+    - relative_path_base: str, path to a directory as the base for relative paths
+    """
+    
+    frame_results = process_frame_results(results, Fs, relative_path_base=relative_path_base)
+    
+    ## write frame.json file
+    options.full_det_frames_json = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.full_det_frames_json, '_full_det_frames.json'
+    )
+    with open(options.full_det_frames_json, 'w') as f:
+        json.dump(frame_results, f, indent=1)
+
+    if not mute:
+        print('Output file saved at {}'.format(options.full_det_frames_json))
+
+    ## write video.json file
+    video_results = process_video_results(frame_results, nth_highest_confidence)
+    
+    options.full_det_video_json = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.full_det_video_json, '_full_det_video.json'
+    )
+    with open(options.full_det_video_json, 'w') as f:
+        json.dump(video_results, f, indent=1)
+
+    if not mute:
+        print('Output file saved at {}'.format(options.full_det_video_json))
+
+
+def write_frame_results(results, Fs, frame_output_file, 
+    relative_path_base=None, mute = False):
+    """
+    Writes a list of detection results to a JSON output file. 
+
+    Args
+    - results: list of dict, each dict represents detections on one image
+    - Fs: list of int, where each int represents the frame rate for each unique video.
+    - output_file: str, path to JSON output file, should end in '.json'
+    - relative_path_base: str, path to a directory as the base for relative paths
+    """
+    frame_results = process_frame_results(results, Fs, relative_path_base=relative_path_base)
+    
+    ## write frame.json file
+    with open(frame_output_file, 'w') as f:
+        json.dump(frame_results, f, indent=1)
+
+    if not mute:
+        print('Output file saved at {}'.format(frame_output_file))
+
+
+def write_video_results(output_file, 
+    frames_json_inputdata = None,  
+    frames_json_inputfile = None, 
+    nth_highest_confidence = 1, mute = False):
+
+    # Load results
+    if frames_json_inputfile is not None:
+        with open(frames_json_inputfile,'r') as f:
+            frames_json_inputdata = json.load(f)
+    
+    video_results = process_video_results(frames_json_inputdata, nth_highest_confidence)
     
     # Write the output file
     with open(output_file,'w') as f:
-        f.write(s)
+        json.dump(video_results, f, indent=1)
     
     if not mute:
         print('Output file saved at {}'.format(output_file))

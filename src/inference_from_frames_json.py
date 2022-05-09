@@ -21,20 +21,22 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
     
-    ## Converting frames.json to videos.json
-    options.full_det_video_json = default_path_from_none(
-        options.output_dir, options.input_dir, 
-        options.full_det_video_json, '_full_det_video.json'
-    )
-    write_video_results(options.full_det_video_json, frames_json_inputfile = options.full_det_frames_json)
-
-    ## Rolling prediction average 
+    ## Load data
     with open(options.full_det_frames_json,'r') as f:
         input_data = json.load(f)
 
     results = input_data['images']
     Fs = input_data['videos']['frame_rates']
-    rolling_avg(options, results, Fs)
+
+    ## Converting frames.json to videos.json
+    options.full_det_video_json = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.full_det_video_json, '_full_det_video.json'
+    )
+    write_video_results(options.full_det_video_json, frames_json_inputdata = input_data)
+
+    ## Rolling prediction average 
+    rolling_avg(options, results, Fs, relative_path_base = None)
 
     ## Comparing results of manual identification with MegaDetector detections
     if options.check_accuracy:

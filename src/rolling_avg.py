@@ -228,7 +228,7 @@ def rpa_video(options, images, video_path):
     return frames
 
 
-def rolling_avg(options, images, Fs, mute = False):
+def rolling_avg(options, images, Fs, relative_path_base = None, mute = False):
     
     print("\nConducting rolling prediction averaging now...")
     
@@ -261,7 +261,8 @@ def rolling_avg(options, images, Fs, mute = False):
 
     write_frame_results(
         roll_avg, Fs, 
-        options.roll_avg_frames_json, options.frame_folder, mute = mute)
+        options.roll_avg_frames_json, 
+        relative_path_base = relative_path_base, mute = mute)
     write_roll_avg_video_results(options, mute = mute)
 
     return roll_avg

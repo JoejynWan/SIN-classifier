@@ -7,8 +7,7 @@ from pickle import FALSE, TRUE
 
 # Functions imported from this project
 import config
-from shared_utils import delete_temp_dir, VideoOptions, default_path_from_none
-from shared_utils import write_frame_results, write_video_results
+from shared_utils import delete_temp_dir, VideoOptions, write_results
 from rolling_avg import rolling_avg
 
 # Functions imported from Microsoft/CameraTraps github repository
@@ -59,20 +58,10 @@ def det_frames(options, image_file_names, Fs):
     ## in load_and_run_detector_batch)
 
     ## Save and export results of full detection
-    options.full_det_frames_json = default_path_from_none(
-        options.output_dir, options.input_dir, 
-        options.full_det_frames_json, '_full_det_frames.json'
-    )
-    write_frame_results(results, Fs, options.full_det_frames_json, options.frame_folder)
-    
-    options.full_det_video_json = default_path_from_none(
-        options.output_dir, options.input_dir, 
-        options.full_det_video_json, '_full_det_video.json'
-    )
-    write_video_results(options.full_det_video_json, results = results, Fs = Fs)
+    write_results(options, results, Fs, relative_path_base = options.frame_folder)
 
     ## Rolling prediction average 
-    rolling_avg(options, results, Fs)
+    rolling_avg(options, results, Fs, relative_path_base = options.frame_folder)
 
 
 def main(): 
