@@ -277,7 +277,6 @@ def write_video_results(output_file,
         
         # frame = frames[0]
         for frame in frames:
-            print(frame)
             all_detections_this_video.extend(frame['detections'])
             
         # At most one detection for each category for the whole video
