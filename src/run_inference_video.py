@@ -1,14 +1,12 @@
 import os
 import time
-import shutil
 import argparse
 import humanfriendly
-from tqdm import tqdm
 
 # Functions imported from this project
 import config
 from shared_utils import delete_temp_dir, VideoOptions, check_output_dir
-from shared_utils import default_path_from_none
+from shared_utils import default_path_from_none, export_fn
 from run_det_video import video_dir_to_frames, det_frames
 from vis_detections import vis_detection_videos
 from manual_ID import manual_ID_results
@@ -52,25 +50,6 @@ def runtime_txt(options, script_start_time, checkpoint1_time, checkpoint2_time, 
             f.write('\n')
 
     return script_elapsed
-
-
-def export_fn(options, video_summ):
-
-    print("Copying false negative videos to output directory now...")
-
-    video_summ_copy = video_summ.copy()
-    export_pd = video_summ_copy[video_summ_copy['AccClass'] == 'FN']
-    export_pd = export_pd.reset_index()
-
-    root = os.path.abspath(os.curdir)
-
-    for idx, row in tqdm(export_pd.iterrows(), total=export_pd.shape[0]):
-        
-        input_vid = os.path.join(root, options.input_dir, row['FullVideoPath'])
-        output_vid_dir = os.path.join(root, options.output_dir, 'false_nagative_videos', os.path.dirname(row['UniqueFileName']))
-        os.makedirs(output_vid_dir, exist_ok = True)
-
-        _ = shutil.copy2(input_vid, output_vid_dir)
 
 
 def main(): 

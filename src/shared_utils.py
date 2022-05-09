@@ -2,7 +2,7 @@ import os
 import sys
 import json
 import copy
-import json
+from tqdm import tqdm
 import shutil
 import pandas as pd
 from typing import Container
@@ -228,7 +228,10 @@ def write_frame_results(results, Fs, output_file, relative_path_base=None, mute 
         print('Output file saved at {}'.format(output_file))
 
 
-def write_video_results(input_file,output_file, nth_highest_confidence = 1, mute = False):
+def write_video_results(output_file, 
+    results = None, Fs = None, 
+    frames_json_inputfile = None, 
+    nth_highest_confidence = 1, mute = False):
     """
     Given an API output file produced at the *frame* level, corresponding to a directory 
     created with video_folder_to_frames, map those frame-level results back to the 
@@ -239,18 +242,25 @@ def write_video_results(input_file,output_file, nth_highest_confidence = 1, mute
     """
         
     # Load results
-    with open(input_file,'r') as f:
-        input_data = json.load(f)
+    if frames_json_inputfile:
+        with open(frames_json_inputfile,'r') as f:
+            input_data = json.load(f)
 
-    images = input_data['images']
-    detection_categories = input_data['detection_categories']
-    Fs = input_data['videos']['frame_rates']
+        images = input_data['images']
+        detection_categories = input_data['detection_categories']
+        Fs = input_data['videos']['frame_rates']
+    
+    elif results:
+        detection_categories = DEFAULT_DETECTOR_LABEL_MAP
+    
+    else:
+        raise ValueError("Please input either results or path of full_det_frames.json")
+
     
     ## Break into videos
-    
     video_to_frames = defaultdict(list) 
     
-    for im in images:
+    for im in results:
         
         fn = im['file']
         video_name = os.path.dirname(fn)
@@ -452,3 +462,22 @@ def write_roll_avg_video_results(options, mute = False):
     
     if not mute:
         print('Output file saved at {}'.format(options.roll_avg_video_csv))
+
+def export_fn(options, video_summ):
+
+    print("Copying false negative videos to output directory now...")
+
+    video_summ_copy = video_summ.copy()
+    export_pd = video_summ_copy[video_summ_copy['AccClass'] == 'FN']
+    export_pd = export_pd.reset_index()
+
+    root = os.path.abspath(os.curdir)
+
+    for idx, row in tqdm(export_pd.iterrows(), total=export_pd.shape[0]):
+        
+        input_vid = os.path.join(root, options.input_dir, row['FullVideoPath'])
+        output_vid_dir = os.path.join(root, options.output_dir, 'false_nagative_videos', os.path.dirname(row['UniqueFileName']))
+        os.makedirs(output_vid_dir, exist_ok = True)
+
+        _ = shutil.copy2(input_vid, output_vid_dir)
+

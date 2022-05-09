@@ -69,7 +69,7 @@ def det_frames(options, image_file_names, Fs):
         options.output_dir, options.input_dir, 
         options.full_det_video_json, '_full_det_video.json'
     )
-    write_video_results(options.full_det_frames_json, options.full_det_video_json)
+    write_video_results(options.full_det_video_json, results = results, Fs = Fs)
 
     ## Rolling prediction average 
     rolling_avg(options, results, Fs)
