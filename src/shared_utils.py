@@ -2,9 +2,9 @@ import os
 import sys
 import json
 import copy
-from tqdm import tqdm
 import shutil
 import pandas as pd
+from tqdm import tqdm
 from typing import Container
 from datetime import datetime
 from collections import defaultdict

@@ -2,6 +2,7 @@ import os
 import argparse
 import tempfile
 import itertools
+from math import ceil
 from uuid import uuid1
 from pickle import FALSE, TRUE
 
@@ -48,14 +49,28 @@ def det_frames(options, image_file_names, Fs):
     
     os.makedirs(options.output_dir, exist_ok=True)
 
-    ## Run detections on each frame
-    print("Running MegaDetector on each video frame...")
-    results = load_and_run_detector_batch(
-        options.model_file, image_file_names,
-        confidence_threshold=options.json_confidence_threshold,
-        n_cores=options.n_cores, quiet = True)
-    ##TODO Memory error in line 354 of run_detector_batch.py(results.append(result)
-    ## in load_and_run_detector_batch)
+    num_images = len(image_file_names)
+    print("Running MegaDetector for {} video frames.".format(num_images))
+
+    def chunk(list, n_ele_in_each_chunk):
+        for i in range(0, len(list), n_ele_in_each_chunk):
+            yield list[i:i+n_ele_in_each_chunk]
+
+    results = []
+    chunk_num = 1
+    num_frames_per_chunk = 10000
+    for chunk_image_file_names in chunk(image_file_names, num_frames_per_chunk):
+        
+        num_chunks = ceil(num_images/num_frames_per_chunk)
+        print("Running for chunk number {} of {}.".format(chunk_num, num_chunks))
+        
+        chunk_results = load_and_run_detector_batch(
+            options.model_file, chunk_image_file_names,
+            confidence_threshold=options.json_confidence_threshold,
+            n_cores=options.n_cores, quiet = True)
+
+        results.extend(chunk_results)
+        chunk_num = chunk_num +1
 
     ## Save and export results of full detection
     write_results(options, results, Fs, relative_path_base = options.frame_folder)
