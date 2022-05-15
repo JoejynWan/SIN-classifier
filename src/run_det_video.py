@@ -5,6 +5,7 @@ import itertools
 from math import ceil
 from uuid import uuid1
 from pickle import FALSE, TRUE
+import tensorflow.compat.v1 as tf
 
 # Functions imported from this project
 import config
@@ -52,22 +53,24 @@ def det_frames(options, image_file_names, Fs):
     num_images = len(image_file_names)
     print("Running MegaDetector for {} video frames.".format(num_images))
 
-    def chunk(list, n_ele_in_each_chunk):
-        for i in range(0, len(list), n_ele_in_each_chunk):
-            yield list[i:i+n_ele_in_each_chunk]
+    def chunk(list, chunk_size):
+        for i in range(0, len(list), chunk_size):
+            yield list[i:i+chunk_size]
 
     results = []
     chunk_num = 1
-    num_frames_per_chunk = 10000
-    for chunk_image_file_names in chunk(image_file_names, num_frames_per_chunk):
+    chunk_size = 10000
+    for chunk_image_file_names in chunk(image_file_names, chunk_size):
         
-        num_chunks = ceil(num_images/num_frames_per_chunk)
+        num_chunks = ceil(num_images/chunk_size)
         print("Running for chunk number {} of {}.".format(chunk_num, num_chunks))
         
         chunk_results = load_and_run_detector_batch(
             options.model_file, chunk_image_file_names,
             confidence_threshold=options.json_confidence_threshold,
             n_cores=options.n_cores, quiet = True)
+
+        tf.reset_default_graph()
 
         results.extend(chunk_results)
         chunk_num = chunk_num +1
