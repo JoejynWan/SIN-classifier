@@ -46,34 +46,40 @@ def video_dir_to_frames(options):
     return image_file_names, Fs
 
 
-def det_frames(options, image_file_names, Fs):
+def det_frames(options, image_file_names, Fs, image_queue = False):
     
     os.makedirs(options.output_dir, exist_ok=True)
 
     num_images = len(image_file_names)
     print("Running MegaDetector for {} video frames.".format(num_images))
 
-    def chunk(list, chunk_size):
-        for i in range(0, len(list), chunk_size):
-            yield list[i:i+chunk_size]
-
-    results = []
-    chunk_num = 1
-    chunk_size = 10000
-    for chunk_image_file_names in chunk(image_file_names, chunk_size):
-        
-        num_chunks = ceil(num_images/chunk_size)
-        print("Running for chunk number {} of {}.".format(chunk_num, num_chunks))
-        
-        chunk_results = load_and_run_detector_batch(
-            options.model_file, chunk_image_file_names,
+    if image_queue:
+        results = load_and_run_detector_batch(
+            options.model_file, image_file_names,
             confidence_threshold=options.json_confidence_threshold,
-            n_cores=options.n_cores, quiet = True)
+            n_cores=options.n_cores, use_image_queue = True, quiet = True)
+    else: 
+        def chunk(list, chunk_size):
+            for i in range(0, len(list), chunk_size):
+                yield list[i:i+chunk_size]
 
-        tf.reset_default_graph()
+        results = []
+        chunk_num = 1
+        chunk_size = 10000
+        for chunk_image_file_names in chunk(image_file_names, chunk_size):
+            
+            num_chunks = ceil(num_images/chunk_size)
+            print("Running for chunk number {} of {}.".format(chunk_num, num_chunks))
+            
+            chunk_results = load_and_run_detector_batch(
+                options.model_file, chunk_image_file_names,
+                confidence_threshold=options.json_confidence_threshold,
+                n_cores=options.n_cores, quiet = True)
 
-        results.extend(chunk_results)
-        chunk_num = chunk_num +1
+            tf.reset_default_graph()
+
+            results.extend(chunk_results)
+            chunk_num = chunk_num +1
 
     ## Save and export results of full detection
     write_results(options, results, Fs, relative_path_base = options.frame_folder)
