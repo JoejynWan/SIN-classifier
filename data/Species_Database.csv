@@ -2,10 +2,10 @@ FolderSpeciesName,Kingdom,Class,Order,Family,Genus,Species,ScientificName,Common
 False trigger,NA,NA,NA,NA,NA,NA,False trigger,False trigger,0
 False Trigger,NA,NA,NA,NA,NA,NA,False trigger,False trigger,0
 False triggers,NA,NA,NA,NA,NA,NA,False trigger,False trigger,0
+Allblack ,NA,NA,NA,NA,NA,NA,False trigger,False trigger,0
 Acridotheres javanicus,Animalia,Aves,Passeriformes,Sturnidae,Acridotheres,javanicus,Acridotheres javanicus,Javan myna,1
 Amaurornis phoenicurus,Animalia,Aves,Gruiformes,Rallidae,Amaurornis,phoenicurus,Amaurornis phoenicurus,White-breasted waterhen,1
 Aplonis panayensis,Animalia,Aves,Passeriformes,Sturnidae,Aplonis,panayensis,Aplonis panayensis,Asian glossy starling,1
-Calcophaps indica,Animalia,Aves,Columbiformes,Columbidae,Chalcophaps,indica,Chalcophaps indica,Common emerald dove,1
 Callosciurius notatus,Animalia,Mammalia,Rodentia,Sciuridae,Callosciurus,notatus,Callosciurus notatus,Plantain squirrel,1
 Callosciurus notatus,Animalia,Mammalia,Rodentia,Sciuridae,Callosciurus,notatus,Callosciurus notatus,Plantain squirrel,1
 Canis lupus,Animalia,Mammalia,Carnivora,Canidae,Canis,lupus,Canis lupus,Domestic dog - stray,1
@@ -13,11 +13,15 @@ Canis lupus_familiaris,Animalia,Mammalia,Carnivora,Canidae,Canis,lupus,Canis lup
 Canis lupusfamiliaris,Animalia,Mammalia,Carnivora,Canidae,Canis,lupus,Canis lupus,Domestic dog - stray,1
 Caprimulgus macrurus,Animalia,Aves,Caprimulgiformes,Caprimulgidae,Caprimulgus,macrurus,Caprimulgus macrurus,Large-tailed nightjar,1
 Centropus sinensis,Animalia,Aves,Cuculiformes,Cuculidae,Centropus,sinensis,Centropus sinensis,Greater coucal,1
+Calcophaps indica,Animalia,Aves,Columbiformes,Columbidae,Chalcophaps,indica,Chalcophaps indica,Common emerald dove,1
 Chalcophaps indica,Animalia,Aves,Columbiformes,Columbidae,Chalcophaps,indica,Chalcophaps indica,Common emerald dove,1
+Unidentified bat,Animalia,Mammalia,Chiroptera,NA,NA,NA,Chiroptera spp.,Bats spp.,1
 Clamator coromandus,Animalia,Aves,Cuculiformes,Cuculidae,Clamator,coromandus,Clamator coromandus,Chestnut-winged cuckoo,1
 Copsychus saularis,Animalia,Aves,Passeriformes,Muscicapidae,Copsychus,saularis,Copsychus saularis,Oriental magpie-robin,1
+Cyornis brunneatus,Animalia,Aves,Passeriformes,Muscicapidae,Cyornis,brunneatus,Cyornis brunneatus,Brown-chested jungle flycatcher,1
 Dendrelaphis pictus,Animalia,Reptilia,Squamata,Colubridae,Dendrelaphis,pictus,Dendrelaphis pictus,Painted bronzeback,1
 Eutropis multifasciata,Animalia,Reptilia,Squamata,Scincidae,Eutropis,multifasciata,Eutropis multifasciata,Common sun skink,1
+Eutropis fasciata,Animalia,Reptilia,Squamata,Scincidae,Eutropis,multifasciata,Eutropis multifasciata,Common sun skink,1
 Gallus gallus,Animalia,Aves,Galliformes,Phasianidae,Gallus,gallus,Gallus gallus,Red junglefowl,1
 Garrulax leucolophus,Animalia,Aves,Passeriformes,Leiothrichidae,Garrulax,leucolophus,Garrulax leucolophus,White-crested laughingthrush,1
 Geopelia striata,Animalia,Aves,Columbiformes,Columbidae,Geopelia,striata,Geopelia striata,Zebra dove,1
@@ -25,6 +29,8 @@ Gorsachius melanolophus,Animalia,Aves,Pelecaniformes,Ardeidae,Gorsachius,melanol
 Larvivora cyane,Animalia,Aves,Passeriformes,Muscicapidae,Larvivora,cyane,Larvivora cyane,Siberian blue robin,1
 Lewinia striata,Animalia,Aves,Gruiformes,Rallidae,Lewinia,striata,Lewinia striata,Slaty-breasted rail,1
 Macaca fascicularis,Animalia,Mammalia,Primates,Cercopithecidae,Macaca,fascicularis,Macaca fascicularis,Long-tailed macaque,1
+Macaca fasicularis,Animalia,Mammalia,Primates,Cercopithecidae,Macaca,fascicularis,Macaca fascicularis,Long-tailed macaque,1
+Macaca fascuiclaris,Animalia,Mammalia,Primates,Cercopithecidae,Macaca,fascicularis,Macaca fascicularis,Long-tailed macaque,1
 Manis javanica,Animalia,Mammalia,Pholidota,Manidae,Manis,javanica,Manis javanica,Sunda pangolin,1
 Paradoxurus hermaphroditus,Animalia,Mammalia,Carnivora,Viverridae,Paradoxurus,musangus,Paradoxurus musangus,Asian palm civet,1
 Paradoxurus musangus,Animalia,Mammalia,Carnivora,Viverridae,Paradoxurus,musangus,Paradoxurus musangus,Asian palm civet,1
@@ -32,34 +38,38 @@ Paradoxus musangus,Animalia,Mammalia,Carnivora,Viverridae,Paradoxurus,musangus,P
 Picus vittatus,Animalia,Aves,Piciformes,Picidae,Picus,vittatus,Picus vittatus,Laced woodpecker,1
 Pitta moluccensis,Animalia,Aves,Passeriformes,Pittidae,Pitta,moluccensis,Pitta moluccensis,Blue-winged pitta,1
 Prionailurus bengalensis,Animalia,Aves,Carnivora,Felidae,Prionailurus,bengalensis,Prionailurus bengalensis,Leopard cat,1
+Unidentified Pteropodidae,Animalia,Mammalia,Chiroptera,Pteropodidae,NA,NA,Pteropodidae spp.,Megabat spp.,1
 Pycnonotus goiavier,Animalia,Aves,Passeriformes,Pycnonotidae,Pycnonotus,goiavier,Pycnonotus goiavier,Yellow-vented bulbul,1
 Rallina fasciata,Animalia,Aves,Gruiformes,Rallidae,Rallina,fasciata,Rallina fasciata,Red-legged crake,1
 Rattus annandalei,Animalia,Mammalia,Rodentia,Muridae,Rattus,annandalei,Rattus annandalei,Annandale's rat,1
+Sundamys annandalei,Animalia,Mammalia,Rodentia,Muridae,Rattus,annandalei,Rattus annandalei,Annandale's rat,1
+Rattus norvegicus,Animalia,Mammalia,Rodentia,Muridae,Rattus,norvegicus,Rattus norvegicus,Brown rat,1
 Rattus sp,Animalia,Mammalia,Rodentia,Muridae,Rattus,spp.,Rattus spp.,Rats spp.,1
 Rattus sp.,Animalia,Mammalia,Rodentia,Muridae,Rattus,spp.,Rattus spp.,Rats spp.,1
+Unidentified Muridae,Animalia,Mammalia,Rodentia,Muridae,Rattus,spp.,Rattus spp.,Rats spp.,1
+Unidentified muridae,Animalia,Mammalia,Rodentia,Muridae,Rattus,spp.,Rattus spp.,Rats spp.,1
 Rattus tanezumi,Animalia,Mammalia,Rodentia,Muridae,Rattus,tanezumi,Rattus tanezumi,Tanezumi rat,1
-Rattus tiomanicus,Animalia,Mammalia,Rodentia,Muridae,Rattus,tiomanicus,Rattus tiomanicus,Malayan field rat,1
 Ratus tanezumi,Animalia,Mammalia,Rodentia,Muridae,Rattus,tanezumi,Rattus tanezumi,Tanezumi rat,1
+Rattus tiomanicus,Animalia,Mammalia,Rodentia,Muridae,Rattus,tiomanicus,Rattus tiomanicus,Malayan field rat,1
 Rhinosciurus laticaudatus,Animalia,Mammalia,Rodentia,Sciuridae,Rhinosciurus,laticaudatus,Rhinosciurus laticaudatus,Shrew-faced squirrel,1
+Eutropis sp.,Animalia,Reptilia,Squamata,Scincidae,NA,NA,Scincidae spp.,Skink spp.,1
+Unidentified Scincidae,Animalia,Reptilia,Squamata,Scincidae,NA,NA,Scincidae spp.,Skink spp.,1
 Spilopelia chinensis,Animalia,Aves,Columbiformes,Columbidae,Streptopelia,chinensis,Streptopelia chinensis,Spotted dove,1
 Suncus murinus,Animalia,Mammalia,Eulipotyphla,Soricidae,Suncus,murinus,Suncus murinus,Asian House Shrew,1
 Sundasciurus tenius,Animalia,Mammalia,Rodentia,Sciuridae,Sundasciurus,tenuis,Sundasciurus tenuis,Slender squirrel,1
 Sundasciurus tenuis,Animalia,Mammalia,Rodentia,Sciuridae,Sundasciurus,tenuis,Sundasciurus tenuis,Slender squirrel,1
 Sus scrofa,Animalia,Mammalia,Artiodactyla,Suidae,Sus,scrofa,Sus scrofa,Wild boar,1
+Tragulus kanchil,Animalia,Mammalia,Artiodactyla,Tragulidae,Tragulus,kanchil,Tragulus kanchil,Lesser mouse-deer,1
 Tupaia glis,Animalia,Mammalia,Scandentia,Tupaiidae,Tupaia,glis,Tupaia glis,Common treeshrew,1
 Unidentified ,NA,NA,NA,NA,NA,NA,Unidentified animal,Unidentified animal,1
-Unidentified Anura,Animalia,Amphibia,Anura,NA,NA,NA,Unidentified Anura,Frogs spp.,1
-Unidentified Aves,Animalia,Aves,NA,NA,NA,NA,Unidentified Aves,Birds spp.,1
-Unidentified bat,Animalia,Mammalia,Chiroptera,NA,NA,NA,Chiroptera spp.,Bats spp.,1
-Unidentified bird,Animalia,Aves,NA,NA,NA,NA,Unidentified Aves,Birds spp.,1
 Unidentified eyeshine,NA,NA,NA,NA,NA,NA,Unidentified animal,Unidentified animal,1
 Unidentified mammal,NA,NA,NA,NA,NA,NA,Unidentified animal,Unidentified animal,1
-Unidentified Muridae,Animalia,Mammalia,Rodentia,Muridae,Rattus,spp.,Rattus spp.,Rats spp.,1
-Unidentified muridae,Animalia,Mammalia,Rodentia,Muridae,Rattus,spp.,Rattus spp.,Rats spp.,1
-Unidentified Pteropodidae,Animalia,Mammalia,Chiroptera,Pteropodidae,NA,NA,Pteropodidae spp.,Megabat spp.,1
-Unidentified Scincidae,Animalia,Reptilia,Squamata,Scincidae,NA,NA,Scincidae spp.,Skink spp.,1
+unidentified sp.,NA,NA,NA,NA,NA,NA,Unidentified animal,Unidentified animal,1
 Unidentified sp,NA,NA,NA,NA,NA,NA,Unidentified animal,Unidentified animal,1
 Unidentified sp.,NA,NA,NA,NA,NA,NA,Unidentified animal,Unidentified animal,1
+Unidentified Anura,Animalia,Amphibia,Anura,NA,NA,NA,Unidentified Anura,Frogs spp.,1
+Unidentified Aves,Animalia,Aves,NA,NA,NA,NA,Unidentified Aves,Birds spp.,1
+Unidentified bird,Animalia,Aves,NA,NA,NA,NA,Unidentified Aves,Birds spp.,1
 Unidentified squirrel,Animalia,Mammalia,NA,NA,NA,NA,Unidentified squirrel_or_treeshrew,Unidentified squirrels or treeshrews,1
 Unidentified squirrel_or_shrew,Animalia,Mammalia,NA,NA,NA,NA,Unidentified squirrel_or_treeshrew,Unidentified squirrels or treeshrews,1
 Unidentified squirrel_or_treeshrew,Animalia,Mammalia,NA,NA,NA,NA,Unidentified squirrel_or_treeshrew,Unidentified squirrels or treeshrews,1
