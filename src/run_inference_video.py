@@ -80,7 +80,12 @@ def main():
 
     ## Detecting subjects in each video frame using MegaDetector
     image_file_names, Fs = video_dir_to_frames(options)
-    det_frames(options, image_file_names, Fs, image_queue = True)
+    
+    options.checkpoint_json = default_path_from_none(
+            options.output_dir, options.input_dir, 
+            options.checkpoint_json, '_md_checkpoint.json')
+    det_frames(options, image_file_names, Fs, 
+        checkpoint_path = options.checkpoint_json, checkpoint_frequency = 1000)
     
     checkpoint2_time = time.time()
 

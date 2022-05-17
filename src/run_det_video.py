@@ -46,19 +46,16 @@ def video_dir_to_frames(options):
     return image_file_names, Fs
 
 
-def det_frames(options, image_file_names, Fs, image_queue = False):
+def det_frames(options, image_file_names, Fs, 
+    checkpoint_path = None, checkpoint_frequency = -1, 
+    run_chunks = False):
     
     os.makedirs(options.output_dir, exist_ok=True)
 
     num_images = len(image_file_names)
     print("Running MegaDetector for {} video frames.".format(num_images))
 
-    if image_queue:
-        results = load_and_run_detector_batch(
-            options.model_file, image_file_names,
-            confidence_threshold=options.json_confidence_threshold,
-            n_cores=options.n_cores, use_image_queue = True, quiet = True)
-    else: 
+    if run_chunks: 
         def chunk(list, chunk_size):
             for i in range(0, len(list), chunk_size):
                 yield list[i:i+chunk_size]
@@ -80,6 +77,12 @@ def det_frames(options, image_file_names, Fs, image_queue = False):
 
             results.extend(chunk_results)
             chunk_num = chunk_num +1
+    else:
+        results = load_and_run_detector_batch(
+            options.model_file, image_file_names,
+            confidence_threshold=options.json_confidence_threshold, n_cores=options.n_cores, 
+            checkpoint_path = checkpoint_path, checkpoint_frequency = checkpoint_frequency, 
+            quiet = True)
 
     ## Save and export results of full detection
     write_results(options, results, Fs, relative_path_base = options.frame_folder)

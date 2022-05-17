@@ -115,6 +115,7 @@ class VideoOptions:
     
     full_det_frames_json = None
     full_det_video_json = None
+    checkpoint_json = None
 
     frame_sample = None
     debug_max_frames = -1
