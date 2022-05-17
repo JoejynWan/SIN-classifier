@@ -3,9 +3,9 @@ import json
 import argparse
 import tempfile
 import itertools
-import datetime
 from math import ceil
 from uuid import uuid1
+from datetime import datetime
 from pickle import FALSE, TRUE
 import tensorflow.compat.v1 as tf
 
@@ -20,6 +20,8 @@ from detection.video_utils import video_folder_to_frames
 from ct_utils import args_to_object
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
+physical_devices = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 
 def video_dir_to_frames(options):
@@ -126,6 +128,11 @@ def det_frames(options, image_file_names, Fs, run_chunks = False):
 
     ## Rolling prediction average 
     rolling_avg(options, results, Fs, relative_path_base = options.frame_folder)
+
+    ## Delete checkpoint file after completion
+    if checkpoint_path:
+        os.remove(checkpoint_path)
+        print('Deleted checkpoint file {}'.format(checkpoint_path))
 
 
 def main(): 

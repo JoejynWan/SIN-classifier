@@ -117,7 +117,7 @@ class VideoOptions:
     full_det_video_json = None
     
     resume_from_checkpoint = None
-    checkpoint_json = None
+    checkpoint_path = None
     checkpoint_frequency = -1 #default of -1 to not run any checkpointing
 
     frame_sample = None

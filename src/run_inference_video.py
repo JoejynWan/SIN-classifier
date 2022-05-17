@@ -206,6 +206,18 @@ def get_arg_parser():
                         default = config.NTH_HIGHEST_CONFIDENCE, 
                         help="nth-highest-confidence frame to choose a confidence value for each video"
     )
+    parser.add_argument('--resume_from_checkpoint', type=str,
+                        default = config.RESUME_FROM_CHECKPOINT, 
+                        help="path to JSON checkpoint file for which MD detection will be resumed from."
+    )
+    parser.add_argument('--checkpoint_path', type=str,
+                        default = config.CHECKPOINT_PATH, 
+                        help="path to JSON checkpoint file for which checkpoints will be written to."
+    )
+    parser.add_argument('--checkpoint_frequency', type=int,
+                        default = config.CHECKPOINT_FREQUENCY, 
+                        help="write results to JSON checkpoint file every N images."
+    )
     return parser
 
 
