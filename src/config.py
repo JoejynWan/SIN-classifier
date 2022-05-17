@@ -17,7 +17,10 @@ N_CORES = multiprocessing.cpu_count() - 1 # No. of available cores minus 1 to no
 
 FULL_DET_FRAMES_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
 FULL_DET_VIDEO_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_videos.json'
+
+RESUME_FROM_CHECKPOINT = None
 CHECKPOINT_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_md_checkpoint.json'
+CHECKPOINT_FREQUENCY = -1 #Set to -1 to not run any checkpointing
 
 FRAME_SAMPLE = None
 DEBUG_MAX_FRAMES = -1

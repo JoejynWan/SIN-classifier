@@ -1,7 +1,9 @@
 import os
+import json
 import argparse
 import tempfile
 import itertools
+import datetime
 from math import ceil
 from uuid import uuid1
 from pickle import FALSE, TRUE
@@ -46,9 +48,42 @@ def video_dir_to_frames(options):
     return image_file_names, Fs
 
 
-def det_frames(options, image_file_names, Fs, 
-    checkpoint_path = None, checkpoint_frequency = -1, 
-    run_chunks = False):
+def checkpointing_test(options):
+    # Load the checkpoint if available
+    # Relative file names are only output at the end; all file paths in the checkpoint are
+    # still full paths.
+    if options.resume_from_checkpoint:
+        assert os.path.exists(options.resume_from_checkpoint), 'File at resume_from_checkpoint specified does not exist'
+        with open(options.resume_from_checkpoint) as f:
+            saved = json.load(f)
+        assert 'images' in saved, \
+            'The file saved as checkpoint does not have the correct fields; cannot be restored'
+        results = saved['images']
+        print('Restored {} entries from the checkpoint'.format(len(results)))
+    else:
+        results = []
+
+    # Test that we can write to the output_file's dir if checkpointing requested
+    if options.checkpoint_frequency != -1:
+        
+        if options.checkpoint_path is not None:
+            checkpoint_path = options.checkpoint_path
+        else:
+            checkpoint_path = os.path.join(options.output_dir, 'checkpoint_{}.json'.format(datetime.utcnow().strftime("%Y%m%d%H%M%S")))
+        
+        # Confirm that we can write to the checkpoint path, rather than failing after 10000 images
+        with open(checkpoint_path, 'w') as f:
+            json.dump({'images': []}, f)
+        print('The checkpoint file will be written to {}'.format(checkpoint_path))
+        
+    else:
+        
+        checkpoint_path = None
+
+    return results, checkpoint_path
+
+
+def det_frames(options, image_file_names, Fs, run_chunks = False):
     
     os.makedirs(options.output_dir, exist_ok=True)
 
@@ -78,10 +113,12 @@ def det_frames(options, image_file_names, Fs,
             results.extend(chunk_results)
             chunk_num = chunk_num +1
     else:
+        results, checkpoint_path = checkpointing_test(options)
+
         results = load_and_run_detector_batch(
             options.model_file, image_file_names,
             confidence_threshold=options.json_confidence_threshold, n_cores=options.n_cores, 
-            checkpoint_path = checkpoint_path, checkpoint_frequency = checkpoint_frequency, 
+            checkpoint_path = checkpoint_path, checkpoint_frequency = options.checkpoint_frequency, 
             quiet = True)
 
     ## Save and export results of full detection
