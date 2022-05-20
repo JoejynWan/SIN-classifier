@@ -79,8 +79,8 @@ def main():
     checkpoint1_time = time.time()
 
     ## Detecting subjects in each video frame using MegaDetector
-    image_file_names, Fs = video_dir_to_frames(options)
-    det_frames(options, image_file_names, Fs)
+    video_dir_to_frames(options)
+    det_frames(options)
     
     checkpoint2_time = time.time()
 

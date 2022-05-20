@@ -47,7 +47,15 @@ def video_dir_to_frames(options):
     
     image_file_names = list(itertools.chain.from_iterable(frame_filenames))
 
-    return image_file_names, Fs
+    image_file_name_txt = os.path.join(options.output_dir, "temp_image_file_name.txt")
+    with open(image_file_name_txt, 'w') as file:
+        for image_name in image_file_names:
+            file.write("%s\n" % image_name)
+
+    fs_txt = os.path.join(options.output_dir, "temp_frame_speed.txt")
+    with open(fs_txt, 'w') as file:
+        for frame_rate in Fs:
+            file.write("%s\n" % frame_rate)
 
 
 def checkpointing_test(options):
@@ -85,9 +93,21 @@ def checkpointing_test(options):
     return results, checkpoint_path
 
 
-def det_frames(options, image_file_names, Fs, run_chunks = False):
+def det_frames(options, run_chunks = False):
     
     os.makedirs(options.output_dir, exist_ok=True)
+
+    image_file_names = []
+    image_file_name_txt = os.path.join(options.output_dir, "temp_image_file_name.txt")
+    with open(image_file_name_txt, 'r') as file:
+        for line in file:
+            image_file_names.append(line[:-1])
+
+    Fs = []
+    fs_txt = os.path.join(options.output_dir, "temp_frame_speed.txt")
+    with open(fs_txt, 'r') as file:
+        for line in file:
+            Fs.append(line[:-1])
 
     num_images = len(image_file_names)
     print("Running MegaDetector for {} video frames.".format(num_images))
@@ -121,7 +141,7 @@ def det_frames(options, image_file_names, Fs, run_chunks = False):
             options.model_file, image_file_names,
             confidence_threshold=options.json_confidence_threshold, n_cores=options.n_cores, 
             checkpoint_path = checkpoint_path, checkpoint_frequency = options.checkpoint_frequency, 
-            quiet = True)
+            results = results, quiet = True)
 
     ## Save and export results of full detection
     write_results(options, results, Fs, relative_path_base = options.frame_folder)
@@ -129,10 +149,14 @@ def det_frames(options, image_file_names, Fs, run_chunks = False):
     ## Rolling prediction average 
     rolling_avg(options, results, Fs, relative_path_base = options.frame_folder)
 
-    ## Delete checkpoint file after completion
+    ## Delete temp files after completion
     if checkpoint_path:
         os.remove(checkpoint_path)
         print('Deleted checkpoint file {}'.format(checkpoint_path))
+
+    os.remove(image_file_name_txt)
+    os.remove(fs_txt)
+    print('Deleted {} and {} temporary files.'.format(image_file_name_txt, fs_txt))
 
 
 def main(): 
