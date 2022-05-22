@@ -322,6 +322,10 @@ def get_arg_parser():
                         default = config.NTH_HIGHEST_CONFIDENCE, 
                         help="nth-highest-confidence frame to choose a confidence value for each video"
     )
+    parser.add_argument('--check_accuracy', type=bool,
+                        default = config.CHECK_ACCURACY, 
+                        help = 'Whether accuracy of MegaDetector should be checked with manual ID. Folder names must contain species and quantity.'
+    )
     return parser
 
 
