@@ -277,7 +277,7 @@ def process_video_results(frame_results, nth_highest_confidence):
         # Prepare the output representation for this video
         im_out = {}
         im_out['file'] = video_name
-        im_out['frame_rate'] = int(fs)
+        im_out['frame_rate'] = float(fs)
         im_out['detections'] = canonical_detections
         im_out['max_detection_conf'] = 0
         if len(canonical_detections) > 0:
