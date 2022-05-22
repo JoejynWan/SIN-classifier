@@ -37,7 +37,7 @@ def frames_to_video(images, Fs, output_file_name):
     if len(images) == 0:
         print('No images/ image files are supplied to convert to video')
         return
-
+    
     # Determine width and height from the first image
     frame = cv2.imread(images[0])
     height, width, channels = frame.shape 
@@ -53,7 +53,11 @@ def frames_to_video(images, Fs, output_file_name):
         codec_spec = 'DIVX'
         
     fourcc = cv2.VideoWriter_fourcc(*codec_spec)
-    out = cv2.VideoWriter(output_file_name, fourcc, Fs, (width, height))
+    out = cv2.VideoWriter(
+        filename = output_file_name, 
+        fourcc = fourcc, 
+        fps = int(float(Fs)), 
+        frameSize = (int(width), int(height)))
 
     for image in images:
         frame = cv2.imread(image)
@@ -146,7 +150,7 @@ def vis_detection_videos(options, parallel = True):
     images, detector_label_map, Fs = load_detector_output(options.roll_avg_frames_json)
 
     unique_videos = find_unique_videos(images)
-    
+
     print('Rendering detections above a confidence threshold of {} for {} videos...'.format(
         options.rendering_confidence_threshold, len(unique_videos)))
     

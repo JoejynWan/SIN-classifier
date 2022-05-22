@@ -228,10 +228,14 @@ def rpa_video(options, images, video_path):
     return frames
 
 
-def rolling_avg(options, images, Fs, relative_path_base = None, mute = False):
+def rolling_avg(options, mute = False):
+        
+    ## Load images from full_det_frames_json
+    print("\nLoading animal detections from full_det_frames.json for RPA now...")
+    images, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
     
-    print("\nConducting rolling prediction averaging now...")
-    
+    ## Conduct RPA
+    print("Conducting rolling prediction averaging now...")
     images = rm_bad_detections(options, images)
 
     video_paths = find_unique_videos(images)
@@ -261,8 +265,7 @@ def rolling_avg(options, images, Fs, relative_path_base = None, mute = False):
 
     write_frame_results(
         roll_avg, Fs, 
-        options.roll_avg_frames_json, 
-        relative_path_base = relative_path_base, mute = mute)
+        options.roll_avg_frames_json, mute = mute)
     write_roll_avg_video_results(options, mute = mute)
 
     return roll_avg
@@ -275,9 +278,7 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
 
-    images_full, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
-
-    roll_avg = rolling_avg(options, images_full, Fs)
+    rolling_avg(options)
 
     vis_detection_videos(options)
 
@@ -292,6 +293,10 @@ def get_arg_parser():
     parser.add_argument('--input_dir', type=str, 
                         default = config.INPUT_DIR, 
                         help = 'Path to folder containing the video(s) to be processed.'
+    )
+    parser.add_argument('--full_det_frames_json', type=str,
+                        default = config.FULL_DET_FRAMES_JSON, 
+                        help = 'Path to json file containing the frame-level results of all MegaDetector detections.'
     )
     parser.add_argument('--frame_folder', type = str,
                         default = config.FRAME_FOLDER,

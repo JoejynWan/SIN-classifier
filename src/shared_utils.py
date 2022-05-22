@@ -277,7 +277,7 @@ def process_video_results(frame_results, nth_highest_confidence):
         # Prepare the output representation for this video
         im_out = {}
         im_out['file'] = video_name
-        im_out['frame_rate'] = float(fs)
+        im_out['frame_rate'] = int(float(fs))
         im_out['detections'] = canonical_detections
         im_out['max_detection_conf'] = 0
         if len(canonical_detections) > 0:
@@ -488,7 +488,7 @@ def write_roll_avg_video_results(options, mute = False):
         # Output dict for this video
         im_out = {}
         im_out['file'] = unique_video
-        im_out['frame_rate'] = float(fs)
+        im_out['frame_rate'] = int(float(fs))
         im_out['detections'] = top_obj_detections
         im_out['max_detection_conf'] = 0
         if len(top_obj_detections) > 0:

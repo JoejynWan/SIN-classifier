@@ -146,7 +146,7 @@ def det_frames(options, run_chunks = False):
     gc.collect()
 
     ## Rolling prediction average 
-    rolling_avg(options, relative_path_base = options.frame_folder)
+    rolling_avg(options)
 
     ## Delete temp files after completion
     if checkpoint_path:
