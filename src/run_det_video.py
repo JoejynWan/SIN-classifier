@@ -64,6 +64,8 @@ def checkpointing_test(options):
     # still full paths.
     if options.resume_from_checkpoint:
         assert os.path.exists(options.resume_from_checkpoint), 'File at resume_from_checkpoint specified does not exist'
+        
+        print('Opening checkpoint file to resume from checkpoint.')
         with open(options.resume_from_checkpoint) as f:
             saved = json.load(f)
         assert 'images' in saved, \
