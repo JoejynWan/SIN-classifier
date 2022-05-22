@@ -151,9 +151,9 @@ def vis_detection_videos(options, parallel = True):
 
     unique_videos = find_unique_videos(images)
 
-    print('Rendering detections above a confidence threshold of {} for {} videos...'.format(
+    print('\nRendering detections above a confidence threshold of {} for {} videos...'.format(
         options.rendering_confidence_threshold, len(unique_videos)))
-    
+
     fs_videos = list(zip(unique_videos, Fs))
 
     if parallel: 
