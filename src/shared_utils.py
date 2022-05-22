@@ -395,12 +395,12 @@ def json_to_csv(options, images):
 
     video_pd = pd.DataFrame()
     for image in images:
-        video = image['file'].replace('\\','/')
+        video = os.path.normpath(image['file'])
         frame_rate = image['frame_rate']
         detections = image['detections']
 
         if options.check_accuracy:
-            station_sampledate, _, vid_name = video.split("/")
+            station_sampledate, _, vid_name = video.split(os.sep)
             uniquefile = os.path.join(station_sampledate, vid_name).replace('\\','/')
         else:
             uniquefile = 'NA'
