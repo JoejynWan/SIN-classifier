@@ -1,4 +1,5 @@
 import os
+import gc
 import json
 import argparse
 import tempfile
@@ -7,7 +8,6 @@ from math import ceil
 from uuid import uuid1
 from datetime import datetime
 from pickle import FALSE, TRUE
-import tensorflow.compat.v1 as tf
 
 # Functions imported from this project
 import config
@@ -20,8 +20,6 @@ from detection.video_utils import video_folder_to_frames
 from ct_utils import args_to_object
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
-physical_devices = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 
 def video_dir_to_frames(options):
@@ -132,8 +130,6 @@ def det_frames(options, run_chunks = False):
                 confidence_threshold=options.json_confidence_threshold,
                 n_cores=options.n_cores, quiet = True)
 
-            tf.reset_default_graph()
-
             results.extend(chunk_results)
             chunk_num = chunk_num +1
     else:
@@ -147,9 +143,10 @@ def det_frames(options, run_chunks = False):
 
     ## Save and export results of full detection
     write_results(options, results, Fs, relative_path_base = options.frame_folder)
+    gc.collect()
 
     ## Rolling prediction average 
-    rolling_avg(options, results, Fs, relative_path_base = options.frame_folder)
+    rolling_avg(options, relative_path_base = options.frame_folder)
 
     ## Delete temp files after completion
     if checkpoint_path:
