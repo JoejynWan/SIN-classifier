@@ -107,7 +107,7 @@ def main():
 
     ## Annotating and exporting to video
     if options.render_output_video:
-        vis_detection_videos(options)
+        vis_detection_videos(options, parallel = True)
 
     ## Delete the frames stored in the temp folder (if delete_output_frames == TRUE)
     if options.delete_output_frames:
