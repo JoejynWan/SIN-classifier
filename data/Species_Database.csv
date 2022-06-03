@@ -3,11 +3,13 @@ False trigger,NA,NA,NA,NA,NA,NA,False trigger,False trigger,0
 False Trigger,NA,NA,NA,NA,NA,NA,False trigger,False trigger,0
 False triggers,NA,NA,NA,NA,NA,NA,False trigger,False trigger,0
 Allblack ,NA,NA,NA,NA,NA,NA,False trigger,False trigger,0
+Allblack datewrong,NA,NA,NA,NA,NA,NA,False trigger,False trigger,0
 Acridotheres javanicus,Animalia,Aves,Passeriformes,Sturnidae,Acridotheres,javanicus,Acridotheres javanicus,Javan myna,1
 Amaurornis phoenicurus,Animalia,Aves,Gruiformes,Rallidae,Amaurornis,phoenicurus,Amaurornis phoenicurus,White-breasted waterhen,1
 Aplonis panayensis,Animalia,Aves,Passeriformes,Sturnidae,Aplonis,panayensis,Aplonis panayensis,Asian glossy starling,1
 Callosciurius notatus,Animalia,Mammalia,Rodentia,Sciuridae,Callosciurus,notatus,Callosciurus notatus,Plantain squirrel,1
 Callosciurus notatus,Animalia,Mammalia,Rodentia,Sciuridae,Callosciurus,notatus,Callosciurus notatus,Plantain squirrel,1
+Callosicurus notatus,Animalia,Mammalia,Rodentia,Sciuridae,Callosciurus,notatus,Callosciurus notatus,Plantain squirrel,1
 Canis lupus,Animalia,Mammalia,Carnivora,Canidae,Canis,lupus,Canis lupus,Domestic dog - stray,1
 Canis lupus_familiaris,Animalia,Mammalia,Carnivora,Canidae,Canis,lupus,Canis lupus,Domestic dog - stray,1
 Canis lupusfamiliaris,Animalia,Mammalia,Carnivora,Canidae,Canis,lupus,Canis lupus,Domestic dog - stray,1
@@ -64,6 +66,7 @@ Tupaia glis,Animalia,Mammalia,Scandentia,Tupaiidae,Tupaia,glis,Tupaia glis,Commo
 Unidentified ,NA,NA,NA,NA,NA,NA,Unidentified animal,Unidentified animal,1
 Unidentified eyeshine,NA,NA,NA,NA,NA,NA,Unidentified animal,Unidentified animal,1
 Unidentified mammal,NA,NA,NA,NA,NA,NA,Unidentified animal,Unidentified animal,1
+unidentified mammal,NA,NA,NA,NA,NA,NA,Unidentified animal,Unidentified animal,1
 unidentified sp.,NA,NA,NA,NA,NA,NA,Unidentified animal,Unidentified animal,1
 Unidentified sp,NA,NA,NA,NA,NA,NA,Unidentified animal,Unidentified animal,1
 Unidentified sp.,NA,NA,NA,NA,NA,NA,Unidentified animal,Unidentified animal,1
@@ -73,7 +76,9 @@ Unidentified bird,Animalia,Aves,NA,NA,NA,NA,Unidentified Aves,Birds spp.,1
 Unidentified squirrel,Animalia,Mammalia,NA,NA,NA,NA,Unidentified squirrel_or_treeshrew,Unidentified squirrels or treeshrews,1
 Unidentified squirrel_or_shrew,Animalia,Mammalia,NA,NA,NA,NA,Unidentified squirrel_or_treeshrew,Unidentified squirrels or treeshrews,1
 Unidentified squirrel_or_treeshrew,Animalia,Mammalia,NA,NA,NA,NA,Unidentified squirrel_or_treeshrew,Unidentified squirrels or treeshrews,1
+Unidentified squirrelortreeshrew,Animalia,Mammalia,NA,NA,NA,NA,Unidentified squirrel_or_treeshrew,Unidentified squirrels or treeshrews,1
 Varanus nebulosus,Animalia,Mammalia,Squamata,Varanidae,Varanus,nebulosus,Varanus nebulosus,Clouded monitor,1
+Varanus nebulous,Animalia,Mammalia,Squamata,Varanidae,Varanus,nebulosus,Varanus nebulosus,Clouded monitor,1
 Varanus salvator,Animalia,Mammalia,Squamata,Varanidae,Varanus,salvator,Varanus salvator,Asian water monitor,1
 Varanus sp,Animalia,Mammalia,Squamata,Varanidae,Varanus,spp.,Varanus spp.,Monitor spp.,1
 Varanus sp.,Animalia,Mammalia,Squamata,Varanidae,Varanus,spp.,Varanus spp.,Monitor spp.,1
@@ -82,3 +87,4 @@ Non-Targeted,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Huma
 Non-targeted ,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Humans,2
 Non-Targeted ,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Humans,2
 worker ,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Humans,2
+Hiker ,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Humans,2
