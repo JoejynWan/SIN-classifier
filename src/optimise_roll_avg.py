@@ -235,13 +235,17 @@ def gen_manual_vs_md(manual_df, megadetector_df):
     video_summ_pd['Total_Qty_Diff'] = video_summ_pd['Diff_Human_Qty'] + video_summ_pd['Diff_Animal_Qty']
 
     # Columns for second check of false negatives
-    video_summ_pd['SmallAnimal'] = ""
     video_summ_pd['FastMoving'] = ""
-    video_summ_pd['CoverEntireFrame'] = ""
+    video_summ_pd['TooCloseToLens'] = ""
     video_summ_pd['EdgeOfFrame'] = ""
-    video_summ_pd['NightVideo'] = ""
     video_summ_pd['UnidentifiableSpecies'] = ""
     video_summ_pd['WrongManualID'] = ""
+    video_summ_pd['PartlyCoveredByVegetation'] = ""
+    video_summ_pd['BWVideo'] = ""
+    video_summ_pd['EyeShine'] = ""
+    video_summ_pd['TargetInBackground'] = ""
+    video_summ_pd['BriefAppearance'] = ""
+    video_summ_pd['PartialAnimal'] = ""
     video_summ_pd['SecondCheckRemarks'] = ""
 
     video_summ_pd = video_summ_pd.sort_values(by = ['AccClass', 'Station'])
