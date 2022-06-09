@@ -16,9 +16,9 @@ conda env create --file environment.yml
 
 To enter the conda virtual environment for use, run:
 ```
-conda activate camphora_classifier
+conda activate sin_classifier
 ```
-You should now see (camphora_classifier) prepended to the command line prompt. Invoking python will now be using the interpreter and packages available in this virtual environment.
+You should now see (sin_classifier) prepended to the command line prompt. Invoking python will now be using the interpreter and packages available in this virtual environment.
 
 To exit the virtual env, issue:
 ```
