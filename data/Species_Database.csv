@@ -26,11 +26,13 @@ Eutropis multifasciata,Animalia,Reptilia,Squamata,Scincidae,Eutropis,multifascia
 Eutropis fasciata,Animalia,Reptilia,Squamata,Scincidae,Eutropis,multifasciata,Eutropis multifasciata,Common sun skink,1
 Gallus gallus,Animalia,Aves,Galliformes,Phasianidae,Gallus,gallus,Gallus gallus,Red junglefowl,1
 Garrulax leucolophus,Animalia,Aves,Passeriformes,Leiothrichidae,Garrulax,leucolophus,Garrulax leucolophus,White-crested laughingthrush,1
+Geokichla citrina,Animalia,Aves,Passeriformes,Turdidae,Geokichla,citrina,Geokichla citrina,Orange-headed thrush,1
 Geopelia striata,Animalia,Aves,Columbiformes,Columbidae,Geopelia,striata,Geopelia striata,Zebra dove,1
 Gorsachius melanolophus,Animalia,Aves,Pelecaniformes,Ardeidae,Gorsachius,melanolophus,Gorsachius melanolophus,Malayan night heron,1
 Larvivora cyane,Animalia,Aves,Passeriformes,Muscicapidae,Larvivora,cyane,Larvivora cyane,Siberian blue robin,1
 Lewinia striata,Animalia,Aves,Gruiformes,Rallidae,Lewinia,striata,Lewinia striata,Slaty-breasted rail,1
 Macaca fascicularis,Animalia,Mammalia,Primates,Cercopithecidae,Macaca,fascicularis,Macaca fascicularis,Long-tailed macaque,1
+Macaca fasciculairs,Animalia,Mammalia,Primates,Cercopithecidae,Macaca,fascicularis,Macaca fascicularis,Long-tailed macaque,1
 Macaca fasicularis,Animalia,Mammalia,Primates,Cercopithecidae,Macaca,fascicularis,Macaca fascicularis,Long-tailed macaque,1
 Macaca fascuiclaris,Animalia,Mammalia,Primates,Cercopithecidae,Macaca,fascicularis,Macaca fascicularis,Long-tailed macaque,1
 Manis javanica,Animalia,Mammalia,Pholidota,Manidae,Manis,javanica,Manis javanica,Sunda pangolin,1
@@ -45,6 +47,7 @@ Pycnonotus goiavier,Animalia,Aves,Passeriformes,Pycnonotidae,Pycnonotus,goiavier
 Rallina fasciata,Animalia,Aves,Gruiformes,Rallidae,Rallina,fasciata,Rallina fasciata,Red-legged crake,1
 Rattus annandalei,Animalia,Mammalia,Rodentia,Muridae,Rattus,annandalei,Rattus annandalei,Annandale's rat,1
 Sundamys annandalei,Animalia,Mammalia,Rodentia,Muridae,Rattus,annandalei,Rattus annandalei,Annandale's rat,1
+Sudamys annandalei,Animalia,Mammalia,Rodentia,Muridae,Rattus,annandalei,Rattus annandalei,Annandale's rat,1
 Rattus norvegicus,Animalia,Mammalia,Rodentia,Muridae,Rattus,norvegicus,Rattus norvegicus,Brown rat,1
 Rattus sp,Animalia,Mammalia,Rodentia,Muridae,Rattus,spp.,Rattus spp.,Rats spp.,1
 Rattus sp.,Animalia,Mammalia,Rodentia,Muridae,Rattus,spp.,Rattus spp.,Rats spp.,1
@@ -88,3 +91,4 @@ Non-targeted ,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Hum
 Non-Targeted ,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Humans,2
 worker ,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Humans,2
 Hiker ,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Humans,2
+Hikers ,Animalia,Mammalia,Primates,Hominidae,Homo,sapiens,Homo sapiens,Humans,2
