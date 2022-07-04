@@ -129,4 +129,4 @@ dependencies:
     - urllib3==1.26.8
     - werkzeug==2.0.2
     - wrapt==1.13.3
-prefix: C:\Users\joejyn\.conda\envs\sin_classifier
+prefix: C:\Users\Joejyn\.conda\envs\sin_classifier
