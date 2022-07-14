@@ -1,17 +1,18 @@
 name: sin_classifier
 channels:
+  - pytorch
   - conda-forge
   - defaults
 dependencies:
   - 7zip=19.00=h2d74725_2
+  - blas=1.0=mkl
   - brotli=1.0.9=h8ffe710_6
   - brotli-bin=1.0.9=h8ffe710_6
   - bzip2=1.0.8=h8ffe710_4
-  - ca-certificates=2021.10.8=h5b45459_0
-  - certifi=2021.10.8=py39hcbf5309_1
+  - ca-certificates=2022.6.15=h5b45459_0
+  - certifi=2022.6.15=py39hcbf5309_0
   - colorama=0.4.4=pyh9f0ad1d_0
-  - cudatoolkit=11.2.2=h933977f_9
-  - cudatoolkit-dev=11.4.0=h87d3a71_5
+  - cudatoolkit=11.3.1=h59b6b97_2
   - cudnn=8.1.0.77=h3e0f4f4_0
   - curl=7.81.0=h789b8ee_0
   - cycler=0.11.0=pyhd8ed1ab_0
@@ -45,20 +46,28 @@ dependencies:
   - libpng=1.6.37=h1d00b33_2
   - libssh2=1.10.0=h680486a_2
   - libtiff=4.3.0=hd413186_2
+  - libuv=1.43.0=h8ffe710_0
   - libwebp-base=1.2.2=h8ffe710_1
   - libzlib=1.2.11=h8ffe710_1013
   - lz4-c=1.9.3=h8ffe710_1
+  - m2w64-gcc-libgfortran=5.3.0=6
+  - m2w64-gcc-libs=5.3.0=7
+  - m2w64-gcc-libs-core=5.3.0=7
+  - m2w64-gmp=6.1.0=2
+  - m2w64-libwinpthread-git=5.0.0.4634.697f757=2
   - matplotlib=3.5.1=py39hcbf5309_0
   - matplotlib-base=3.5.1=py39h581301d_0
   - mkl=2022.0.0=h0e2418a_796
+  - msys2-conda-epoch=20160418=1
   - munkres=1.1.4=pyh9f0ad1d_0
   - numpy=1.22.1=py39h6331f09_0
   - olefile=0.46=pyh9f0ad1d_1
   - opencv=4.5.1=py39hcbf5309_0
   - openjpeg=2.4.0=hb211442_1
-  - openssl=1.1.1l=h8ffe710_0
+  - openssl=1.1.1p=h8ffe710_0
   - packaging=21.3=pyhd8ed1ab_0
   - pandas=1.4.0=py39h2e25243_0
+  - patsy=0.5.2=py39haa95532_1
   - pillow=8.4.0=py39h916092e_0
   - pip=21.3.1=pyhd8ed1ab_0
   - py-opencv=4.5.1=py39h832f523_0
@@ -72,15 +81,25 @@ dependencies:
   - python=3.9.9=h9a09f29_0_cpython
   - python-dateutil=2.8.2=pyhd8ed1ab_0
   - python_abi=3.9=2_cp39
+  - pytorch=1.10.1=py3.9_cuda11.3_cudnn8_0
+  - pytorch-mutex=1.0=cuda
   - pytz=2021.3=pyhd8ed1ab_0
+  - pyyaml=6.0=py39h2bbff1b_1
   - qt=5.12.9=h5909a2a_4
+  - scipy=1.8.1=py39hc0c34ad_0
+  - seaborn=0.11.2=hd8ed1ab_0
+  - seaborn-base=0.11.2=pyhd8ed1ab_0
   - setuptools=60.5.0=py39hcbf5309_0
   - six=1.16.0=pyh6c4a22f_0
   - sqlite=3.37.0=h8ffe710_0
+  - statsmodels=0.13.2=py39h2bbff1b_0
   - tbb=2021.5.0=h2d74725_0
   - tk=8.6.11=h8ffe710_1
+  - torchaudio=0.10.1=py39_cu113
+  - torchvision=0.11.2=py39_cu113
   - tornado=6.1=py39hb82d6ee_2
   - tqdm=4.62.3=pyhd8ed1ab_0
+  - typing_extensions=4.3.0=pyha770c72_0
   - tzdata=2021e=he74cb21_0
   - ucrt=10.0.20348.0=h57928b3_0
   - unicodedata2=14.0.0=py39hb82d6ee_0
@@ -88,6 +107,7 @@ dependencies:
   - vs2015_runtime=14.29.30037=h902a5da_6
   - wheel=0.37.1=pyhd8ed1ab_0
   - xz=5.2.5=h62dcd97_1
+  - yaml=0.2.5=he774522_0
   - zipp=3.7.0=pyhd8ed1ab_0
   - zlib=1.2.11=h8ffe710_1013
   - zstd=1.5.2=h6255e5f_0
@@ -129,4 +149,4 @@ dependencies:
     - urllib3==1.26.8
     - werkzeug==2.0.2
     - wrapt==1.13.3
-prefix: C:\Users\Joejyn\.conda\envs\sin_classifier
+prefix: C:\Users\nanun\.conda\envs\sin_classifier
