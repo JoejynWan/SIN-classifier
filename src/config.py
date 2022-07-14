@@ -2,12 +2,12 @@ import multiprocessing
 
 
 ## Paths of inputs and outputs and must be filled in
-INPUT_DIR = 'data/example_test_set'
+INPUT_DIR = 'C:/TempDataForSpeed/example_test_set'
 OUTPUT_DIR = 'results/example_test_set'
 
 
 ## Paths to required datasets
-MODEL_FILE = 'models/md_v4.1.0.pb'
+MODEL_FILE = 'models/md_v5a.0.0.pt'
 SPECIES_DATABASE_FILE = 'data/species_database.csv'
 
 
@@ -32,7 +32,7 @@ JSON_CONFIDENCE_THRESHOLD = 0.0 # Outdated: will be overridden by rolling predic
 RENDER_OUTPUT_VIDEO = True
 DELETE_OUTPUT_FRAMES = True
 FRAME_FOLDER = None #Defaults to temp folder
-RENDERING_CONFIDENCE_THRESHOLD = 0.8
+RENDERING_CONFIDENCE_THRESHOLD = 0.2 #0.8 for MDv4, 0.2 for MDv5
 
 
 ## Settings for rolling prediction averaging
