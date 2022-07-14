@@ -6,7 +6,7 @@ import humanfriendly
 # Functions imported from this project
 import config
 from shared_utils import delete_temp_dir, VideoOptions, check_output_dir
-from shared_utils import default_path_from_none, export_fn
+from shared_utils import default_path_from_none, export_fn, sort_empty_human
 from run_det_video import video_dir_to_frames, det_frames
 from vis_detections import vis_detection_videos
 from manual_ID import manual_ID_results
@@ -66,11 +66,6 @@ def main():
 
     check_output_dir(options)
 
-    ## TODO [Not priority]
-    # Check the memory of the output_dir and temp_dir to ensure that there is 
-    # sufficient space to save the frames and videos 
-    # Splitting of video into frames requires approximately twice the space of the data folder
-
     ## Getting the results from manual identifications
     # Run this first to ensure that all species are in species_database.csv
     if options.check_accuracy:
@@ -79,7 +74,8 @@ def main():
     checkpoint1_time = time.time()
 
     ## Detecting subjects in each video frame using MegaDetector
-    video_dir_to_frames(options)
+    if not options.resume_from_checkpoint:
+        video_dir_to_frames(options)
     det_frames(options)
     
     checkpoint2_time = time.time()
@@ -108,6 +104,11 @@ def main():
     ## Annotating and exporting to video
     if options.render_output_video:
         vis_detection_videos(options, parallel = True)
+
+    # If we are not checking accuracy, means we are using to sort unknown videos
+    # Thus filter out the false triggers and human videos
+    if not options.check_accuracy: 
+        sort_empty_human(options)
 
     ## Delete the frames stored in the temp folder (if delete_output_frames == TRUE)
     if options.delete_output_frames:

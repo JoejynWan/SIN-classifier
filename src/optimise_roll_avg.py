@@ -6,7 +6,7 @@ from itertools import product
 
 # Functions imported from this project
 import config
-from shared_utils import VideoOptions, load_detector_output
+from shared_utils import VideoOptions, load_detector_output, summarise_cat
 from shared_utils import check_output_dir, default_path_from_none
 from rolling_avg import rolling_avg
 
@@ -110,27 +110,6 @@ def quantity_acc(video_summ_pd):
     }
     
     return qty_dict
-
-
-def summarise_cat(full_df):
-    """
-    Summarises dataset into two columns: 'UniqueFileName' and 'Category', 
-        where each row is a unique UniqueFileName. If a UniqueFileName has multiple 
-        Categories (more than one detection or animal), they are summarised 
-        using the following rules:
-    1) Where there are multiples of the same category, only one is kept
-    2) Where there is an animal (1) detection, and human (2) and/or vehicle (3) detection, 
-        the video is considered to be an animal category (1)
-    3) Where there is a human (2) and vehicle (3), the video is considered to be a human category (2)
-    """
-
-    video_cat = full_df[['UniqueFileName', 'Category']]
-    summ_cat = video_cat.sort_values(
-        by = ['UniqueFileName', 'Category']
-        ).drop_duplicates(
-        subset = ['UniqueFileName'], keep = 'first', ignore_index = True)
-
-    return summ_cat
 
 
 def condense_md(megadetector_df):
