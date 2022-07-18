@@ -9,7 +9,7 @@ from collections import deque
 # Functions imported from this project
 import config
 from shared_utils import find_unique_videos, find_unique_objects
-from shared_utils import VideoOptions, default_path_from_none, load_detector_output
+from shared_utils import VideoOptions, default_path_from_none, load_detector_output, load_detector_chunks
 from shared_utils import write_frame_results, write_roll_avg_video_results
 from vis_detections import vis_detection_videos
 
@@ -232,7 +232,7 @@ def rolling_avg(options, mute = False):
         
     ## Load images from full_det_frames_json
     print("\nLoading animal detections from full_det_frames.json for RPA now...")
-    images, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
+    images, detector_label_map, Fs = load_detector_chunks(options)
     
     ## Conduct RPA
     print("Conducting rolling prediction averaging now...")
@@ -280,7 +280,7 @@ def main():
 
     rolling_avg(options)
 
-    vis_detection_videos(options)
+    # vis_detection_videos(options)
 
 
 def get_arg_parser():

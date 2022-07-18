@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import copy
+import ijson
 import shutil
 import pandas as pd
 from tqdm import tqdm
@@ -164,6 +165,57 @@ def load_detector_output(detector_output_path):
         detector_label_map = DEFAULT_DETECTOR_LABEL_MAP
 
     Fs = detector_output['videos']['frame_rates']
+
+    return images, detector_label_map, Fs
+
+
+def load_detector_chunks(options):
+
+    backend = ijson.get_backend('yajl2_c')
+
+    images = []
+    detector_label_map = []
+    Fs = []
+    with open(options.full_det_frames_json) as f:
+        
+        ## Load detector_label_map
+        detector_labels = backend.items(f, 'detection_categories.item')
+        for detector_label in detector_labels:
+            detector_label_map.append(detector_label)
+        print("Loaded detector label map.")
+
+        ## Load detections with a conf >= conf_threshold_limit
+        ## Provide some buffer and accept detections with a conf threshold that is
+        ## conf_threshold_buf% less for rolling prediction averaging
+        conf_threshold_limit = options.conf_threshold_buf * options.rendering_confidence_threshold 
+        raw_images = backend.items(f, 'images.item')
+        for raw_image in raw_images:
+
+            updated_detections = []
+            updated_max_conf_list = []
+            for detection in raw_image['detections']:
+                conf_score = detection['conf']
+                if conf_score >= conf_threshold_limit:
+                    updated_detections.append(detection)
+                    updated_max_conf_list.append(conf_score)
+
+            if updated_max_conf_list: 
+                updated_max_conf = max(updated_max_conf_list)
+            else: #updated_max_conf list is empty
+                updated_max_conf = 0
+
+            image = {
+                'file': raw_image['file'],
+                'max_detection_conf': updated_max_conf,
+                'detections': updated_detections
+            }
+
+            images.append(image)
+        
+        ## Load frame rates for each video
+        frame_rates = backend.items(f, 'videos.frame_rates.item')
+        for frame_rate in frame_rates:
+            Fs.append(frame_rate)
 
     return images, detector_label_map, Fs
 
