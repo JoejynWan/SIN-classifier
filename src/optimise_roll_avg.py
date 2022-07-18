@@ -53,9 +53,20 @@ def acc_metrics(confusion_matrix):
     TN = int(confusion_matrix['counts'][confusion_matrix['AccClass'] == 'TN'])
     TP = int(confusion_matrix['counts'][confusion_matrix['AccClass'] == 'TP'])
 
-    recall = TP / (TP + FN)
-    precision = TP / (TP + FP)
-    f1_score = 2 * (precision * recall) / (precision + recall)
+    if TP + FN == 0: 
+        recall = 0
+    else: 
+        recall = TP / (TP + FN)
+    
+    if TP + FP == 0: 
+        precision = 0
+    else:
+        precision = TP / (TP + FP)
+
+    if precision + recall == 0:
+        f1_score = 0
+    else:
+        f1_score = 2 * (precision * recall) / (precision + recall)
 
     acc_dict = {
         'TP': TP,
@@ -102,11 +113,16 @@ def quantity_acc(video_summ_pd):
     else:
         correct = int(correct)
     
+    if correct+over+under == 0:
+        prec_correct = 0
+    else:
+        prec_correct = float(round(correct/(correct+over+under)*100, 1))
+    
     qty_dict = {
         'Num_CorrectQty': correct,
         'Num_Overestimated': over,
         'Num_Underestimated': under,
-        'Perc_CorrectQty': float(round(correct/(correct+over+under)*100, 1))
+        'Perc_CorrectQty': prec_correct
     }
     
     return qty_dict
