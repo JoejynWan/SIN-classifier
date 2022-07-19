@@ -27,6 +27,7 @@ Chalcophaps indica,Animalia,Aves,Columbiformes,Columbidae,Chalcophaps,indica,Cha
 Unidentified bat,Animalia,Mammalia,Chiroptera,NA,NA,NA,Chiroptera spp.,Bats spp.,1
 Unidentified fruit_bat,Animalia,Mammalia,Chiroptera,NA,NA,NA,Chiroptera spp.,Bats spp.,1
 Clamator coromandus,Animalia,Aves,Cuculiformes,Cuculidae,Clamator,coromandus,Clamator coromandus,Chestnut-winged cuckoo,1
+Columba livia,Animalia,Aves,Columbiformes,Columbidae,Columba,livia,Columba livia,Rock dove,1
 Copsychus saularis,Animalia,Aves,Passeriformes,Muscicapidae,Copsychus,saularis,Copsychus saularis,Oriental magpie-robin,1
 Cynopterus sp.,Animalia,Mammalia,Chiroptera,Pteropodidae,Cynopterus,NA,Cynopterus sp.,Cynopterus spp.,1
 Cyornis brunneatus,Animalia,Aves,Passeriformes,Muscicapidae,Cyornis,brunneatus,Cyornis brunneatus,Brown-chested jungle flycatcher,1
@@ -46,6 +47,7 @@ Garrulax leucolophus,Animalia,Aves,Passeriformes,Leiothrichidae,Garrulax,leucolo
 Geokichla citrina,Animalia,Aves,Passeriformes,Turdidae,Geokichla,citrina,Geokichla citrina,Orange-headed thrush,1
 Geopelia striata,Animalia,Aves,Columbiformes,Columbidae,Geopelia,striata,Geopelia striata,Zebra dove,1
 Gorsachius melanolophus,Animalia,Aves,Pelecaniformes,Ardeidae,Gorsachius,melanolophus,Gorsachius melanolophus,Malayan night heron,1
+Halcyon smyrnensis,Animalia,Aves,Coraciiformes,Alcedinidae,Halcyoninae,smyrnensis,Halcyon smyrnensis,White-throated kingfisher,1
 Ketupa ketupu,Animalia,Aves,Strigiformes,Strigidae,Ketupa,ketupu,Ketupa ketupu,Buffy fish owl,1
 Lanius cristatus,Animalia,Aves,Passeriformes,Laniidae,Lanius,cristatus,Lanius cristatus,Brown shrike,1
 Larvivora cyane,Animalia,Aves,Passeriformes,Muscicapidae,Larvivora,cyane,Larvivora cyane,Siberian blue robin,1
@@ -111,6 +113,7 @@ Unidentified anura,Animalia,Amphibia,Anura,NA,NA,NA,Unidentified Anura,Frogs spp
 Unidentified Aves,Animalia,Aves,NA,NA,NA,NA,Unidentified Aves,Birds spp.,1
 Unidentified bird,Animalia,Aves,NA,NA,NA,NA,Unidentified Aves,Birds spp.,1
 Unidentified Rallidae,Animalia,Aves,Gruiformes,Rallidae,NA,NA,Unidentified Rallidae,Rails spp.,1
+Unidentified sqshrew,Animalia,Mammalia,NA,NA,NA,NA,Unidentified squirrel_or_treeshrew,Unidentified squirrels or treeshrews,1
 Unidentified squirrel,Animalia,Mammalia,NA,NA,NA,NA,Unidentified squirrel_or_treeshrew,Unidentified squirrels or treeshrews,1
 Unidentified squirrel_or_shrew,Animalia,Mammalia,NA,NA,NA,NA,Unidentified squirrel_or_treeshrew,Unidentified squirrels or treeshrews,1
 Unidentified squirrel_or_treeshrew,Animalia,Mammalia,NA,NA,NA,NA,Unidentified squirrel_or_treeshrew,Unidentified squirrels or treeshrews,1
