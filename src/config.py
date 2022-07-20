@@ -2,7 +2,7 @@ import multiprocessing
 
 
 ## Paths of inputs and outputs and must be filled in
-INPUT_DIR = 'data/example_test_set'
+INPUT_DIR = 'C:/temp_for_SSD_speed/example_test_set'
 OUTPUT_DIR = 'results/example_test_set'
 
 
@@ -20,7 +20,7 @@ FULL_DET_VIDEO_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_d
 
 RESUME_FROM_CHECKPOINT = None
 CHECKPOINT_PATH = None #Defaults to '[OUTPUT_DIR]/checkpoint_[datetime].json'
-CHECKPOINT_FREQUENCY = 10000 #Set to -1 to not run any checkpointing
+CHECKPOINT_FREQUENCY = 30000 #Set to -1 to not run any checkpointing
 
 FRAME_SAMPLE = None
 DEBUG_MAX_FRAMES = -1
