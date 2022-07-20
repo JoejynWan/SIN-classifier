@@ -1,15 +1,17 @@
 import os 
 import copy
+import time
 import argparse
 import numpy as np
+import humanfriendly
 from tqdm import tqdm
 import multiprocessing as mp
 from collections import deque
+import ijson.backends.yajl2_c as ijson
 
 # Functions imported from this project
 import config
-from shared_utils import find_unique_videos, find_unique_objects
-from shared_utils import VideoOptions, default_path_from_none, load_detector_output
+from shared_utils import find_unique_objects, VideoOptions, default_path_from_none
 from shared_utils import write_frame_results, write_roll_avg_video_results
 from vis_detections import vis_detection_videos
 
@@ -81,6 +83,7 @@ def rm_bad_detections(options, images):
     
     ## Provide some buffer and accept detections with a conf threshold that is
     ## conf_threshold_buf% less for rolling prediction averaging
+    ## DEPRECIATED WITH LOAD_DETECTOR_ROLL_AVG()
     conf_threshold_limit = options.conf_threshold_buf * options.rendering_confidence_threshold 
 
     for image in images: 
@@ -228,17 +231,76 @@ def rpa_video(options, images, video_path):
     return frames
 
 
+def load_detector_roll_avg(options):
+    start = time.time()
+    
+    images = []
+    detector_label_map = {}
+    video_paths = []
+    Fs = []
+    with open(options.full_det_frames_json, 'rb') as f:
+        
+        ## Load detections with a conf >= conf_threshold_limit
+        ## Provide some buffer and accept detections with a conf threshold that is
+        ## conf_threshold_buf% less for rolling prediction averaging
+        conf_threshold_limit = options.conf_threshold_buf * options.rendering_confidence_threshold 
+        raw_images = ijson.items(f, 'images.item', use_float = True)
+        for raw_image in raw_images:
+
+            updated_detections = []
+            updated_max_conf_list = []
+            for detection in raw_image['detections']:
+                conf_score = detection['conf']
+                if conf_score >= conf_threshold_limit:
+                    updated_detections.append(detection)
+                    updated_max_conf_list.append(conf_score)
+
+            if updated_max_conf_list: 
+                updated_max_conf = max(updated_max_conf_list)
+            else: #updated_max_conf list is empty
+                updated_max_conf = 0
+
+            image = {
+                'file': raw_image['file'],
+                'max_detection_conf': updated_max_conf,
+                'detections': updated_detections
+            }
+            images.append(image)
+    
+        f.seek(0) #Reads the file twice. Not optimal, but can't think of a way around this. 
+        parse_events = ijson.parse(f, use_float = True)
+        for prefix, event, value in parse_events:
+
+            ## Load detector_label_map. Only works with 3 categories. 
+            if prefix == 'detection_categories.1':
+                detector_label_map['1'] = value
+            elif prefix == 'detection_categories.2':
+                detector_label_map['2'] = value
+            elif prefix == 'detection_categories.3':
+                detector_label_map['3'] = value
+            ## Load unique video names/path for each video
+            elif prefix == 'videos.video_names.item':
+                video_paths.append(value)
+            ## Load frame rates for each video
+            elif prefix == 'videos.frame_rates.item':
+                Fs.append(value)
+
+    end = time.time()
+    elapsed = end - start
+    print('Detections loaded in {}'.format(humanfriendly.format_timespan(elapsed)))
+
+    return images, detector_label_map, video_paths, Fs
+
+
 def rolling_avg(options, mute = False):
         
     ## Load images from full_det_frames_json
+    ## Remove detections with conf <= conf_threshold_limit to save RAM memory
     print("\nLoading animal detections from full_det_frames.json for RPA now...")
-    images, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
+    images, detector_label_map, video_paths, Fs = load_detector_roll_avg(options)
     
     ## Conduct RPA
     print("Conducting rolling prediction averaging now...")
-    images = rm_bad_detections(options, images)
-
-    video_paths = find_unique_videos(images)
 
     roll_avg = []
     def callback_func(result):
@@ -280,7 +342,7 @@ def main():
 
     rolling_avg(options)
 
-    vis_detection_videos(options)
+    # vis_detection_videos(options)
 
 
 def get_arg_parser():
