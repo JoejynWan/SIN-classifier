@@ -1,7 +1,6 @@
 import os 
 import copy
 import time
-import asyncio
 import argparse
 import numpy as np
 import humanfriendly
