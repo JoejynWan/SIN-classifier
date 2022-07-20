@@ -518,6 +518,7 @@ def write_roll_avg_video_results(options, mute = False):
     if not mute:
         print('Output file saved at {}'.format(options.roll_avg_video_csv))
 
+
 def export_fn(options, video_summ):
 
     print("Copying false negative videos to output directory now...")
@@ -535,4 +536,62 @@ def export_fn(options, video_summ):
         os.makedirs(output_vid_dir, exist_ok = True)
 
         _ = shutil.copy2(input_vid, output_vid_dir)
+
+
+def summarise_cat(full_df):
+    """
+    Summarises dataset into two columns: 'UniqueFileName' and 'Category', 
+        where each row is a unique UniqueFileName. If a UniqueFileName has multiple 
+        Categories (more than one detection or animal), they are summarised 
+        using the following rules:
+    1) Where there are multiples of the same category, only one is kept
+    2) Where there is an animal (1) detection, and human (2) and/or vehicle (3) detection, 
+        the video is considered to be an animal category (1)
+    3) Where there is a human (2) and vehicle (3), the video is considered to be a human category (2)
+    """
+
+    video_cat = full_df[['UniqueFileName', 'Category']]
+    summ_cat = video_cat.sort_values(
+        by = ['UniqueFileName', 'Category']
+        ).drop_duplicates(
+        subset = ['UniqueFileName'], keep = 'first', ignore_index = True)
+
+    return summ_cat
+
+
+def sort_empty_human(options):
+
+    print("Sorting the false negative and human videos now...")
+
+    vid_results = pd.read_csv(options.roll_avg_video_csv)
+
+    if not vid_results['UniqueFileName'].any():
+        vid_results['UniqueFileName'] = vid_results['FullVideoPath']
+    vid_results_summ = summarise_cat(vid_results)
+
+    root = os.path.abspath(os.curdir)
+    vid_results_summ = vid_results_summ.reset_index()
+
+    for idx, row in tqdm(vid_results_summ.iterrows(), total=vid_results_summ.shape[0]):
+
+        station_dir = os.path.dirname(row['UniqueFileName'])
+        input_vid = os.path.join(root, options.output_dir, row['UniqueFileName'])
+        
+        if row['Category'] == 0:
+
+            false_neg_dir = os.path.join(root, options.output_dir, station_dir, 'False trigger')
+            os.makedirs(false_neg_dir, exist_ok = True)
+            _ = shutil.move(input_vid, false_neg_dir)
+
+        elif row['Category'] == 1:
+
+            animal_dir = os.path.join(root, options.output_dir, station_dir, 'Animal captures')
+            os.makedirs(animal_dir, exist_ok = True)
+            _ = shutil.move(input_vid, animal_dir)
+
+        elif row['Category'] == 2:
+
+            human_dir = os.path.join(root, options.output_dir, station_dir, 'Non targeted')
+            os.makedirs(human_dir, exist_ok = True)
+            _ = shutil.move(input_vid, human_dir)
 

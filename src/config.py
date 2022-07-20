@@ -2,7 +2,7 @@ import multiprocessing
 
 
 ## Paths of inputs and outputs and must be filled in
-INPUT_DIR = 'C:/temp_for_SSD_speed/example_test_set'
+INPUT_DIR = 'C:/TempDataForSpeed/example_test_set'
 OUTPUT_DIR = 'results/example_test_set'
 
 

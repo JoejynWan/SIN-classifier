@@ -6,7 +6,7 @@ from itertools import product
 
 # Functions imported from this project
 import config
-from shared_utils import VideoOptions, load_detector_output
+from shared_utils import VideoOptions, load_detector_output, summarise_cat
 from shared_utils import check_output_dir, default_path_from_none
 from rolling_avg import rolling_avg
 
@@ -53,9 +53,20 @@ def acc_metrics(confusion_matrix):
     TN = int(confusion_matrix['counts'][confusion_matrix['AccClass'] == 'TN'])
     TP = int(confusion_matrix['counts'][confusion_matrix['AccClass'] == 'TP'])
 
-    recall = TP / (TP + FN)
-    precision = TP / (TP + FP)
-    f1_score = 2 * (precision * recall) / (precision + recall)
+    if TP + FN == 0: 
+        recall = 0
+    else: 
+        recall = TP / (TP + FN)
+    
+    if TP + FP == 0: 
+        precision = 0
+    else:
+        precision = TP / (TP + FP)
+
+    if precision + recall == 0:
+        f1_score = 0
+    else:
+        f1_score = 2 * (precision * recall) / (precision + recall)
 
     acc_dict = {
         'TP': TP,
@@ -102,35 +113,19 @@ def quantity_acc(video_summ_pd):
     else:
         correct = int(correct)
     
+    if correct+over+under == 0:
+        prec_correct = 0
+    else:
+        prec_correct = float(round(correct/(correct+over+under)*100, 1))
+    
     qty_dict = {
         'Num_CorrectQty': correct,
         'Num_Overestimated': over,
         'Num_Underestimated': under,
-        'Perc_CorrectQty': float(round(correct/(correct+over+under)*100, 1))
+        'Perc_CorrectQty': prec_correct
     }
     
     return qty_dict
-
-
-def summarise_cat(full_df):
-    """
-    Summarises dataset into two columns: 'UniqueFileName' and 'Category', 
-        where each row is a unique UniqueFileName. If a UniqueFileName has multiple 
-        Categories (more than one detection or animal), they are summarised 
-        using the following rules:
-    1) Where there are multiples of the same category, only one is kept
-    2) Where there is an animal (1) detection, and human (2) and/or vehicle (3) detection, 
-        the video is considered to be an animal category (1)
-    3) Where there is a human (2) and vehicle (3), the video is considered to be a human category (2)
-    """
-
-    video_cat = full_df[['UniqueFileName', 'Category']]
-    summ_cat = video_cat.sort_values(
-        by = ['UniqueFileName', 'Category']
-        ).drop_duplicates(
-        subset = ['UniqueFileName'], keep = 'first', ignore_index = True)
-
-    return summ_cat
 
 
 def condense_md(megadetector_df):
