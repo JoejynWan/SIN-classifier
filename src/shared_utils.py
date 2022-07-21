@@ -50,7 +50,7 @@ def is_video_file(s: str, video_extensions: Container[str] = VIDEO_EXTENSIONS
     return ext.lower() in video_extensions
 
 
-def find_unique_videos(images, output_dir = None):
+def find_unique_videos(images, output_dir = None, from_frame_names = False):
     """
     Function to extract the unique videos in the frames.json file. 
     
@@ -67,7 +67,13 @@ def find_unique_videos(images, output_dir = None):
     frames_paths = []
     video_save_paths = []
     for entry in images:
-        frames_path = os.path.dirname(entry['file'])      
+
+        if from_frame_names:
+            frame_name = entry
+        else:
+            frame_name = entry['file']
+
+        frames_path = os.path.dirname(frame_name)      
         frames_paths.append(frames_path)
         
         if output_dir: 
@@ -532,7 +538,7 @@ def export_fn(options, video_summ):
     for idx, row in tqdm(export_pd.iterrows(), total=export_pd.shape[0]):
         
         input_vid = os.path.join(root, options.input_dir, row['FullVideoPath'])
-        output_vid_dir = os.path.join(root, options.output_dir, 'false_nagative_videos', os.path.dirname(row['UniqueFileName']))
+        output_vid_dir = os.path.join(root, options.output_dir, 'false_negative_videos', os.path.dirname(row['UniqueFileName']))
         os.makedirs(output_vid_dir, exist_ok = True)
 
         _ = shutil.copy2(input_vid, output_vid_dir)
@@ -594,4 +600,3 @@ def sort_empty_human(options):
             human_dir = os.path.join(root, options.output_dir, station_dir, 'Non targeted')
             os.makedirs(human_dir, exist_ok = True)
             _ = shutil.move(input_vid, human_dir)
-

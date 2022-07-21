@@ -11,8 +11,10 @@ from pickle import FALSE, TRUE
 
 # Functions imported from this project
 import config
-from shared_utils import delete_temp_dir, VideoOptions, write_results
 from rolling_avg import rolling_avg
+from check_corrupt_vids import check_corrupt_dir
+from shared_utils import delete_temp_dir, VideoOptions, write_results
+from shared_utils import find_unique_videos
 
 # Functions imported from Microsoft/CameraTraps github repository
 from detection.run_detector_batch import load_and_run_detector_batch
@@ -36,6 +38,8 @@ def video_dir_to_frames(options):
             tempdir, os.path.basename(options.input_dir) + '_frames_' + str(uuid1()))
         options.frame_folder = frame_output_folder
     os.makedirs(frame_output_folder, exist_ok=True)
+
+    check_corrupt_dir(options) #Check for corrupt videos
     
     print("Saving videos as frames in {}...".format(frame_output_folder))
     frame_filenames, Fs = video_folder_to_frames(
@@ -54,6 +58,10 @@ def video_dir_to_frames(options):
     with open(fs_txt, 'w') as file:
         for frame_rate in Fs:
             file.write("%s\n" % frame_rate)
+
+    unique_videos = find_unique_videos(image_file_names, from_frame_names = True)
+    if len(unique_videos) != len(Fs):
+        raise IndexError("The number of frame rates provided do not match the number of unique videos.")
 
 
 def checkpointing_test(options):
