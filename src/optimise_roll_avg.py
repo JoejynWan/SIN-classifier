@@ -1,5 +1,6 @@
 import os
 import argparse
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from itertools import product
@@ -133,8 +134,8 @@ def condense_md(megadetector_df):
     megadetector_df_copy = megadetector_df.copy()
     megadetector_df_copy['Category'] = megadetector_df_copy['Category'].astype(str)
     positive_categories = ['1'] #animal is positive class
-    nagative_categories = ['0', '2', '3'] #empty, human, and vehicle is negative classes
-    megadetector_df_copy = replace_pos_neg_cat(megadetector_df_copy, positive_categories, nagative_categories)
+    negative_categories = ['0', '2', '3'] #empty, human, and vehicle is negative classes
+    megadetector_df_copy = replace_pos_neg_cat(megadetector_df_copy, positive_categories, negative_categories)
 
     ## Summarising quantity per class
     md_qty_subset = megadetector_df_copy[['UniqueFileName', 'Category']]
@@ -172,19 +173,26 @@ def condense_manual(manual_df):
     manual_df_copy['Quantity'] = manual_df_copy['Quantity'].astype(int)
     manual_df_copy['Category'] = manual_df_copy['Category'].astype(str)
     positive_categories = ['1'] #animal is positive class
-    nagative_categories = ['0', '2', '3'] #empty, human, and vehicle is negative classes
-    manual_df_copy = replace_pos_neg_cat(manual_df_copy, positive_categories, nagative_categories)
+    negative_categories = ['0', '2', '3'] #empty, human, and vehicle is negative classes
+    manual_df_copy = replace_pos_neg_cat(manual_df_copy, positive_categories, negative_categories)
     
     ## Summarising quantity per class
     man_qty_subset = manual_df_copy[['UniqueFileName', 'Category', 'Quantity']]
     man_cat_qty = man_qty_subset.copy()
 
     df_summ_qty = man_cat_qty.groupby(['UniqueFileName', 'Category']).sum()
-    df_summ_qty = df_summ_qty.pivot_table(index = 'UniqueFileName', columns = 'Category', values = 'Quantity')
+    df_summ_qty = df_summ_qty.pivot_table(
+        index = 'UniqueFileName', columns = 'Category', values = 'Quantity')
+
+    if not '0' in df_summ_qty.columns:
+        df_summ_qty['0'] = np.nan #If there are no videos of the negative category
+    if not '1' in df_summ_qty.columns:
+        df_summ_qty['1'] = np.nan #If there are no videos of the positive category
+
     df_summ_qty = df_summ_qty.rename(columns = {
         '0': 'Manual_Human_Qty', '1': 'Manual_Animal_Qty'
     }).fillna(0)
-
+    
     ## Creating AllSpeciesManual column
     df_subset = manual_df_copy[[
         'UniqueFileName', 'FullVideoPath', 'Station', 'SamplingDate', 'DateTime', 'Manual_Remarks', 
