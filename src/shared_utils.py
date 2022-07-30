@@ -210,7 +210,9 @@ def process_frame_results(results, Fs, relative_path_base=None):
 
     unique_videos = find_unique_videos(results)
     if len(unique_videos) != len(Fs):
-        raise IndexError("The number of frame rates provided do not match the number of unique videos.")
+        raise IndexError(
+            "The number of frame rates provided do not match the number of unique videos"\
+            "({} videos and {} frame rates).".format(len(unique_videos), len(Fs)))
 
     frame_results = {
         'images': results,

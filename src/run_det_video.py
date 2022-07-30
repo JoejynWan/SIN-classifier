@@ -61,7 +61,9 @@ def video_dir_to_frames(options):
 
     unique_videos = find_unique_videos(image_file_names, from_frame_names = True)
     if len(unique_videos) != len(Fs):
-        raise IndexError("The number of frame rates provided do not match the number of unique videos.")
+        raise IndexError(
+            "The number of frame rates provided do not match the number of unique videos"\
+            "({} videos and {} frame rates).".format(len(unique_videos), len(Fs)))
 
 
 def checkpointing_test(options):
@@ -118,7 +120,8 @@ def det_frames(options, run_chunks = False):
             Fs.append(line[:-1])
 
     num_images = len(image_file_names)
-    print("Running MegaDetector for {} video frames.".format(num_images))
+    num_videos = len(find_unique_videos(image_file_names, from_frame_names = True))
+    print("Running MegaDetector for {} video frames ({} videos).".format(num_images, num_videos))
 
     if run_chunks: 
         def chunk(list, chunk_size):
