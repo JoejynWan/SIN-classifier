@@ -559,9 +559,7 @@ def summarise_cat(full_df):
     """
 
     video_cat = full_df[['UniqueFileName', 'Category']]
-    summ_cat = video_cat.sort_values(
-        by = ['UniqueFileName', 'Category']
-        ).drop_duplicates(
+    summ_cat = video_cat.sort_values(by = ['UniqueFileName', 'Category']).drop_duplicates(
         subset = ['UniqueFileName'], keep = 'first', ignore_index = True)
 
     return summ_cat
