@@ -158,7 +158,10 @@ def condense_md(megadetector_df):
     df_summ_qty = md_cat_qty.groupby(['UniqueFileName', 'Category']).size().reset_index(name = "Quantity")
     
     df_summ_qty = df_summ_qty.pivot_table(index = 'UniqueFileName', columns = 'Category', values = 'Quantity')
-    df_summ_qty = df_summ_qty.drop('0', axis = 1) #no need the number of empty
+    if '0' in df_summ_qty.columns: 
+        df_summ_qty = df_summ_qty.drop('0', axis = 1) #no need the number of empty
+    if not '2' in df_summ_qty.columns: 
+        df_summ_qty['2'] = 0
     df_summ_qty = df_summ_qty.rename(columns = {
         '2': 'MD_Human_Qty', '1': 'MD_Animal_Qty'
     }).fillna(0)
