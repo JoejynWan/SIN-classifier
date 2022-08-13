@@ -14,6 +14,8 @@ from detection.run_detector import DEFAULT_DETECTOR_LABEL_MAP
 
 
 def check_output_dir(options):
+    assert os.path.isdir(options.output_dir),'{} is not a folder'.format(options.output_dir)
+    
     if os.path.exists(options.output_dir) and os.listdir(options.output_dir):
         while True:
             rewrite_input = input('\nThe output directory specified is not empty. Do you want to continue and rewrite the files in the directory? (y/n)')
