@@ -136,7 +136,7 @@ class VideoOptions:
     render_output_video = False
     delete_output_frames = True
     frame_folder = None
-    rendering_confidence_threshold = 0.8
+    rendering_confidence_threshold = 0.2
 
     rolling_avg_size = 32
     iou_threshold = 0.5
@@ -155,6 +155,7 @@ class VideoOptions:
     rolling_avg_size_range = None
     iou_threshold_range = None
     conf_threshold_buf_range = None
+    rendering_confidence_threshold_range = None
     roll_avg_acc_csv = None
 
 

@@ -232,7 +232,9 @@ def rpa_video(options, images, video_path):
 
 
 def load_detector_roll_avg(options):
+
     start = time.time()
+    print("\nLoading animal detections from full_det_frames.json for RPA now...")
     
     images = []
     detector_label_map = {}
@@ -293,10 +295,9 @@ def load_detector_roll_avg(options):
 
 
 def rolling_avg(options, mute = False):
-        
+    
     ## Load images from full_det_frames_json
     ## Remove detections with conf <= conf_threshold_limit to save RAM memory
-    print("\nLoading animal detections from full_det_frames.json for RPA now...")
     images, detector_label_map, video_paths, Fs = load_detector_roll_avg(options)
     
     ## Conduct RPA

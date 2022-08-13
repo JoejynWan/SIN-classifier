@@ -7,7 +7,7 @@ from itertools import product
 
 # Functions imported from this project
 import config
-from shared_utils import VideoOptions, load_detector_output, summarise_cat
+from shared_utils import VideoOptions, summarise_cat
 from shared_utils import check_output_dir, default_path_from_none
 from rolling_avg import rolling_avg
 
@@ -308,14 +308,15 @@ def true_vs_pred(options):
     return acc_pd, video_summ_pd
 
 
-def roll_avg_combi(options, images, Fs, arg_combi):
+def roll_avg_combi(options, arg_combi):
     options.rolling_avg_size = arg_combi[0]
     options.iou_threshold = arg_combi[1]
     options.conf_threshold_buf = arg_combi[2]
+    options.rendering_confidence_threshold = arg_combi[3]
 
     ## Run rolling prediction averaging using the unique combination of arguments
     ## roll_avg_video_csv will be exported to be used later in true_vs_pred()
-    rolling_avg(options, images, Fs, mute = True) 
+    rolling_avg(options, mute = True) 
 
     ## Compare the manual ID with the rolling prediction averaging results just conducted
     acc_pd, video_summ_pd = true_vs_pred(options)
@@ -325,9 +326,10 @@ def roll_avg_combi(options, images, Fs, arg_combi):
     options.manual_vs_md_csv = default_path_from_none(
         options.output_dir, options.input_dir, 
         options.manual_vs_md_csv, 
-        "_manual_vs_md_size_{}_iou_{}_buf_{}.csv".format(
+        "_manual_vs_md_size_{}_iou_{}_conf_{}_confbuf_{}.csv".format(
             options.rolling_avg_size, 
             options.iou_threshold,
+            options.rendering_confidence_threshold, 
             options.conf_threshold_buf
         )
     )
@@ -338,21 +340,18 @@ def roll_avg_combi(options, images, Fs, arg_combi):
 
 def optimise_roll_avg(options):
     
-    print("Loading MegaDetector detections from {}...".format(options.full_det_frames_json))
-    md_images, detector_label_map, Fs = load_detector_output(options.full_det_frames_json)
-    
     arg_combis = list(product(
         options.rolling_avg_size_range, 
         options.iou_threshold_range,
-        options.conf_threshold_buf_range)) 
-
+        options.conf_threshold_buf_range, 
+        options.rendering_confidence_threshold_range)) 
+    
     print("Running rolling prediction averaging for {} unique combination of arguments.".format(len(arg_combis)))
     
     all_combi_acc_pd = pd.DataFrame()
     for arg_combi in tqdm(arg_combis):
 
-        acc_pd = roll_avg_combi(
-            options, md_images, Fs, arg_combi)
+        acc_pd = roll_avg_combi(options, arg_combi)
 
         all_combi_acc_pd = pd.concat([all_combi_acc_pd, acc_pd])
     
@@ -371,7 +370,11 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
 
-    ## Create output folder if not present
+    ## Check that required files and directories exist are pathed
+    assert os.path.isfile(options.full_det_frames_json), '{} is missing.'.format(options.full_det_frames_json)
+    assert os.path.isfile(options.manual_id_csv), '{} is missing.'.format(options.manual_id_csv)
+
+    # Create output folder if not present
     check_output_dir(options)
     os.makedirs(options.output_dir, exist_ok=True)
 
@@ -406,9 +409,13 @@ def get_arg_parser():
                         default = config.IOU_THRESHOLD_RANGE, 
                         help = 'Range of IOU threshold values to test.'
     )
-    parser.add_argument('--conf_threshold_buf_range', type=str,
+    parser.add_argument('--conf_threshold_buf_range', type=float,
                         default = config.CONF_THRESHOLD_BUF_RANGE, 
                         help = 'Range of confidence threshold buffer values to test.'
+    )
+    parser.add_argument('--rendering_confidence_threshold_range', type=float,
+                        default = config.RENDERING_CONFIDENCE_THRESHOLD_RANGE, 
+                        help = 'Range of rendering confidence threshold values to test.'
     )
     parser.add_argument('--check_accuracy', type=bool,
                         default = config.CHECK_ACCURACY, 
@@ -419,4 +426,7 @@ def get_arg_parser():
 
 if __name__ == '__main__':
 
+    ## Four Inputs required: 
+    # input_dir, output_dir, full_det_frames_json, manual_id_csv
+    # check_accuracy = True
     main()
