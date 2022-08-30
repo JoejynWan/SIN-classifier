@@ -39,7 +39,7 @@ def video_dir_to_frames(options):
         options.frame_folder = frame_output_folder
     os.makedirs(frame_output_folder, exist_ok=True)
 
-    check_corrupt_dir(options) #Check for corrupt videos
+    check_corrupt_dir(options, vid_duration_threshold = 0) #Check for corrupt videos
     
     print("Saving videos as frames in {}...".format(frame_output_folder))
     frame_filenames, Fs = video_folder_to_frames(

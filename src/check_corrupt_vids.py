@@ -17,7 +17,11 @@ from ct_utils import args_to_object
 from detection.video_utils import find_videos
 
 
-def check_corrupt(options, video_file, move_or_copy = "move", copy_non_corrupt = False):
+def check_corrupt(
+    options, video_file, 
+    move_or_copy = "move", copy_non_corrupt = False,
+    Fs_threshold = 20, vid_duration_threshold = 5):
+
     input_fn_absolute = os.path.join(options.input_dir,video_file)
     assert os.path.isfile(input_fn_absolute), 'File {} not found'.format(input_fn_absolute)
 
@@ -26,14 +30,14 @@ def check_corrupt(options, video_file, move_or_copy = "move", copy_non_corrupt =
     frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
     duration = frame_count/Fs
 
-    if Fs < 20 or duration < 5:
+    if Fs < Fs_threshold or duration < vid_duration_threshold:
 
         ## Move/copy the corrupt videos into corrupt folder
         video_dir_relative = os.path.dirname(video_file)
-        if Fs < 20:
-            video_dir_abs = os.path.join(options.output_dir, 'corrupt_vids', 'low_fps', video_dir_relative)
-        elif duration < 5: 
-            video_dir_abs = os.path.join(options.output_dir, 'corrupt_vids', 'short_duration', video_dir_relative)
+        if Fs < Fs_threshold:
+            video_dir_abs = os.path.join(options.output_dir, video_dir_relative, 'corrupt_vids', 'low_fps')
+        elif duration < vid_duration_threshold: 
+            video_dir_abs = os.path.join(options.output_dir, video_dir_relative, 'corrupt_vids', 'short_duration')
         os.makedirs(video_dir_abs, exist_ok=True)
 
         if move_or_copy == "move":
@@ -55,13 +59,16 @@ def check_corrupt(options, video_file, move_or_copy = "move", copy_non_corrupt =
     elif copy_non_corrupt == True:
         ## Copy the non-corrupt videos into the for_processing folder
         video_dir_relative = os.path.dirname(video_file)
-        video_dir_abs = os.path.join(options.output_dir, 'for_processing', video_dir_relative)
+        video_dir_abs = os.path.join(options.output_dir, video_dir_relative, 'for_processing')
         os.makedirs(video_dir_abs, exist_ok=True)
 
         _  = shutil.copy2(input_fn_absolute, video_dir_abs)
     
     
-def check_corrupt_dir(options, move_or_copy = "move", copy_non_corrupt = False):
+def check_corrupt_dir(
+    options, 
+    move_or_copy = "move", copy_non_corrupt = False, 
+    Fs_threshold = 20, vid_duration_threshold = 5):
 
     print("Checking for corrupt videos now...")
 
@@ -74,15 +81,15 @@ def check_corrupt_dir(options, move_or_copy = "move", copy_non_corrupt = False):
     for input_file_relative in tqdm(input_files_relative_paths):
     
         corrupt_fs_row_pd = check_corrupt(options, input_file_relative, 
-            move_or_copy = move_or_copy, copy_non_corrupt = copy_non_corrupt)
+            move_or_copy = move_or_copy, copy_non_corrupt = copy_non_corrupt, 
+            Fs_threshold = Fs_threshold, vid_duration_threshold = vid_duration_threshold)
         corrupt_fs = corrupt_fs.append(corrupt_fs_row_pd)
 
     if not corrupt_fs.empty:
-        warnings.warn(
-            "There are {} videos either with an extremely low frame rate (< 20fps), "
+        print(
+            "Warning: There are {} videos either with an extremely low frame rate (< 20fps), "
             "or they have a short duration (< 5 seconds)."
-            "They have been moved/copied to the corrupt_vids folder.".format(len(corrupt_fs)),
-            UserWarning, stacklevel = 2)
+            "They have been moved/copied to the corrupt_vids folder.".format(len(corrupt_fs)))
 
 
 def get_arg_parser():
