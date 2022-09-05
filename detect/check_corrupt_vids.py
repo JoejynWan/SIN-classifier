@@ -4,13 +4,12 @@ from pickle import FALSE
 import cv2
 import shutil
 import argparse
-import warnings
 import pandas as pd
 from tqdm import tqdm
 
 # Functions imported from this project
-import config
-from shared_utils import VideoOptions
+import general.config as config
+from general.shared_utils import VideoOptions
 
 ## Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
@@ -83,7 +82,7 @@ def check_corrupt_dir(
         corrupt_fs_row_pd = check_corrupt(options, input_file_relative, 
             move_or_copy = move_or_copy, copy_non_corrupt = copy_non_corrupt, 
             Fs_threshold = Fs_threshold, vid_duration_threshold = vid_duration_threshold)
-        corrupt_fs = corrupt_fs.append(corrupt_fs_row_pd)
+        corrupt_fs = pd.concat([corrupt_fs, corrupt_fs_row_pd])
 
     if not corrupt_fs.empty:
         print(

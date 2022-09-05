@@ -2,8 +2,8 @@ import multiprocessing
 
 
 ## Paths of inputs and outputs and must be filled in
-INPUT_DIR = 'C:/TempDataForSpeed/TargetSp_20220111_20220118'
-OUTPUT_DIR = 'results/LCK_Ramboll/TargetSp_20220111_20220118_MDv5a_optimise'
+INPUT_DIR = 'C:/TempDataForSpeed/example_test_set'
+OUTPUT_DIR = 'results/example_test_set/'
 
 
 ## Paths to required datasets
@@ -15,7 +15,7 @@ SPECIES_DATABASE_FILE = 'data/species_database.csv'
 RECURSIVE = True 
 N_CORES = multiprocessing.cpu_count() - 1 # No. of available cores minus 1 to not over tax the system
 
-FULL_DET_FRAMES_JSON = 'results/LCK_Ramboll/TargetSp_20220111_20220118_MDv5a/TargetSp_20220111_20220118_full_det_frames.json' #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
+FULL_DET_FRAMES_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
 FULL_DET_VIDEO_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_videos.json'
 
 RESUME_FROM_CHECKPOINT = None
@@ -47,8 +47,8 @@ ROLL_AVG_VIDEO_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_av
 
 
 ## Settings for comparing MegaDetector results with manual identification results
-CHECK_ACCURACY = True
-MANUAL_ID_CSV = 'results/LCK_Ramboll/TargetSp_20220111_20220118_MDv5a/TargetSp_20220111_20220118_manual_ID.csv' #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_ID.csv'
+CHECK_ACCURACY = False
+MANUAL_ID_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_ID.csv'
 MANUAL_VS_MD_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_vs_md.csv'
 SPECIES_LIST_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_species_list.csv'
 

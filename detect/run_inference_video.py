@@ -1,19 +1,60 @@
-import json
+import os
+import time
 import argparse
+import humanfriendly
 
 # Functions imported from this project
-import config
-from shared_utils import delete_temp_dir, VideoOptions, default_path_from_none
-from shared_utils import write_video_results, export_fn
+import general.config as config
+from general.shared_utils import VideoOptions
+from detect_utils import delete_temp_dir, check_output_dir, default_path_from_none
+from detect_utils import export_fn, sort_empty_human
+from run_det_video import video_dir_to_frames, det_frames
 from vis_detections import vis_detection_videos
+from manual_ID import manual_ID_results
 from optimise_roll_avg import true_vs_pred
-from rolling_avg import rolling_avg
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
 
-def main():
+
+def runtime_txt(options, script_start_time, checkpoint1_time, checkpoint2_time, checkpoint3_time, checkpoint4_time):
+
+    if options.check_accuracy:
+        manual_id_elapsed = checkpoint1_time - script_start_time
+        true_vs_pred_elapsed = checkpoint3_time - checkpoint2_time
+        check_acc_elapsed = manual_id_elapsed + true_vs_pred_elapsed
+    else:
+        check_acc_elapsed = 0
+
+    megadetector_elapsed = checkpoint2_time - checkpoint1_time
+
+    if options.render_output_video:
+        vis_elapsed = checkpoint4_time - checkpoint3_time
+    else:
+        vis_elapsed = 0
+
+    script_elapsed = time.time() - script_start_time
+
+    lines = [
+        'Runtime for MegaDetector = {}'.format(humanfriendly.format_timespan(megadetector_elapsed)),
+        'Runtime for visualisation of bounding boxes = {}'.format(humanfriendly.format_timespan(vis_elapsed)),
+        'Runtime for manual identification vs MegaDetector detections comparison = {}'.format(humanfriendly.format_timespan(check_acc_elapsed)),
+        'Total script runtime = {}'.format(humanfriendly.format_timespan(script_elapsed))
+    ]
+
+    runtime_txt_file = os.path.join(options.output_dir, 'script_runtime.txt')
+    with open(runtime_txt_file, 'w') as f:
+        for line in lines:
+            f.write(line)
+            f.write('\n')
+
+    return script_elapsed
+
+
+def main(): 
+    script_start_time = time.time()
 
     ## Process Command line arguments
     parser = get_arg_parser()
@@ -21,22 +62,24 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
     
-    ## Load data
-    with open(options.full_det_frames_json,'r') as f:
-        input_data = json.load(f)
+    ## Check arguments
+    assert os.path.isdir(options.input_dir),'{} is not a folder'.format(options.input_dir)
 
-    results = input_data['images']
-    Fs = input_data['videos']['frame_rates']
+    check_output_dir(options)
 
-    ## Converting frames.json to videos.json
-    options.full_det_video_json = default_path_from_none(
-        options.output_dir, options.input_dir, 
-        options.full_det_video_json, '_full_det_video.json'
-    )
-    write_video_results(options.full_det_video_json, frames_json_inputdata = input_data)
+    ## Getting the results from manual identifications
+    # Run this first to ensure that all species are in species_database.csv
+    if options.check_accuracy:
+        manual_ID_results(options)
 
-    ## Rolling prediction average 
-    rolling_avg(options, results, Fs, relative_path_base = None)
+    checkpoint1_time = time.time()
+
+    ## Detecting subjects in each video frame using MegaDetector
+    if not options.resume_from_checkpoint:
+        video_dir_to_frames(options)
+    det_frames(options)
+    
+    checkpoint2_time = time.time()
 
     ## Comparing results of manual identification with MegaDetector detections
     if options.check_accuracy:
@@ -57,9 +100,16 @@ def main():
 
         export_fn(options, video_summ)
 
+    checkpoint3_time = time.time()
+
     ## Annotating and exporting to video
     if options.render_output_video:
-        vis_detection_videos(options)
+        vis_detection_videos(options, parallel = True)
+
+    # If we are not checking accuracy, means we are using to sort unknown videos
+    # Thus filter out the false triggers and human videos
+    if not options.check_accuracy: 
+        sort_empty_human(options)
 
     ## Delete the frames stored in the temp folder (if delete_output_frames == TRUE)
     if options.delete_output_frames:
@@ -67,10 +117,21 @@ def main():
     else:
         print('Frames of videos not deleted and saved in {}'.format(options.frame_folder))
 
+    checkpoint4_time = time.time()
+
+    script_elapsed = runtime_txt(
+        options, script_start_time, 
+        checkpoint1_time, checkpoint2_time, checkpoint3_time, checkpoint4_time)
+    print('Completed! Script successfully excecuted in {}'.format(humanfriendly.format_timespan(script_elapsed)))
+
 
 def get_arg_parser():
     parser = argparse.ArgumentParser(
-        description='Script to continue inference from full_det_frames.json if a MemoryError occurs.')
+        description='Module to draw bounding boxes of animals on videos using a trained MegaDetector model, where MegaDetector runs on each frame in a video (or every Nth frame).')
+    parser.add_argument('--model_file', type=str, 
+                        default = config.MODEL_FILE, 
+                        help = 'Path to .pb MegaDetector model file.'
+    )
     parser.add_argument('--input_dir', type=str, 
                         default = config.INPUT_DIR, 
                         help = 'Path to folder containing the video(s) to be processed.'
@@ -86,10 +147,6 @@ def get_arg_parser():
     parser.add_argument('--render_output_video', type=bool,
                         default = config.RENDER_OUTPUT_VIDEO, 
                         help = 'Enable video output rendering.'
-    )
-    parser.add_argument('--full_det_frames_json', type=str,
-                        default = config.FULL_DET_FRAMES_JSON, 
-                        help = 'Path to json file containing the frame-level results of all MegaDetector detections.'
     )
     parser.add_argument('--frame_folder', type=str, 
                         default = config.FRAME_FOLDER, 
@@ -150,6 +207,18 @@ def get_arg_parser():
     parser.add_argument('--nth_highest_confidence', type=float,
                         default = config.NTH_HIGHEST_CONFIDENCE, 
                         help="nth-highest-confidence frame to choose a confidence value for each video"
+    )
+    parser.add_argument('--resume_from_checkpoint', type=str,
+                        default = config.RESUME_FROM_CHECKPOINT, 
+                        help="path to JSON checkpoint file for which MD detection will be resumed from."
+    )
+    parser.add_argument('--checkpoint_path', type=str,
+                        default = config.CHECKPOINT_PATH, 
+                        help="path to JSON checkpoint file for which checkpoints will be written to."
+    )
+    parser.add_argument('--checkpoint_frequency', type=int,
+                        default = config.CHECKPOINT_FREQUENCY, 
+                        help="write results to JSON checkpoint file every N images."
     )
     return parser
 

@@ -10,9 +10,10 @@ from collections import deque
 import ijson.backends.yajl2_c as ijson
 
 # Functions imported from this project
-import config
-from shared_utils import find_unique_objects, VideoOptions, default_path_from_none
-from shared_utils import write_frame_results, write_roll_avg_video_results
+import general.config as config
+from general.shared_utils import VideoOptions
+from detect_utils import find_unique_objects, default_path_from_none
+from detect_utils import write_frame_results, write_roll_avg_video_results
 from vis_detections import vis_detection_videos
 
 # Imported from Microsoft/CameraTraps github repository

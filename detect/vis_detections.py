@@ -6,9 +6,9 @@ from tqdm import tqdm
 import multiprocessing as mp
 
 # Functions imported from this project
-import config
-from shared_utils import delete_temp_dir, find_unique_videos
-from shared_utils import VideoOptions, load_detector_output
+import general.config as config
+from general.shared_utils import VideoOptions
+from detect_utils import delete_temp_dir, find_unique_videos, load_detector_output
 
 # Imported from Microsoft/CameraTraps github repository
 from visualization import visualization_utils as vis_utils

@@ -6,9 +6,9 @@ from tqdm import tqdm
 from itertools import product
 
 # Functions imported from this project
-import config
-from shared_utils import VideoOptions, summarise_cat
-from shared_utils import check_output_dir, default_path_from_none
+import general.config as config
+from general.shared_utils import VideoOptions
+from detect_utils import summarise_cat, check_output_dir, default_path_from_none
 from rolling_avg import rolling_avg
 
 # Functions imported from Microsoft/CameraTraps github repository
