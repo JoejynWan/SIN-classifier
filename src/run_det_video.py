@@ -62,7 +62,7 @@ def video_dir_to_frames(options):
     unique_videos = find_unique_videos(image_file_names, from_frame_names = True)
     if len(unique_videos) != len(Fs):
         raise IndexError(
-            "The number of frame rates provided do not match the number of unique videos"\
+            "The number of frame rates provided do not match the number of unique videos "\
             "({} videos and {} frame rates).".format(len(unique_videos), len(Fs)))
 
 

@@ -114,4 +114,19 @@ if __name__ == '__main__':
     options = VideoOptions()
     args_to_object(args, options)
 
-    check_corrupt_dir(options, move_or_copy = "copy", copy_non_corrupt = True)
+    move_or_copy = "copy"
+    copy_non_corrupt = True
+    Fs_threshold = 20
+    vid_duration_threshold = 5
+
+    print("Videos from {} will be copied/moved to {}. move_or_copy = {}, copy_non_corrupt = {}, "
+        "Fs_threshold = {}, vid_duration_threshold = {}".format(
+        options.input_dir, options.output_dir, move_or_copy, copy_non_corrupt, 
+        Fs_threshold, vid_duration_threshold
+    ))
+
+    check_corrupt_dir(
+        options, move_or_copy = move_or_copy, 
+        copy_non_corrupt = copy_non_corrupt,
+        Fs_threshold = Fs_threshold,
+        vid_duration_threshold = vid_duration_threshold)
