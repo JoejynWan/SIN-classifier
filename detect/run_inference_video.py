@@ -162,7 +162,7 @@ def get_arg_parser():
     )
     parser.add_argument('--n_cores', type=int,
                         default = config.N_CORES, 
-                        help = 'number of cores to use for detection (CPU only)'
+                        help = 'number of cores to use for detection and cropping (CPU only)'
     )
     parser.add_argument('--frame_sample', type=int,
                         default = config.FRAME_SAMPLE, 

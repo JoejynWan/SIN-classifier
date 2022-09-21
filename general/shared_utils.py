@@ -46,6 +46,8 @@ class VideoOptions:
     rendering_confidence_threshold_range = None
     roll_avg_acc_csv = None
 
+    cropped_images_dir = None
+
 
 def unique(x):
     x = list(sorted(set(x)))

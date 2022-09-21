@@ -2,8 +2,8 @@ import multiprocessing
 
 
 ## Paths of inputs and outputs and must be filled in
-INPUT_DIR = 'C:/TempDataForSpeed/example_test_set'
-OUTPUT_DIR = 'results/example_test_set/'
+INPUT_DIR = 'C:/TempDataForSpeed/test'
+OUTPUT_DIR = 'results/test/'
 
 
 ## Paths to required datasets
@@ -15,7 +15,7 @@ SPECIES_DATABASE_FILE = 'data/species_database.csv'
 RECURSIVE = True 
 N_CORES = multiprocessing.cpu_count() - 1 # No. of available cores minus 1 to not over tax the system
 
-FULL_DET_FRAMES_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
+FULL_DET_FRAMES_JSON = "D:/CNN_Animal_ID/SIN-classifier/results/test/test_full_det_frames.json" #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
 FULL_DET_VIDEO_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_videos.json'
 
 RESUME_FROM_CHECKPOINT = None
@@ -30,8 +30,8 @@ JSON_CONFIDENCE_THRESHOLD = 0.0 # Outdated: will be overridden by rolling predic
 
 ## Settings for rendering of bounding boxes over videos
 RENDER_OUTPUT_VIDEO = True
-DELETE_OUTPUT_FRAMES = True
-FRAME_FOLDER = None #Defaults to temp folder
+DELETE_OUTPUT_FRAMES = False
+FRAME_FOLDER = "C:/Users/Joejyn/AppData/Local/Temp/process_camera_trap_video/test_frames_826e6c87-3965-11ed-839a-1cc10cc3cfc5" #Defaults to temp folder
 RENDERING_CONFIDENCE_THRESHOLD = 0.2 #0.8 for MDv4, 0.2 for MDv5
 
 
@@ -59,3 +59,7 @@ IOU_THRESHOLD_RANGE = [0.2]
 CONF_THRESHOLD_BUF_RANGE = [0.7]
 RENDERING_CONFIDENCE_THRESHOLD_RANGE = [0.15, 0.2, 0.25, 0.3, 0.35, 0.4]
 ROLL_AVG_ACC_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_optimise_roll_avg.csv'
+
+
+## Settings for cropping of animal images
+CROPPED_IMAGES_DIR = None
