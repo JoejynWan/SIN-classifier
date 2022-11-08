@@ -34,9 +34,9 @@ def check_corrupt(
         ## Move/copy the corrupt videos into corrupt folder
         video_dir_relative = os.path.dirname(video_file)
         if Fs < Fs_threshold:
-            video_dir_abs = os.path.join(options.output_dir, video_dir_relative, 'corrupt_vids', 'low_fps')
+            video_dir_abs = os.path.join(options.output_dir, video_dir_relative, 'low_fps')
         elif duration < vid_duration_threshold: 
-            video_dir_abs = os.path.join(options.output_dir, video_dir_relative, 'corrupt_vids', 'short_duration')
+            video_dir_abs = os.path.join(options.output_dir, video_dir_relative, 'short_duration')
         os.makedirs(video_dir_abs, exist_ok=True)
 
         if move_or_copy == "move":
@@ -88,7 +88,7 @@ def check_corrupt_dir(
         print(
             "Warning: There are {} videos either with an extremely low frame rate (< 20fps), "
             "or they have a short duration (< 5 seconds)."
-            "They have been moved/copied to the corrupt_vids folder.".format(len(corrupt_fs)))
+            "They have been moved/copied to the low_fps or short_duration folder.".format(len(corrupt_fs)))
 
 
 def get_arg_parser():
