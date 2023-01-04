@@ -1,2 +1,0 @@
-ManualIDCsv,RollAvgCsv,RollAvgSize,IOUThreshold,RenderingConfThreshold,ConfThresholdBuffer,Num_CorrectQty,Num_Overestimated,Num_Underestimated,Perc_CorrectQty,TP,TN,FP,FN,Recall,Precision,F1Score
-results/example_test_set\example_test_set_manual_ID.csv,results/example_test_set\example_test_set_roll_avg_videos.csv,32,0.2,0.2,0.7,0,2,0,0.0,2,3,0,1,66.7,100.0,80.0
