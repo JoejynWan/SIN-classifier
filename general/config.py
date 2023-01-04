@@ -2,10 +2,8 @@ import multiprocessing
 
 
 ## Paths of inputs and outputs and must be filled in
-INPUT_DIR = 'C:\\TempDataForSpeed\\test'
-OUTPUT_DIR = 'results\\test'
-# INPUT_DIR = 'Z:\\01_Current_Projects\\CR2005 EMMP_AECOM\\02_Camera_Trapping\\Camera_Trap_Data\\01 Raw\\20221201'
-# OUTPUT_DIR = 'Z:\\01_Current_Projects\\CR2005 EMMP_AECOM\\02_Camera_Trapping\\Camera_Trap_Data\\02 Processed\\20221201'
+INPUT_DIR = 'C:\\TempDataForSpeed\\example_test_set'
+OUTPUT_DIR = 'results\\example_test_set'
 
 
 ## Paths to required datasets
