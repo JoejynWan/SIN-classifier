@@ -213,7 +213,7 @@ def rpa_calc(frames, rolling_avg_size):
                 max_conf = max(np_mean)
                 max_index = np.where(np_mean == max_conf)[0].tolist()[0] + 1
 
-                detection['conf'] = max_conf
+                detection['conf'] = round(max_conf, 3)
                 detection['category'] = str(max_index)    
 
     return frames
@@ -265,7 +265,7 @@ def load_detector_roll_avg(options):
 
             image = {
                 'file': raw_image['file'],
-                'max_detection_conf': updated_max_conf,
+                'max_detection_conf': round(updated_max_conf, 3),
                 'detections': updated_detections
             }
             images.append(image)
