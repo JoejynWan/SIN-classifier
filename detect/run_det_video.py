@@ -42,7 +42,7 @@ def video_dir_to_frames(options):
     check_corrupt_dir(options, vid_duration_threshold = 0) #Check for corrupt videos
     
     print("Saving videos as frames in {}...".format(frame_output_folder))
-    frame_filenames, Fs = video_folder_to_frames(
+    frame_filenames, Fs, input_files_full_paths = video_folder_to_frames(
         input_folder = options.input_dir, output_folder_base = frame_output_folder, 
         recursive = options.recursive, overwrite = True,
         n_threads = options.n_cores, every_n_frames = options.frame_sample)
