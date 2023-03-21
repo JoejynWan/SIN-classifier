@@ -547,7 +547,7 @@ def sort_empty_human(options):
             os.makedirs(animal_dir, exist_ok = True)
             _ = shutil.move(input_vid, animal_dir)
 
-        elif row['Category'] == 2:
+        elif row['Category'] in (2,3):
 
             human_dir = os.path.join(root, options.output_dir, station_dir, 'Non targeted')
             os.makedirs(human_dir, exist_ok = True)
