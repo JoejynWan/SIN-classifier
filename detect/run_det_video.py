@@ -168,6 +168,8 @@ def det_frames(options, run_chunks = False):
     os.remove(fs_txt)
     print('Deleted {} and {} temporary files.'.format(image_file_name_txt, fs_txt))
 
+    print('\n')
+
 
 def main(): 
     ## Process Command line arguments

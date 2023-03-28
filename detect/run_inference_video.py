@@ -12,6 +12,7 @@ from run_det_video import video_dir_to_frames, det_frames
 from vis_detections import vis_detection_videos
 from manual_ID import manual_ID_results
 from optimise_roll_avg import true_vs_pred
+from classify.crop_det import crop_detections
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
@@ -87,6 +88,9 @@ def main():
     det_frames(options)
     
     checkpoint2_time = time.time()
+
+    ## Cropping out bounding box detections of animals
+    crop_detections(options, model_ver = "mdv5a")
 
     ## Comparing results of manual identification with MegaDetector detections
     if options.check_accuracy:
@@ -166,6 +170,10 @@ def get_arg_parser():
                         help = 'Folder to use for intermediate frame storage, '
                                 'defaults to a folder in the system temporary '
                                 'folder'
+    )
+    parser.add_argument('--cropped_images_dir', type=str,
+                        default = config.CROPPED_IMAGES_DIR, 
+                        help = 'Path to folder to save the cropped animal images, defaults to a folder in the system temporary folder'
     )
     parser.add_argument('--delete_output_frames', type=bool,
                         default = config.DELETE_OUTPUT_FRAMES, 

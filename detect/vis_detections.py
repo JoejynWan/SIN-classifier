@@ -157,7 +157,7 @@ def vis_detection_videos(options, parallel = True):
     """
     ## Check arguments
     assert os.path.isdir(options.frame_folder),\
-    '{} is not a folder path for the video frames.'.format(options.frame_folder)
+        '{} is not a folder path for the video frames.'.format(options.frame_folder)
 
     images, detector_label_map, Fs = load_detector_output(
         options.roll_avg_frames_json)

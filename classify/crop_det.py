@@ -12,7 +12,7 @@ from ct_utils import args_to_object
 from classification.crop_detections import main as crop_detections_ms
 
 
-def crop_detections():
+def crop_detections(options, model_ver):
 
     ## Create temp directory for cropped images if not provided
     tempdir = os.path.join(tempfile.gettempdir(), 'process_camera_trap_video')
@@ -20,21 +20,23 @@ def crop_detections():
         cropped_images_dir = options.cropped_images_dir
     else:
         cropped_images_dir = os.path.join(
-            tempdir, os.path.basename(options.input_dir) + '_croppedimgs_' + str(uuid1()))
+            tempdir, 
+            os.path.basename(options.input_dir)+'_croppedimgs_'+str(uuid1()))
     os.makedirs(cropped_images_dir, exist_ok=True)
 
     ## Run crop_detections
-    crop_detections_ms(detections_json_path = options.full_det_frames_json, 
-                    cropped_images_dir = cropped_images_dir, 
-                    images_dir = options.frame_folder,
-                    container_url = None, 
-                    detector_version = 'md_v5a', #TODO find from model
-                    save_full_images = True,
-                    square_crops = True,
-                    check_crops_valid = True, 
-                    confidence_threshold = options.rendering_confidence_threshold,
-                    threads = options.n_cores,
-                    logdir = cropped_images_dir)
+    crop_detections_ms(
+        detections_json_path = options.full_det_frames_json, 
+        cropped_images_dir = cropped_images_dir, 
+        images_dir = options.frame_folder,
+        container_url = None, 
+        detector_version = model_ver, #TODO find from model
+        save_full_images = True,
+        square_crops = True,
+        check_crops_valid = True, 
+        confidence_threshold = options.rendering_confidence_threshold,
+        threads = options.n_cores,
+        logdir = cropped_images_dir)
 
 
 def get_arg_parser():
@@ -77,4 +79,6 @@ if __name__ == '__main__':
     options = VideoOptions()
     args_to_object(args, options)
 
-    crop_detections()
+    crop_detections(
+        options, 
+        model_ver = 'md_v5a')
