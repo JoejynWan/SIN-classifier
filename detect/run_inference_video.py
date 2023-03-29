@@ -90,7 +90,7 @@ def main():
     checkpoint2_time = time.time()
 
     ## Cropping out bounding box detections of animals
-    crop_detections(options, model_ver = "mdv5a")
+    crop_detections(options)
 
     ## Comparing results of manual identification with MegaDetector detections
     if options.check_accuracy:
