@@ -1,0 +1,88 @@
+import os
+import argparse
+
+# Functions imported from this project
+import general.config as config
+from general.shared_utils import VideoOptions
+
+# Functions imported from Microsoft/CameraTraps github repository
+from ct_utils import args_to_object
+from classification.run_classifier import main as sp_class_md
+
+
+def sp_classifier(options):
+    
+    output_csv_path = os.path.join(options.output_dir, "class_output.csv")
+
+    sp_class_md(model_path = options.species_model,
+                cropped_images_dir = options.cropped_images_dir,
+                output_csv_path = output_csv_path,
+                detections_json_path = options.full_det_frames_json,
+                classifier_categories_json_path = options.classifier_categories,
+                img_size = options.image_size,
+                batch_size = options.batch_size,
+                num_workers = options.num_workers,
+                device_id = options.device)
+        
+
+def get_arg_parser():
+    parser = argparse.ArgumentParser(
+        description='Module to crop out detections.')
+    parser.add_argument(
+        '--species_model', type=str, 
+        default = config.SPECIES_MODEL, 
+        help = 'Path to .pt file containing the species classifier model.'
+    )
+    parser.add_argument(
+        '--full_det_frames_json', type=str,
+        default = config.FULL_DET_FRAMES_JSON, 
+        help = 'Path to json file containing the frame-level results of all '
+               'MegaDetector detections.'
+    )
+    parser.add_argument(
+        '--cropped_images_dir', type=str,
+        default = config.CROPPED_IMAGES_DIR, 
+        help = 'Path to folder to save the cropped animal images, defaults to '
+               'a folder in the system temporary folder'
+    )
+    parser.add_argument(
+        '--output_dir', type=str,
+        default = config.OUTPUT_DIR, 
+        help = 'Path to folder where videos will be saved.'
+    )
+    parser.add_argument(
+        '-c', '--classifier_categories',
+        help = 'path to JSON file for classifier categories. If not given, '
+               'classes are numbered "0", "1", "2", ...'
+    )
+    parser.add_argument(
+        '--image_size', type=int, 
+        default = config.IMAGE_SIZE,
+        help = 'size of input image to model, usually 224px, but may be larger '
+               'especially for EfficientNet models.'
+    )
+    parser.add_argument(
+        '--batch_size', type=int, 
+        default = config.IMAGE_SIZE,
+        help = 'batch size for evaluating model.'
+    )
+    parser.add_argument(
+        '--device', type=int, 
+        default = config.DEVICE,
+        help = 'preferred CUDA device.'
+    )
+    parser.add_argument(
+        '--num_workers', type=int, 
+        default = config.NUM_WORKERS,
+        help = 'Number of workers for data loading.'
+    )
+    return parser
+
+
+if __name__ == '__main__':
+    parser = get_arg_parser()
+    args = parser.parse_args()
+    options = VideoOptions()
+    args_to_object(args, options)
+
+    sp_classifier(options)
