@@ -47,6 +47,12 @@ class VideoOptions:
     roll_avg_acc_csv = None
 
     cropped_images_dir = None
+    species_model = None
+    classifier_categories = None
+    image_size = 224
+    batch_size = 1
+    device = None
+    num_workers = 8
 
 
 def unique(x):

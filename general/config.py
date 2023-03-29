@@ -2,8 +2,10 @@ import multiprocessing
 
 
 ## Paths of inputs and outputs and must be filled in
-INPUT_DIR = 'C:\\TempDataForSpeed\\example_test_set'
-OUTPUT_DIR = 'results\\example_test_set'
+INPUT_DIR = 'C:\\TempDataForSpeed\\test'
+OUTPUT_DIR = 'results\\test'
+# INPUT_DIR = 'Z:\\01_Current_Projects\\CR2005 EMMP_AECOM\\02_Camera_Trapping\\Camera_Trap_Data\\01 Raw\\20230307'
+# OUTPUT_DIR = 'Z:\\01_Current_Projects\\CR2005 EMMP_AECOM\\02_Camera_Trapping\\Camera_Trap_Data\\02 Processed\\20230207'
 
 
 ## Paths to required datasets
@@ -15,7 +17,7 @@ SPECIES_DATABASE_FILE = 'data/species_database.csv'
 RECURSIVE = True 
 N_CORES = multiprocessing.cpu_count() - 1 # No. of available cores minus 1 to not over tax the system
 
-FULL_DET_FRAMES_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
+FULL_DET_FRAMES_JSON = 'results\\test\\test_full_det_frames.json' #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
 FULL_DET_VIDEO_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_videos.json'
 
 RESUME_FROM_CHECKPOINT = None
@@ -61,5 +63,11 @@ RENDERING_CONFIDENCE_THRESHOLD_RANGE = [0.15, 0.2, 0.25, 0.3, 0.35, 0.4]
 ROLL_AVG_ACC_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_optimise_roll_avg.csv'
 
 
-## Settings for cropping of animal images
-CROPPED_IMAGES_DIR = None
+## Settings for species classifier
+CROPPED_IMAGES_DIR = 'C:\\Users\\Joejyn\\AppData\\Local\\Temp\\process_camera_trap_video\\test_croppedimgs_ce45b353-ce17-11ed-ac2d-a8a159b21e64'
+SPECIES_MODEL = 'models/SIN_SpClassifier_v1.pt'
+CLASSIFIER_CATEGORIES = None
+IMAGE_SIZE = 224
+BATCH_SIZE = 1
+DEVICE = None
+NUM_WORKERS = 8
