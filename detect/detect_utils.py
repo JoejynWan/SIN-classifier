@@ -13,7 +13,9 @@ from collections import defaultdict
 from general.shared_utils import unique
 
 # Functions imported from Microsoft/CameraTraps github repository
-from detection.run_detector import DEFAULT_DETECTOR_LABEL_MAP
+from detection.run_detector import DEFAULT_DETECTOR_LABEL_MAP, \
+    get_detector_version_from_filename,\
+    get_detector_metadata_from_version_string
 
 
 def check_output_dir(options):
@@ -21,14 +23,16 @@ def check_output_dir(options):
     
     if os.path.exists(options.output_dir) and os.listdir(options.output_dir):
         while True:
-            rewrite_input = input('\nThe output directory specified is not empty. Do you want to continue and rewrite the files in the directory? (y/n)')
+            rewrite_input = input(
+                '\nThe output directory specified is not empty. Do you want ' \
+                    'to continue and rewrite the files in the directory? (y/n)')
             if rewrite_input.lower() not in ('y', 'n'):
                 print('Input invalid. Please enter y or n.')
             else:
                 break
         
         if rewrite_input.lower() == 'n':
-            sys.exit('Stopping script. Please input the correct output directory. ')
+            sys.exit('Error: Please input the correct output directory.')
 
 
 def delete_temp_dir(directory):
@@ -146,7 +150,8 @@ def default_path_from_none(output_dir, input_dir, file_path, file_suffix):
     return output_file_name
 
 
-def process_frame_results(results, Fs, relative_path_base=None):
+def process_frame_results(results, Fs, relative_path_base=None,
+                          detector_file=None, info=None):
     """
     Preps the results from MegaDetector for saving into the frames.json file.
     Function is adapted from detection.run_tf_detector_batch.write_results_to_file, 
@@ -160,11 +165,37 @@ def process_frame_results(results, Fs, relative_path_base=None):
             results_relative.append(r_relative)
         results = results_relative
 
+    ## Build the videos structure
     unique_videos = find_unique_videos(results)
     if len(unique_videos) != len(Fs):
         raise IndexError(
             "The number of frame rates provided do not match the number of unique videos"\
             "({} videos and {} frame rates).".format(len(unique_videos), len(Fs)))
+
+    ## Build the info structure
+    if info is None:
+
+        info = { 
+            'detection_completion_time': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
+            'format_version': '1.2' 
+        }
+            
+        if detector_file is not None:
+            detector_filename = os.path.basename(detector_file)
+            detector_version = get_detector_version_from_filename(detector_filename)
+            detector_metadata = get_detector_metadata_from_version_string(detector_version)
+            info['detector'] = detector_filename  
+            info['detector_metadata'] = detector_metadata
+        else:
+            info['detector'] = 'unknown'
+            info['detector_metadata'] = get_detector_metadata_from_version_string('unknown')
+
+    else: #user provided the info structure
+
+        if detector_file is not None:
+            
+            print('Warning (write_results_to_file): info struct and ' + \
+                  'detector file supplied, ignoring detector file')
 
     frame_results = {
         'images': results,
@@ -174,10 +205,7 @@ def process_frame_results(results, Fs, relative_path_base=None):
             'video_names': unique_videos,
             'frame_rates': Fs
         },
-        'info': {
-            'detection_completion_time': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
-            'format_version': '1.0'
-        }
+        'info': info
     }
 
     return frame_results
@@ -267,7 +295,10 @@ def write_results(options, results, Fs,
     - relative_path_base: str, path to a directory as the base for relative paths
     """
     
-    frame_results = process_frame_results(results, Fs, relative_path_base=relative_path_base)
+    frame_results = process_frame_results(
+        results, Fs, 
+        relative_path_base = relative_path_base,
+        detector_file = options.model_file)
     
     ## write frame.json file
     options.full_det_frames_json = default_path_from_none(
@@ -305,7 +336,10 @@ def write_frame_results(results, Fs, frame_output_file,
     - output_file: str, path to JSON output file, should end in '.json'
     - relative_path_base: str, path to a directory as the base for relative paths
     """
-    frame_results = process_frame_results(results, Fs, relative_path_base=relative_path_base)
+    frame_results = process_frame_results(
+        results, Fs, 
+        relative_path_base = relative_path_base,
+        detector_file = None)
     
     ## write frame.json file
     with open(frame_output_file, 'w') as f:
