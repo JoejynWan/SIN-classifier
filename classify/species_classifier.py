@@ -12,15 +12,13 @@ from classification.run_classifier import main as sp_class_md
 
 def sp_classifier(options):
     
-    if options.classification_csv is not None: 
-        output_csv_path = options.classification_csv
-    else: 
-        output_csv_path = os.path.join(options.output_dir, "class_output.csv")
-        options.classification_csv = output_csv_path
+    if options.classification_csv is None: 
+        options.classification_csv = os.path.join(
+            options.output_dir, "class_output.csv")
 
     sp_class_md(model_path = options.species_model,
                 cropped_images_dir = options.cropped_images_dir,
-                output_csv_path = output_csv_path,
+                output_csv_path = options.classification_csv,
                 detections_json_path = options.full_det_frames_json,
                 classifier_categories_json_path = options.classifier_categories,
                 img_size = options.image_size,
