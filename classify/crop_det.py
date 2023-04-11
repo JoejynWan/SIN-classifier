@@ -22,6 +22,7 @@ def crop_detections(options):
         cropped_images_dir = os.path.join(
             tempdir, 
             os.path.basename(options.input_dir)+'_croppedimgs_'+str(uuid1()))
+        options.cropped_images_dir = cropped_images_dir
     os.makedirs(cropped_images_dir, exist_ok=True)
 
     ## Run crop_detections

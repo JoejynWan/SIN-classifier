@@ -17,7 +17,7 @@ SPECIES_DATABASE_FILE = 'data/species_database.csv'
 RECURSIVE = True 
 N_CORES = multiprocessing.cpu_count() - 1 # No. of available cores minus 1 to not over tax the system
 
-FULL_DET_FRAMES_JSON = 'results\\test\\test_full_det_frames.json' #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
+FULL_DET_FRAMES_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
 FULL_DET_VIDEO_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_videos.json'
 
 RESUME_FROM_CHECKPOINT = None
@@ -64,7 +64,7 @@ ROLL_AVG_ACC_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_optimise_
 
 
 ## Settings for species classifier
-CROPPED_IMAGES_DIR = 'C:\\Users\\Joejyn\\AppData\\Local\\Temp\\process_camera_trap_video\\test_croppedimgs_ce45b353-ce17-11ed-ac2d-a8a159b21e64'
+CROPPED_IMAGES_DIR = None
 SPECIES_MODEL = 'models/SIN_SpClassifier_v1.pt'
 CLASSIFIER_CATEGORIES = None
 IMAGE_SIZE = 224
