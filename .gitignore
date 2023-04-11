@@ -9,7 +9,9 @@ models/*
 depreciated/
 
 ## Ignore pycache folder
-src/__pycache__/*
+classify/__pycache__/*
+detect/__pycache__/*
+general/__pycache__/*
 
 ## Keep Species_Database.csv
 !data/Species_Database.csv
