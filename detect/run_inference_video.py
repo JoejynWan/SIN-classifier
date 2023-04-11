@@ -191,6 +191,12 @@ def get_arg_parser():
         help = 'Path to .pt file containing the species classifier model.'
     )
     parser.add_argument(
+        '--classification_csv', type=str,
+        default = config.CLASSIFICATION_CSV, 
+        help = 'Path to csv file containing the species classification results '
+               'for cropped bounding boxes'
+    )
+    parser.add_argument(
         '-c', '--classifier_categories',
         help = 'path to JSON file for classifier categories. If not given, '
                'classes are numbered "0", "1", "2", ...'

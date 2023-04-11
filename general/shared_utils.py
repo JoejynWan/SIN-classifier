@@ -48,6 +48,7 @@ class VideoOptions:
 
     cropped_images_dir = None
     species_model = None
+    classification_csv = None
     classifier_categories = None
     image_size = 224
     batch_size = 1

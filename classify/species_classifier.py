@@ -12,7 +12,11 @@ from classification.run_classifier import main as sp_class_md
 
 def sp_classifier(options):
     
-    output_csv_path = os.path.join(options.output_dir, "class_output.csv")
+    if options.classification_csv is not None: 
+        output_csv_path = options.classification_csv
+    else: 
+        output_csv_path = os.path.join(options.output_dir, "class_output.csv")
+        options.classification_csv = output_csv_path
 
     sp_class_md(model_path = options.species_model,
                 cropped_images_dir = options.cropped_images_dir,
@@ -38,6 +42,12 @@ def get_arg_parser():
         default = config.FULL_DET_FRAMES_JSON, 
         help = 'Path to json file containing the frame-level results of all '
                'MegaDetector detections.'
+    )
+    parser.add_argument(
+        '--classification_csv', type=str,
+        default = config.CLASSIFICATION_CSV, 
+        help = 'Path to csv file containing the species classification results '
+               'for cropped bounding boxes'
     )
     parser.add_argument(
         '--cropped_images_dir', type=str,

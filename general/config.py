@@ -66,6 +66,7 @@ ROLL_AVG_ACC_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_optimise_
 ## Settings for species classifier
 CROPPED_IMAGES_DIR = None
 SPECIES_MODEL = 'models/SIN_SpClassifier_v1.pt'
+CLASSIFICATION_CSV = None
 CLASSIFIER_CATEGORIES = None
 IMAGE_SIZE = 224
 BATCH_SIZE = 1
