@@ -166,7 +166,7 @@ def get_arg_parser():
     parser.add_argument(
         '--output_dir', type=str,
         default = config.OUTPUT_DIR, 
-        help = 'Path to folder where videos will be saved.'
+        help = 'Path to folder where results will be saved.'
     )
     parser.add_argument(
         '--render_output_video', type=bool,
@@ -200,6 +200,12 @@ def get_arg_parser():
         '-c', '--classifier_categories',
         help = 'path to JSON file for classifier categories. If not given, '
                'classes are numbered "0", "1", "2", ...'
+    )
+    parser.add_argument(
+        '--classification_json', type=str,
+        default = config.CLASSIFICATION_CSV, 
+        help = 'Path to json file containing the detection results after '
+               'merging with species classification results'
     )
     parser.add_argument(
         '--image_size', type=int, 
