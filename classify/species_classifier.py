@@ -60,6 +60,7 @@ def get_arg_parser():
     )
     parser.add_argument(
         '-c', '--classifier_categories',
+        default = config.CLASSIFIER_CATEGORIES, 
         help = 'path to JSON file for classifier categories. If not given, '
                'classes are numbered "0", "1", "2", ...'
     )
@@ -71,7 +72,7 @@ def get_arg_parser():
     )
     parser.add_argument(
         '--batch_size', type=int, 
-        default = config.IMAGE_SIZE,
+        default = config.BATCH_SIZE,
         help = 'batch size for evaluating model.'
     )
     parser.add_argument(
