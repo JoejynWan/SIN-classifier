@@ -11,35 +11,39 @@ from classification.run_classifier import main as sp_class_md
 
 
 def sp_classifier(options):
-    
     if options.classification_csv is None: 
         options.classification_csv = os.path.join(
-            options.output_dir, "class_output.csv")
+            options.output_dir, "species_classifier_crops.csv.gz")
 
-    sp_class_md(model_path = options.species_model,
-                cropped_images_dir = options.cropped_images_dir,
-                output_csv_path = options.classification_csv,
-                detections_json_path = options.full_det_frames_json,
-                classifier_categories_json_path = options.classifier_categories,
-                img_size = options.image_size,
-                batch_size = options.batch_size,
-                num_workers = options.num_workers,
-                device_id = options.device)
+    sp_class_md(
+        model_path = options.species_model,
+        cropped_images_dir = options.cropped_images_dir,
+        output_csv_path = options.classification_csv,
+        detections_json_path = options.roll_avg_frames_json,
+        classifier_categories_json_path = options.classifier_categories,
+        img_size = options.image_size,
+        batch_size = options.batch_size,
+        num_workers = options.num_workers,
+        device_id = options.device)
         
 
 def get_arg_parser():
     parser = argparse.ArgumentParser(
         description='Module to crop out detections.')
     parser.add_argument(
+        '--output_dir', type=str,
+        default = config.OUTPUT_DIR, 
+        help = 'Path to folder where videos will be saved.'
+    )
+    parser.add_argument(
         '--species_model', type=str, 
         default = config.SPECIES_MODEL, 
         help = 'Path to .pt file containing the species classifier model.'
     )
     parser.add_argument(
-        '--full_det_frames_json', type=str,
-        default = config.FULL_DET_FRAMES_JSON, 
-        help = 'Path to json file containing the frame-level results of all '
-               'MegaDetector detections.'
+        '--roll_avg_frames_json', type=str,
+        default = config.ROLL_AVG_FRAMES_JSON, 
+        help = 'Path to the roll_avg_frames_json file.'
     )
     parser.add_argument(
         '--classification_csv', type=str,
@@ -52,11 +56,6 @@ def get_arg_parser():
         default = config.CROPPED_IMAGES_DIR, 
         help = 'Path to folder to save the cropped animal images, defaults to '
                'a folder in the system temporary folder'
-    )
-    parser.add_argument(
-        '--output_dir', type=str,
-        default = config.OUTPUT_DIR, 
-        help = 'Path to folder where videos will be saved.'
     )
     parser.add_argument(
         '-c', '--classifier_categories',

@@ -14,6 +14,7 @@ from manual_ID import manual_ID_results
 from optimise_roll_avg import true_vs_pred
 from classify.crop_det import crop_detections
 from classify.species_classifier import sp_classifier
+from classify.merge_classifier import merge_classifier
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
@@ -23,27 +24,36 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
 
 def runtime_txt(
     options, script_start_time, checkpoint1_time, checkpoint2_time, 
-    checkpoint3_time, checkpoint4_time):
+    checkpoint3_time, checkpoint4_time, checkpoint5_time):
 
+    ## Elapsed time for MegaDetector
+    megadetector_elapsed = checkpoint2_time - checkpoint1_time
+
+    ## Elapsed time for visualisation
+    if options.render_output_video:
+        vis_elapsed = checkpoint5_time - checkpoint4_time
+    else:
+        vis_elapsed = 0
+
+    ## Elapsed time for species classification
+    classification_elapsed = checkpoint4_time - checkpoint3_time    
+
+    ## Elapsed time for manual check
     if options.check_accuracy:
         manual_id_elapsed = checkpoint1_time - script_start_time
         true_vs_pred_elapsed = checkpoint3_time - checkpoint2_time
         check_acc_elapsed = manual_id_elapsed + true_vs_pred_elapsed
     else:
         check_acc_elapsed = 0
-
-    megadetector_elapsed = checkpoint2_time - checkpoint1_time
-
-    if options.render_output_video:
-        vis_elapsed = checkpoint4_time - checkpoint3_time
-    else:
-        vis_elapsed = 0
-
+    
+    ## Total elapsed time
     script_elapsed = time.time() - script_start_time
 
     lines = [
         'Runtime for MegaDetector = {}'.format(
             humanfriendly.format_timespan(megadetector_elapsed)),
+        'Runtime for Species Classification = {}'.format(
+            humanfriendly.format_timespan(classification_elapsed)),
         'Runtime for visualisation of bounding boxes = {}'.format(
             humanfriendly.format_timespan(vis_elapsed)),
         'Runtime for manual ID vs MegaDetector comparison = {}'.format(
@@ -84,17 +94,12 @@ def main():
     checkpoint1_time = time.time()
 
     ## Detecting subjects in each video frame using MegaDetector
+    ## Includes rolling prediction averaging across frames
     if not options.resume_from_checkpoint:
         video_dir_to_frames(options)
     det_frames(options)
     
     checkpoint2_time = time.time()
-
-    ## Cropping out bounding box detections of animals
-    crop_detections(options)
-
-    ## Classifying cropped bounding boxes to species 
-    sp_classifier(options)
 
     ## Comparing results of manual identification with MegaDetector detections
     if options.check_accuracy:
@@ -117,6 +122,16 @@ def main():
 
     checkpoint3_time = time.time()
 
+    ## Running species classifications 
+    # Cropping out bounding box detections of animals
+    crop_detections(options)
+
+    # Classifying cropped bounding boxes to species 
+    sp_classifier(options)
+    merge_classifier(options)
+
+    checkpoint4_time = time.time()
+
     ## Annotating and exporting to video
     if options.render_output_video:
         vis_detection_videos(options, parallel = True)
@@ -129,15 +144,17 @@ def main():
     ## Delete the frames stored in the temp folder (if delete_output_frames = T)
     if options.delete_output_frames:
         delete_temp_dir(options.frame_folder)
+        delete_temp_dir(options.cropped_images_dir)
     else:
         print('Frames of videos not deleted and saved in {}'.format(
             options.frame_folder))
 
-    checkpoint4_time = time.time()
+    checkpoint5_time = time.time()
 
     script_elapsed = runtime_txt(
         options, script_start_time, 
-        checkpoint1_time, checkpoint2_time, checkpoint3_time, checkpoint4_time)
+        checkpoint1_time, checkpoint2_time, checkpoint3_time, checkpoint4_time, 
+        checkpoint5_time)
     print('Completed! Script successfully excecuted in {}'.format(
         humanfriendly.format_timespan(script_elapsed)))
 

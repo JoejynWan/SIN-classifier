@@ -13,7 +13,7 @@ from classification.merge_classification_detection_output import main as merge_c
 def merge_classifier(options):
 
     if options.classification_json is None: 
-        filename = os.path.basename(options.full_det_frames_json)
+        filename = os.path.basename(options.roll_avg_frames_json)
         filename = os.path.splitext(filename)[0] + "_classified.json"
 
         options.classification_json = os.path.join(options.output_dir, filename)
@@ -22,11 +22,11 @@ def merge_classifier(options):
 
     merge_classifier_md(
         classification_csv_path = options.classification_csv,
-        label_names_json_path = None, #TODO
-        detection_json_path = options.full_det_frames_json,
+        label_names_json_path = options.classifier_categories, 
+        detection_json_path = options.roll_avg_frames_json,
         output_json_path = options.classification_json, 
         classifier_name = sp_classifier_name, 
-        threshold = options.rendering_confidence_threshold,
+        threshold = 0,
         datasets = None,
         queried_images_json_path = None,
         detector_output_cache_base_dir = None,
@@ -47,16 +47,21 @@ def get_arg_parser():
         help = 'Path to folder where results will be saved.'
     )
     parser.add_argument(
-        '--full_det_frames_json', type=str,
-        default = config.FULL_DET_FRAMES_JSON, 
-        help = 'Path to json file containing the frame-level results of all '
-               'MegaDetector detections.'
+        '--roll_avg_frames_json', type=str,
+        default = config.ROLL_AVG_FRAMES_JSON, 
+        help = 'Path to the roll_avg_frames_json file.'
     )
     parser.add_argument(
         '--classification_csv', type=str,
         default = config.CLASSIFICATION_CSV, 
         help = 'Path to csv file containing the species classification results '
                'for cropped bounding boxes'
+    )
+    parser.add_argument(
+        '-c', '--classifier_categories',
+        default = config.CLASSIFIER_CATEGORIES, 
+        help = 'path to JSON file for classifier categories. If not given, '
+               'classes are numbered "0", "1", "2", ...'
     )
     parser.add_argument(
         '--classification_json', type=str,
@@ -68,11 +73,6 @@ def get_arg_parser():
         '--species_model', type=str, 
         default = config.SPECIES_MODEL, 
         help = 'Path to .pt file containing the species classifier model.'
-    )
-    parser.add_argument(
-        '--rendering_confidence_threshold', type=float,
-        default = config.RENDERING_CONFIDENCE_THRESHOLD, 
-        help = 'do not render boxes with confidence below this threshold'
     )
     return parser
 

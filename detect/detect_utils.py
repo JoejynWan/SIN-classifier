@@ -325,7 +325,7 @@ def write_results(options, results, Fs,
         print('Output file saved at {}'.format(options.full_det_video_json))
 
 
-def write_frame_results(results, Fs, frame_output_file, 
+def write_frame_results(options, results, Fs, frame_output_file, 
     relative_path_base=None, mute = False):
     """
     Writes a list of detection results to a JSON output file. 
@@ -339,7 +339,7 @@ def write_frame_results(results, Fs, frame_output_file,
     frame_results = process_frame_results(
         results, Fs, 
         relative_path_base = relative_path_base,
-        detector_file = None)
+        detector_file = options.model_file)
     
     ## write frame.json file
     with open(frame_output_file, 'w') as f:

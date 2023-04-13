@@ -109,8 +109,8 @@ def rm_bad_detections(options, images):
 
 def id_object(frames, iou_threshold):
     '''
-    Function to identify individual objects based on the intersection over union (IOU) between 
-    the bounding boxes of the current and previous frame. 
+    Function to identify individual objects based on the intersection over union
+    (IOU) between the bounding boxes of the current and previous frame. 
 
     Args:
     frames: list of frames from one video
@@ -290,7 +290,9 @@ def load_detector_roll_avg(options):
 
     end = time.time()
     elapsed = end - start
-    print('Detections loaded in {}'.format(humanfriendly.format_timespan(elapsed)))
+    print('Detections loaded in {}'.format(
+        humanfriendly.format_timespan(elapsed)
+        ))
 
     return images, detector_label_map, video_paths, Fs
 
@@ -314,7 +316,8 @@ def rolling_avg(options, mute = False):
 
     for video_path in video_paths: 
         pool.apply_async(
-            rpa_video, args = (options, images, video_path), callback = callback_func
+            rpa_video, args = (options, images, video_path), 
+            callback = callback_func
         )
 
     pool.close()
@@ -328,6 +331,7 @@ def rolling_avg(options, mute = False):
     )
 
     write_frame_results(
+        options, 
         roll_avg, Fs, 
         options.roll_avg_frames_json, mute = mute)
     write_roll_avg_video_results(options, mute = mute)
@@ -349,46 +353,66 @@ def main():
 
 def get_arg_parser():
     parser = argparse.ArgumentParser(
-        description='Module to implement rolling prediction averaging on results from MegaDetector.')
-    parser.add_argument('--output_dir', type=str,
-                        default = config.OUTPUT_DIR, 
-                        help = 'Path to folder where videos will be saved.'
+        description='Module to implement rolling prediction averaging on '
+                    'results from MegaDetector.')
+    parser.add_argument(
+        '--output_dir', type=str,
+        default = config.OUTPUT_DIR, 
+        help = 'Path to folder where videos will be saved.'
     )
-    parser.add_argument('--input_dir', type=str, 
-                        default = config.INPUT_DIR, 
-                        help = 'Path to folder containing the video(s) to be processed.'
+    parser.add_argument(
+        '--input_dir', type=str, 
+        default = config.INPUT_DIR, 
+        help = 'Path to folder containing the video(s) to be processed.'
     )
-    parser.add_argument('--full_det_frames_json', type=str,
-                        default = config.FULL_DET_FRAMES_JSON, 
-                        help = 'Path to json file containing the frame-level results of all MegaDetector detections.'
+    parser.add_argument(
+        '--full_det_frames_json', type=str,
+        default = config.FULL_DET_FRAMES_JSON, 
+        help = 'Path to json file containing the frame-level results of all '
+               'MegaDetector detections.'
     )
-    parser.add_argument('--frame_folder', type = str,
-                        default = config.FRAME_FOLDER,
-                        help = 'Path to folder containing the video frames processed by det_videos.py'
+    parser.add_argument(
+        '--frame_folder', type = str,
+        default = config.FRAME_FOLDER,
+        help = 'Path to folder containing the video frames processed by '
+               'det_videos.py'
     )
-    parser.add_argument('--rendering_confidence_threshold', type=float,
-                        default = config.RENDERING_CONFIDENCE_THRESHOLD, 
-                        help = "don't render boxes with confidence below this threshold"
+    parser.add_argument(
+        '--rendering_confidence_threshold', type=float,
+        default = config.RENDERING_CONFIDENCE_THRESHOLD, 
+        help = 'Do not render boxes with confidence below this threshold'
     )
-    parser.add_argument('--rolling_avg_size', type=float,
-                        default = config.ROLLING_AVG_SIZE, 
-                        help = "Number of frames in which rolling prediction averaging will be calculated from. A larger number will remove more inconsistencies, but will cause delays in detecting an object."
+    parser.add_argument(
+        '--rolling_avg_size', type=float,
+        default = config.ROLLING_AVG_SIZE, 
+        help = 'Number of frames in which rolling prediction averaging will be '
+               'calculated from. A larger number will remove more '
+               'inconsistencies, but will cause delays in detecting an object'
     )
-    parser.add_argument('--iou_threshold', type=float,
-                        default = config.IOU_THRESHOLD, 
-                        help = "Threshold for Intersection over Union (IoU) to determine if bounding boxes are detecting the same object."
+    parser.add_argument(
+        '--iou_threshold', type=float,
+        default = config.IOU_THRESHOLD, 
+        help = 'Threshold for Intersection over Union (IoU) to determine if '
+               'bounding boxes are detecting the same object'
     )
-    parser.add_argument('--conf_threshold_buf', type=float,
-                        default = config.CONF_THRESHOLD_BUF, 
-                        help = "Buffer for the rendering confidence threshold to allow for 'poorer' detections to be included in rolling prediction averaging."
+    parser.add_argument(
+        '--conf_threshold_buf', type=float,
+        default = config.CONF_THRESHOLD_BUF, 
+        help = 'Buffer for the rendering confidence threshold to allow for '
+               '"poorer" detections to be included in rolling prediction '
+               'averaging'
     )
-    parser.add_argument('--nth_highest_confidence', type=float,
-                        default = config.NTH_HIGHEST_CONFIDENCE, 
-                        help="nth-highest-confidence frame to choose a confidence value for each video"
+    parser.add_argument(
+        '--nth_highest_confidence', type=float,
+        default = config.NTH_HIGHEST_CONFIDENCE, 
+        help = 'nth-highest-confidence frame to choose a confidence value for '
+               'each video'
     )
-    parser.add_argument('--check_accuracy', type=bool,
-                        default = config.CHECK_ACCURACY, 
-                        help = 'Whether accuracy of MegaDetector should be checked with manual ID. Folder names must contain species and quantity.'
+    parser.add_argument(
+        '--check_accuracy', type=bool,
+        default = config.CHECK_ACCURACY, 
+        help = 'Whether accuracy of MegaDetector should be checked with manual '
+               'ID. Folder names must contain species and quantity'
     )
     return parser
 
