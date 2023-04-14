@@ -161,7 +161,8 @@ def process_frame_results(results, Fs, relative_path_base=None,
         results_relative = []
         for r in results:
             r_relative = copy.copy(r)
-            r_relative['file'] = os.path.relpath(r_relative['file'], start=relative_path_base)
+            r_relative['file'] = os.path.relpath(r_relative['file'], 
+                                                 start = relative_path_base)
             results_relative.append(r_relative)
         results = results_relative
 
@@ -169,8 +170,9 @@ def process_frame_results(results, Fs, relative_path_base=None,
     unique_videos = find_unique_videos(results)
     if len(unique_videos) != len(Fs):
         raise IndexError(
-            "The number of frame rates provided do not match the number of unique videos"\
-            "({} videos and {} frame rates).".format(len(unique_videos), len(Fs)))
+            'The number of frame rates provided do not match the number of '
+            'unique videos ({} videos and {} frame rates).'.format(
+                len(unique_videos), len(Fs)))
 
     ## Build the info structure
     if info is None:

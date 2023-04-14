@@ -238,55 +238,42 @@ def load_detector_roll_avg(options):
     print("\nLoading animal detections from full_det_frames.json for RPA now...")
     
     images = []
-    detector_label_map = {}
-    video_paths = []
-    Fs = []
     with open(options.full_det_frames_json, 'rb') as f:
         
         ## Load detections with a conf >= conf_threshold_limit
-        ## Provide some buffer and accept detections with a conf threshold that is
-        ## conf_threshold_buf% less for rolling prediction averaging
+        ## Provide some buffer and accept detections with a conf threshold that 
+        ## is conf_threshold_buf% less for rolling prediction averaging
         conf_threshold_limit = options.conf_threshold_buf * options.rendering_confidence_threshold 
-        raw_images = ijson.items(f, 'images.item', use_float = True)
-        for raw_image in raw_images:
 
-            updated_detections = []
-            updated_max_conf_list = []
-            for detection in raw_image['detections']:
-                conf_score = detection['conf']
-                if conf_score >= conf_threshold_limit:
-                    updated_detections.append(detection)
-                    updated_max_conf_list.append(conf_score)
+        for key, value in ijson.kvitems(f, '', use_float = True):
+            if key == 'images':
+                for raw_image in value:
+                    updated_detections = []
+                    updated_max_conf_list = []
+                    for detection in raw_image['detections']:
+                        conf_score = detection['conf']
+                        if conf_score >= conf_threshold_limit:
+                            updated_detections.append(detection)
+                            updated_max_conf_list.append(conf_score)
 
-            if updated_max_conf_list: 
-                updated_max_conf = max(updated_max_conf_list)
-            else: #updated_max_conf list is empty
-                updated_max_conf = 0
+                    if updated_max_conf_list: 
+                        updated_max_conf = max(updated_max_conf_list)
+                    else: #updated_max_conf list is empty
+                        updated_max_conf = 0
 
-            image = {
-                'file': raw_image['file'],
-                'max_detection_conf': round(updated_max_conf, 3),
-                'detections': updated_detections
-            }
-            images.append(image)
-    
-        f.seek(0) #Reads the file twice. Not optimal, but can't think of a way around this. 
-        parse_events = ijson.parse(f, use_float = True)
-        for prefix, event, value in parse_events:
+                    image = {
+                        'file': raw_image['file'],
+                        'max_detection_conf': round(updated_max_conf, 3),
+                        'detections': updated_detections
+                    }
+                    images.append(image)
 
-            ## Load detector_label_map. Only works with 3 categories. 
-            if prefix == 'detection_categories.1':
-                detector_label_map['1'] = value
-            elif prefix == 'detection_categories.2':
-                detector_label_map['2'] = value
-            elif prefix == 'detection_categories.3':
-                detector_label_map['3'] = value
-            ## Load unique video names/path for each video
-            elif prefix == 'videos.video_names.item':
-                video_paths.append(value)
-            ## Load frame rates for each video
-            elif prefix == 'videos.frame_rates.item':
-                Fs.append(value)
+            if key == 'detection_categories': 
+                detector_label_map = value
+
+            if key == 'videos':
+                video_paths = value['video_names'] 
+                Fs = value['frame_rates']
 
     end = time.time()
     elapsed = end - start
