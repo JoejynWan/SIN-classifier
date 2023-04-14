@@ -132,7 +132,7 @@ def main():
         merge_classifier(options)
 
         detector_output = options.classification_json
-        
+
     else:
         detector_output = options.roll_avg_frames_json
 
@@ -225,7 +225,7 @@ def get_arg_parser():
                'for cropped bounding boxes'
     )
     parser.add_argument(
-        '-c', '--classifier_categories',
+        '-c', '--classifier_categories', type=str,
         default = config.CLASSIFIER_CATEGORIES, 
         help = 'path to JSON file for classifier categories. If not given, '
                'classes are numbered "0", "1", "2", ...'

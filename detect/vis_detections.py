@@ -1,5 +1,6 @@
 import os
 import cv2
+import json
 import argparse
 import tempfile
 from tqdm import tqdm
@@ -69,7 +70,8 @@ def frames_to_video(images, Fs, output_file_name):
     cv2.destroyAllWindows()
 
 
-def vis_detector_output(options, images, detector_label_map, out_dir, 
+def vis_detector_output(options, images, detector_label_map, 
+                        classification_label_map, out_dir, 
                         output_image_width = 700):
     """
     Args: 
@@ -107,7 +109,9 @@ def vis_detector_output(options, images, detector_label_map, out_dir,
             vis_utils.open_image(image_obj), output_image_width)
 
         vis_utils.render_detection_bounding_boxes(
-            entry['detections'], image, label_map=detector_label_map,
+            entry['detections'], image, label_map = detector_label_map,
+            classification_label_map = classification_label_map,
+            thickness = 3, expansion = 32, 
             confidence_threshold = options.rendering_confidence_threshold)
 
         for char in ['/', '\\', ':']:
@@ -119,7 +123,8 @@ def vis_detector_output(options, images, detector_label_map, out_dir,
     return annotated_img_paths
 
 
-def vis_detection_video(options, images, detector_label_map, fs_video):
+def vis_detection_video(options, images, detector_label_map, 
+                        classification_label_map, fs_video):
     
     video_name, video_Fs = fs_video
 
@@ -130,8 +135,9 @@ def vis_detection_video(options, images, detector_label_map, fs_video):
     video_id = video_name.replace('\\', '~')
     rendering_output_dir = os.path.join(tempdir, f'detection_frames_{video_id}')
     
-    detected_frame_files = vis_detector_output(options, 
-        images_set, detector_label_map, rendering_output_dir, 
+    detected_frame_files = vis_detector_output(
+        options, images_set, detector_label_map, classification_label_map, 
+        rendering_output_dir, 
         output_image_width = -1) #no resizing to have full resolution
     
     output_video_file = os.path.join(options.output_dir, video_name)
@@ -167,6 +173,12 @@ def vis_detection_videos(options, detector_output, parallel = True):
         '{} for {} videos...'.format(
         options.rendering_confidence_threshold, len(unique_videos)))
 
+    if options.classifier_categories is not None:
+        with open(options.classifier_categories, 'r') as f:
+            classification_label_map = json.load(f)
+    else: 
+        classification_label_map = None
+    
     fs_videos = list(zip(unique_videos, Fs))
 
     if parallel: 
@@ -181,7 +193,8 @@ def vis_detection_videos(options, detector_output, parallel = True):
         for fs_video in fs_videos:
             pool.apply_async(
                 vis_detection_video, 
-                args = (options, images, detector_label_map, fs_video),
+                args = (options, images, detector_label_map, 
+                        classification_label_map, fs_video),
                 callback = callback_func
             )
 
@@ -191,7 +204,8 @@ def vis_detection_videos(options, detector_output, parallel = True):
     else:
 
         for fs_video in tqdm(fs_videos):
-            vis_detection_video(options, images, detector_label_map, fs_video)
+            vis_detection_video(options, images, detector_label_map, 
+                                classification_label_map, fs_video)
  
 
 def main():
@@ -231,6 +245,12 @@ def get_arg_parser():
                         default = config.RENDERING_CONFIDENCE_THRESHOLD, 
                         help = 'do not render boxes with confidence below this '
                                 'threshold'
+    )
+    parser.add_argument(
+        '-c', '--classifier_categories', type=str,
+        default = config.CLASSIFIER_CATEGORIES, 
+        help = 'path to JSON file for classifier categories. If not given, '
+               'classes are numbered "0", "1", "2", ...'
     )
     return parser
 

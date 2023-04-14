@@ -235,7 +235,7 @@ def rpa_video(options, images, video_path):
 def load_detector_roll_avg(options):
 
     start = time.time()
-    print("\nLoading animal detections from full_det_frames.json for RPA now...")
+    print("\nLoading animal detections from full_det_frames.json for RPA...")
     
     images = []
     with open(options.full_det_frames_json, 'rb') as f:
@@ -291,7 +291,7 @@ def rolling_avg(options, mute = False):
     images, detector_label_map, video_paths, Fs = load_detector_roll_avg(options)
     
     ## Conduct RPA
-    print("Conducting rolling prediction averaging now...")
+    print("Conducting rolling prediction averaging...")
 
     roll_avg = []
     def callback_func(result):
