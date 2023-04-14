@@ -46,6 +46,7 @@ class VideoOptions:
     rendering_confidence_threshold_range = None
     roll_avg_acc_csv = None
 
+    run_species_classifier = False
     cropped_images_dir = None
     species_model = None
     classification_csv = None

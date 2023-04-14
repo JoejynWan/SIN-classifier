@@ -143,7 +143,7 @@ def vis_detection_video(options, images, detector_label_map, fs_video):
     return video_name
 
 
-def vis_detection_videos(options, parallel = True):
+def vis_detection_videos(options, detector_output, parallel = True):
     """
     Args:
     input_frames_anno_file = str, path to .json file describing the detections 
@@ -159,8 +159,7 @@ def vis_detection_videos(options, parallel = True):
     assert os.path.isdir(options.frame_folder),\
         '{} is not a folder path for the video frames.'.format(options.frame_folder)
 
-    images, detector_label_map, Fs = load_detector_output(
-        options.roll_avg_frames_json)
+    images, detector_label_map, Fs = load_detector_output(detector_output)
 
     unique_videos = find_unique_videos(images)
 

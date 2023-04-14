@@ -121,20 +121,26 @@ def main():
         export_fn(options, video_summ)
 
     checkpoint3_time = time.time()
-
+    
     ## Running species classifications 
-    # Cropping out bounding box detections of animals
-    crop_detections(options)
+    if options.run_species_classifier: 
+        # Cropping out bounding box detections of animals
+        crop_detections(options)
 
-    # Classifying cropped bounding boxes to species 
-    sp_classifier(options)
-    merge_classifier(options)
+        # Classifying cropped bounding boxes to species 
+        sp_classifier(options)
+        merge_classifier(options)
+
+        detector_output = options.classification_json
+        
+    else:
+        detector_output = options.roll_avg_frames_json
 
     checkpoint4_time = time.time()
 
     ## Annotating and exporting to video
     if options.render_output_video:
-        vis_detection_videos(options, parallel = True)
+        vis_detection_videos(options, detector_output, parallel = True)
 
     # If we are not checking accuracy, means we are using to sort unknown videos
     # Thus filter out the false triggers and human videos
@@ -195,6 +201,11 @@ def get_arg_parser():
         default = config.FRAME_FOLDER, 
         help = 'Folder to use for intermediate frame storage, defaults to a '
                'folder in the system temporary folder'
+    )
+    parser.add_argument(
+        '--run_species_classifier', type=bool,
+        default = config.RUN_SPECIES_CLASSIFIER, 
+        help = 'Enable/disable species classification (default false)'
     )
     parser.add_argument(
         '--cropped_images_dir', type=str,
