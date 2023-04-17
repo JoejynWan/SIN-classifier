@@ -12,9 +12,9 @@ from pickle import FALSE, TRUE
 # Functions imported from this project
 import general.config as config
 from general.shared_utils import VideoOptions
-from rolling_avg import rolling_avg
-from check_corrupt_vids import check_corrupt_dir
-from detect_utils import delete_temp_dir, write_results, find_unique_videos
+from detect.rolling_avg import rolling_avg
+from detect.check_corrupt_vids import check_corrupt_dir
+from detect.detect_utils import delete_temp_dir, write_results, find_unique_videos
 
 # Functions imported from Microsoft/CameraTraps github repository
 from detection.run_detector_batch import load_and_run_detector_batch

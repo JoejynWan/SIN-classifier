@@ -14,8 +14,8 @@ import ijson.backends.yajl2_c as ijson
 import general.config as config
 from general.shared_utils import VideoOptions, find_unique_objects 
 from general.shared_utils import process_video_obj_results, json_to_csv
-from detect_utils import default_path_from_none, write_frame_results
-from vis_detections import vis_detection_videos
+from detect.detect_utils import default_path_from_none, write_frame_results
+from detect.vis_detections import vis_detection_videos
 
 # Imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object

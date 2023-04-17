@@ -6,7 +6,7 @@ from datetime import datetime
 # Functions imported from this project
 import general.config as config
 from general.shared_utils import VideoOptions, unique
-from detect_utils import default_path_from_none
+from detect.detect_utils import default_path_from_none
 
 # Functions imported from Microsoft/CameraTraps github repository
 from detection.video_utils import find_videos

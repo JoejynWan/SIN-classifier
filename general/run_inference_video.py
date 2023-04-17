@@ -6,12 +6,12 @@ import humanfriendly
 # Functions imported from this project
 import general.config as config
 from general.shared_utils import VideoOptions
-from detect_utils import delete_temp_dir, check_output_dir
-from detect_utils import export_fn, sort_videos, default_path_from_none
-from run_det_video import video_dir_to_frames, det_frames
-from vis_detections import vis_detection_videos
-from manual_ID import manual_ID_results
-from optimise_roll_avg import true_vs_pred
+from detect.detect_utils import delete_temp_dir, check_output_dir
+from detect.detect_utils import export_fn, sort_videos, default_path_from_none
+from detect.run_det_video import video_dir_to_frames, det_frames
+from detect.vis_detections import vis_detection_videos
+from detect.manual_ID import manual_ID_results
+from detect.optimise_roll_avg import true_vs_pred
 from classify.crop_det import crop_detections
 from classify.species_classifier import sp_classifier
 from classify.merge_classifier import merge_classifier

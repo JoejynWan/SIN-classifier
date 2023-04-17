@@ -9,8 +9,8 @@ import multiprocessing as mp
 # Functions imported from this project
 import general.config as config
 from general.shared_utils import VideoOptions
-from detect_utils import delete_temp_dir, find_unique_videos
-from detect_utils import load_detector_output
+from detect.detect_utils import delete_temp_dir, find_unique_videos
+from detect.detect_utils import load_detector_output
 
 # Imported from Microsoft/CameraTraps github repository
 from visualization import visualization_utils as vis_utils

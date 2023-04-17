@@ -8,8 +8,8 @@ from itertools import product
 # Functions imported from this project
 import general.config as config
 from general.shared_utils import VideoOptions
-from detect_utils import summarise_cat, check_output_dir, default_path_from_none
-from rolling_avg import rolling_avg
+from detect.detect_utils import summarise_cat, check_output_dir, default_path_from_none
+from detect.rolling_avg import rolling_avg
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
