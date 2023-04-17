@@ -6,7 +6,7 @@ import humanfriendly
 # Functions imported from this project
 import general.config as config
 from general.shared_utils import VideoOptions
-from detect_utils import json_to_csv
+from detect_utils import sort_videos
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
@@ -14,6 +14,11 @@ from ct_utils import args_to_object
 def get_arg_parser():
     parser = argparse.ArgumentParser(
         description='Module for testing.')
+    parser.add_argument(
+        '--output_dir', type=str,
+        default = config.OUTPUT_DIR, 
+        help = 'Path to folder where results will be saved.'
+    )
     parser.add_argument(
         '--rendering_confidence_threshold', type=float,
         default = config.RENDERING_CONFIDENCE_THRESHOLD, 
@@ -41,17 +46,14 @@ def get_arg_parser():
 
 
 start = time.time()
-input = 'results\\test\\test_roll_avg_video_classified.json'
-output = 'results\\test\\test_roll_avg_video_classified.csv'
+input = 'results\\test\\test_roll_avg_videos.csv'
 
 parser = get_arg_parser()
 args = parser.parse_args()
 options = VideoOptions()
 args_to_object(args, options)
 
-video_pd = json_to_csv(options, input)
-
-video_pd.to_csv(output, index = False)
+sort_videos(options, input)
 
 end = time.time()
 elapsed = end - start

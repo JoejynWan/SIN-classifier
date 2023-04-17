@@ -7,7 +7,7 @@ import humanfriendly
 import general.config as config
 from general.shared_utils import VideoOptions
 from detect_utils import delete_temp_dir, check_output_dir
-from detect_utils import export_fn, sort_empty_human, default_path_from_none
+from detect_utils import export_fn, sort_videos, default_path_from_none
 from run_det_video import video_dir_to_frames, det_frames
 from vis_detections import vis_detection_videos
 from manual_ID import manual_ID_results
@@ -131,21 +131,23 @@ def main():
         sp_classifier(options)
         merge_classifier(options)
 
-        detector_output = options.classification_frames_json
+        detector_json = options.classification_frames_json
+        detector_csv = options.classification_video_csv
 
     else:
-        detector_output = options.roll_avg_frames_json
+        detector_json = options.roll_avg_frames_json
+        detector_csv = options.roll_avg_video_csv
 
     checkpoint4_time = time.time()
 
     ## Annotating and exporting to video
     if options.render_output_video:
-        vis_detection_videos(options, detector_output, parallel = True)
+        vis_detection_videos(options, detector_json, parallel = True)
 
     # If we are not checking accuracy, means we are using to sort unknown videos
     # Thus filter out the false triggers and human videos
     if not options.check_accuracy: 
-        sort_empty_human(options)
+        sort_videos(options, detector_csv)
 
     ## Delete the frames stored in the temp folder (if delete_output_frames = T)
     if options.delete_output_frames:

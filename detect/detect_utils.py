@@ -363,7 +363,7 @@ def summarise_cat(full_df):
        be a human category (2)
     """
 
-    video_cat = full_df[['UniqueFileName', 'Category']]
+    video_cat = full_df[['UniqueFileName', 'Category', 'SpeciesClass']]
     video_cat_sort = video_cat.sort_values(by = ['UniqueFileName', 'Category'])
     summ_cat = video_cat_sort.drop_duplicates(
         subset = ['UniqueFileName'], keep = 'first', ignore_index = True
@@ -372,11 +372,11 @@ def summarise_cat(full_df):
     return summ_cat
 
 
-def sort_empty_human(options):
+def sort_videos(options, video_csv):
 
-    print("Sorting the false negative and human videos now...")
+    print("Sorting the videos now...")
 
-    vid_results = pd.read_csv(options.roll_avg_video_csv)
+    vid_results = pd.read_csv(video_csv)
 
     if not vid_results['UniqueFileName'].any():
         vid_results['UniqueFileName'] = vid_results['FullVideoPath']
@@ -398,9 +398,15 @@ def sort_empty_human(options):
             _ = shutil.move(input_vid, false_neg_dir)
 
         elif row['Category'] == 1:
-
-            animal_dir = os.path.join(root, options.output_dir, station_dir, 
-                                      'Animal captures')
+            
+            if pd.isna(row['SpeciesClass']):
+                animal_dir = os.path.join(root, options.output_dir, station_dir, 
+                                          'Animal captures')
+            else:
+                spp_folder_name = row['SpeciesClass'].replace("_", " ")
+                animal_dir = os.path.join(root, options.output_dir, station_dir, 
+                                          spp_folder_name)
+                
             os.makedirs(animal_dir, exist_ok = True)
             _ = shutil.move(input_vid, animal_dir)
 
@@ -410,3 +416,10 @@ def sort_empty_human(options):
                                      'Non targeted')
             os.makedirs(human_dir, exist_ok = True)
             _ = shutil.move(input_vid, human_dir)
+
+        else:
+            print('Warning: There are videos that are not sorted.')
+            others_dir = os.path.join(root, options.output_dir, station_dir, 
+                                     'Not sorted')
+            os.makedirs(others_dir, exist_ok = True)
+            _ = shutil.move(input_vid, others_dir)
