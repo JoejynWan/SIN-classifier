@@ -9,8 +9,8 @@ dependencies:
   - brotli=1.0.9=h8ffe710_6
   - brotli-bin=1.0.9=h8ffe710_6
   - bzip2=1.0.8=h8ffe710_4
-  - ca-certificates=2022.6.15=h5b45459_0
-  - certifi=2022.6.15=py39hcbf5309_0
+  - ca-certificates=2022.12.7=h5b45459_0
+  - certifi=2022.12.7=pyhd8ed1ab_0
   - colorama=0.4.4=pyh9f0ad1d_0
   - cudatoolkit=11.3.1=h59b6b97_2
   - cudnn=8.1.0.77=h3e0f4f4_0
@@ -70,6 +70,7 @@ dependencies:
   - patsy=0.5.2=py39haa95532_1
   - pillow=8.4.0=py39h916092e_0
   - pip=21.3.1=pyhd8ed1ab_0
+  - psutil=5.9.0=py39h2bbff1b_0
   - py-opencv=4.5.1=py39h832f523_0
   - pyparsing=3.0.7=pyhd8ed1ab_0
   - pyqt=5.12.3=py39hcbf5309_8
@@ -113,44 +114,44 @@ dependencies:
   - zlib=1.2.11=h8ffe710_1013
   - zstd=1.5.2=h6255e5f_0
   - pip:
-    - absl-py==1.0.0
-    - astunparse==1.6.3
-    - cachetools==5.0.0
-    - cffi==1.15.1
-    - charset-normalizer==2.0.10
-    - flatbuffers==2.0
-    - gast==0.4.0
-    - google-auth==2.5.0
-    - google-auth-oauthlib==0.4.6
-    - google-pasta==0.2.0
-    - grpcio==1.43.0
-    - h5py==3.6.0
-    - idna==3.3
-    - ijson==3.1.4
-    - keras==2.7.0
-    - keras-preprocessing==1.1.2
-    - libclang==13.0.0
-    - markdown==3.3.6
-    - oauthlib==3.1.1
-    - opt-einsum==3.3.0
-    - protobuf==3.19.3
-    - pyasn1==0.4.8
-    - pyasn1-modules==0.2.8
-    - pycparser==2.21
-    - requests==2.27.1
-    - requests-oauthlib==1.3.0
-    - rsa==4.8
-    - tensorboard==2.8.0
-    - tensorboard-data-server==0.6.1
-    - tensorboard-plugin-wit==1.8.1
-    - tensorflow==2.7.0
-    - tensorflow-estimator==2.7.0
-    - tensorflow-hub==0.12.0
-    - tensorflow-io-gcs-filesystem==0.23.1
-    - termcolor==1.1.0
-    - torch-tb-profiler==0.3.1
-    - typing-extensions==4.0.1
-    - urllib3==1.26.8
-    - werkzeug==2.0.2
-    - wrapt==1.13.3
+      - absl-py==1.0.0
+      - astunparse==1.6.3
+      - cachetools==5.0.0
+      - cffi==1.15.1
+      - charset-normalizer==2.0.10
+      - flatbuffers==2.0
+      - gast==0.4.0
+      - google-auth==2.5.0
+      - google-auth-oauthlib==0.4.6
+      - google-pasta==0.2.0
+      - grpcio==1.43.0
+      - h5py==3.6.0
+      - idna==3.3
+      - ijson==3.1.4
+      - keras==2.7.0
+      - keras-preprocessing==1.1.2
+      - libclang==13.0.0
+      - markdown==3.3.6
+      - oauthlib==3.1.1
+      - opt-einsum==3.3.0
+      - protobuf==3.19.3
+      - pyasn1==0.4.8
+      - pyasn1-modules==0.2.8
+      - pycparser==2.21
+      - requests==2.27.1
+      - requests-oauthlib==1.3.0
+      - rsa==4.8
+      - tensorboard==2.8.0
+      - tensorboard-data-server==0.6.1
+      - tensorboard-plugin-wit==1.8.1
+      - tensorflow==2.7.0
+      - tensorflow-estimator==2.7.0
+      - tensorflow-hub==0.12.0
+      - tensorflow-io-gcs-filesystem==0.23.1
+      - termcolor==1.1.0
+      - torch-tb-profiler==0.3.1
+      - typing-extensions==4.0.1
+      - urllib3==1.26.8
+      - werkzeug==2.0.2
+      - wrapt==1.13.3
 prefix: C:\Users\joejyn\.conda\envs\sin_classifier
