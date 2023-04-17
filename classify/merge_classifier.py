@@ -4,7 +4,8 @@ import argparse
 
 # Functions imported from this project
 import general.config as config
-from general.shared_utils import VideoOptions, process_video_obj_results
+from general.shared_utils import VideoOptions
+from general.shared_utils import process_video_obj_results, json_to_csv
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
@@ -14,13 +15,13 @@ from classification.merge_classification_detection_output import main as \
 
 def write_classified_video_results(options):
     
-    output_data, output_images = process_video_obj_results(
+    output_data = process_video_obj_results(
         options.classification_frames_json,
         options.nth_highest_confidence,
         options.rendering_confidence_threshold
     )
     
-    # Write the output files
+    # Write json output file
     if options.classification_video_json is None:
         path = options.classification_frames_json.replace('frames', 'video')
         options.classification_video_json = path
@@ -29,6 +30,17 @@ def write_classified_video_results(options):
         json.dump(output_data, f, indent = 1)
 
     print('Output file saved at {}'.format(options.classification_video_json))
+
+    # Write csv output file
+    video_pd = json_to_csv(options, options.classification_video_json)
+
+    if options.classification_video_csv is None: 
+        path = options.classification_video_json.replace('.json', '.csv')
+        options.classification_video_csv = path
+
+    video_pd.to_csv(options.classification_video_csv, index = False)
+
+    print('Output file saved at {}'.format(options.classification_video_csv))
 
 
 def merge_classifier(options):
@@ -97,6 +109,12 @@ def get_arg_parser():
         '--classification_video_json', type=str,
         default = config.CLASSIFICATION_VIDEO_JSON, 
         help = 'Path to json file containing the video-level detection results '
+               'after merging with species classification results'
+    )
+    parser.add_argument(
+        '--classification_video_csv', type=str,
+        default = config.CLASSIFICATION_VIDEO_CSV, 
+        help = 'Path to csv file containing the video-level detection results '
                'after merging with species classification results'
     )
     parser.add_argument(

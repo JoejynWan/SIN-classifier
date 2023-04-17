@@ -6,12 +6,10 @@ import humanfriendly
 # Functions imported from this project
 import general.config as config
 from general.shared_utils import VideoOptions
+from detect_utils import json_to_csv
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
-
-from detect_utils import process_video_obj_results
-
 
 def get_arg_parser():
     parser = argparse.ArgumentParser(
@@ -27,22 +25,33 @@ def get_arg_parser():
         help = 'nth-highest-confidence frame to choose a confidence value for '
                'each video'
     )
+    parser.add_argument(
+        '--check_accuracy', type=bool,
+        default = config.CHECK_ACCURACY, 
+        help = 'Whether accuracy of MegaDetector should be checked with manual '
+               'ID. Folder names must contain species and quantity.'
+    )
+    parser.add_argument(
+        '-c', '--classifier_categories', type=str,
+        default = config.CLASSIFIER_CATEGORIES, 
+        help = 'path to JSON file for classifier categories. If not given, '
+               'classes are numbered "0", "1", "2", ...'
+    )
     return parser
 
 
 start = time.time()
-input = 'results\\test\\test_roll_avg_frames_classified.json'
-output = 'results\\test\\test_roll_avg_video_classified.json'
+input = 'results\\test\\test_roll_avg_video_classified.json'
+output = 'results\\test\\test_roll_avg_video_classified.csv'
 
 parser = get_arg_parser()
 args = parser.parse_args()
 options = VideoOptions()
 args_to_object(args, options)
 
-output_data, output_images = process_video_obj_results(input, 1, 0.2)
+video_pd = json_to_csv(options, input)
 
-with open(output,'w') as f:
-    json.dump(output_data, f, indent = 1)
+video_pd.to_csv(output, index = False)
 
 end = time.time()
 elapsed = end - start

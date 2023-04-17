@@ -328,65 +328,6 @@ def write_frame_results(options, results, Fs, frame_output_file,
 #         print('Output file saved at {}'.format(output_file))
 
 
-def json_to_csv(options, images):
-
-    video_pd = pd.DataFrame()
-    for image in images:
-        video = os.path.normpath(image['file'])
-        frame_rate = image['frame_rate']
-        detections = image['detections']
-
-        if options.check_accuracy:
-            station_sampledate, _, vid_name = video.split(os.sep)
-            uniquefile = os.path.join(
-                station_sampledate, vid_name).replace('\\','/')
-        else:
-            uniquefile = 'NA'
-
-        if not detections: #no detections, so false trigger
-
-            obj_row = {
-                'FullVideoPath': video,
-                'UniqueFileName': uniquefile, 
-                'FrameRate': frame_rate,
-                'Category': 0,
-                'DetectedObj': 'NA',
-                'MaxConf': 'NA',
-                'BboxXmin': 'NA',
-                'BboxYmin': 'NA',
-                'BboxWrel': 'NA',
-                'BboxHrel': 'NA'
-            }
-            obj_row_pd = pd.DataFrame(obj_row, index = [0])
-
-            video_pd = video_pd.append(obj_row_pd)
-
-        else: 
-            for detection in detections:
-
-                obj_row = {
-                    'FullVideoPath': video,
-                    'UniqueFileName': uniquefile, 
-                    'FrameRate': frame_rate,
-                    'Category': detection['category'],
-                    'DetectedObj': detection['object_number'],
-                    'MaxConf': detection['conf'],
-                    'BboxXmin': detection['bbox'][0],
-                    'BboxYmin': detection['bbox'][1],
-                    'BboxWrel': detection['bbox'][2],
-                    'BboxHrel': detection['bbox'][3]
-                }
-                obj_row_pd = pd.DataFrame(obj_row, index = [0])
-
-                video_pd = video_pd.append(obj_row_pd)
-    
-    options.roll_avg_video_csv = default_path_from_none(
-        options.output_dir, options.input_dir, 
-        options.roll_avg_video_csv, '_roll_avg_videos.csv'
-    )
-    video_pd.to_csv(options.roll_avg_video_csv, index = False)
-
-
 def export_fn(options, video_summ):
 
     print("Copying false negative videos to output directory now...")

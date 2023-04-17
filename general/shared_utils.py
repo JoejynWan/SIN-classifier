@@ -1,5 +1,6 @@
 import os
 import json
+import pandas as pd
 
 class VideoOptions:
 
@@ -55,6 +56,7 @@ class VideoOptions:
     classification_csv = None
     classification_frames_json = None
     classification_video_json = None
+    classification_video_csv = None
     classifier_categories = None
     image_size = 224
     batch_size = 1
@@ -183,4 +185,88 @@ def process_video_obj_results(frames_json,
     output_data = input_data
     output_data['images'] = output_images
 
-    return(output_data, output_images)
+    return output_data
+
+
+def json_to_csv(options, input_json):
+
+    # Load classifier_categories
+    if options.classifier_categories is not None:
+        with open(options.classifier_categories, 'r') as f:
+            classification_label_map = json.load(f)
+
+    # Load images from json
+    with open(input_json, 'r') as f:
+        input = json.load(f)
+    images = input['images']
+
+    video_pd = pd.DataFrame()
+    for image in images:
+        video = os.path.normpath(image['file'])
+        frame_rate = image['frame_rate']
+        detections = image['detections']
+
+        if options.check_accuracy:
+            station_sampledate, _, vid_name = video.split(os.sep)
+            uniquefile = os.path.join(
+                station_sampledate, vid_name).replace('\\','/')
+        else:
+            uniquefile = 'NA'
+
+        if not detections: #no detections, so false trigger
+
+            obj_row = {
+                'FullVideoPath': video,
+                'UniqueFileName': uniquefile, 
+                'FrameRate': frame_rate,
+                'Category': 0,
+                'MaxConf': 'NA',
+                'DetectedObj': 'NA',
+                'SpeciesClass': 'NA',
+                'SpeciesClassConf': 'NA', 
+                'BboxXmin': 'NA',
+                'BboxYmin': 'NA',
+                'BboxWrel': 'NA',
+                'BboxHrel': 'NA'
+            }
+            obj_row_pd = pd.DataFrame(obj_row, index = [0])
+            video_pd = video_pd.append(obj_row_pd)
+
+        else: 
+            for detection in detections:
+
+                if 'classifications' in detection: 
+
+                    classifications = detection['classifications']
+                    top_class = classifications[0]
+                    
+                    top_class_conf = top_class[1]
+                    
+                    top_class_key = top_class[0]
+                    if (classification_label_map is not None) and \
+                        (top_class_key in classification_label_map):
+                        top_class_name = classification_label_map[top_class_key]
+                    else:
+                        top_class_name = top_class_key
+                else:
+                    top_class_name = 'NA'
+                    top_class_conf = 'NA'
+
+                obj_row = {
+                    'FullVideoPath': video,
+                    'UniqueFileName': uniquefile, 
+                    'FrameRate': frame_rate,
+                    'Category': detection['category'],
+                    'MaxConf': detection['conf'],
+                    'DetectedObj': detection['object_number'],
+                    'SpeciesClass': top_class_name,
+                    'SpeciesClassConf': top_class_conf, 
+                    'BboxXmin': detection['bbox'][0],
+                    'BboxYmin': detection['bbox'][1],
+                    'BboxWrel': detection['bbox'][2],
+                    'BboxHrel': detection['bbox'][3]
+                }
+                obj_row_pd = pd.DataFrame(obj_row, index = [0])
+                video_pd = video_pd.append(obj_row_pd)
+    
+    return video_pd

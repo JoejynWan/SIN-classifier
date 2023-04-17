@@ -243,6 +243,12 @@ def get_arg_parser():
                'after merging with species classification results'
     )
     parser.add_argument(
+        '--classification_video_csv', type=str,
+        default = config.CLASSIFICATION_VIDEO_CSV, 
+        help = 'Path to csv file containing the video-level detection results '
+               'after merging with species classification results'
+    )
+    parser.add_argument(
         '--image_size', type=int, 
         default = config.IMAGE_SIZE,
         help = 'size of input image to model, usually 224px, but may be larger '

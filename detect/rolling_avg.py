@@ -12,10 +12,9 @@ import ijson.backends.yajl2_c as ijson
 
 # Functions imported from this project
 import general.config as config
-from general.shared_utils import VideoOptions, process_video_obj_results
-from general.shared_utils import find_unique_objects
-from detect_utils import default_path_from_none
-from detect_utils import write_frame_results, json_to_csv
+from general.shared_utils import VideoOptions, find_unique_objects 
+from general.shared_utils import process_video_obj_results, json_to_csv
+from detect_utils import default_path_from_none, write_frame_results
 from vis_detections import vis_detection_videos
 
 # Imported from Microsoft/CameraTraps github repository
@@ -288,7 +287,7 @@ def load_detector_roll_avg(options):
 
 def write_roll_avg_video_results(options, mute = False):
     
-    output_data, output_images = process_video_obj_results(
+    output_data = process_video_obj_results(
         options.roll_avg_frames_json,
         options.nth_highest_confidence,
         options.rendering_confidence_threshold
@@ -303,7 +302,13 @@ def write_roll_avg_video_results(options, mute = False):
     with open(options.roll_avg_video_json,'w') as f:
         json.dump(output_data, f, indent = 1)
     
-    json_to_csv(options, output_images)
+    video_pd = json_to_csv(options, options.roll_avg_video_json)
+
+    options.roll_avg_video_csv = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.roll_avg_video_csv, '_roll_avg_videos.csv'
+    )
+    video_pd.to_csv(options.roll_avg_video_csv, index = False)
 
     if not mute:
         print('Output file saved at {}'.format(options.roll_avg_video_json))
