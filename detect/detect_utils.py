@@ -10,7 +10,7 @@ from datetime import datetime
 from collections import defaultdict
 
 # Functions imported from this project
-from general.shared_utils import unique
+from general.shared_utils import find_unique_videos
 
 # Functions imported from Microsoft/CameraTraps github repository
 from detection.run_detector import DEFAULT_DETECTOR_LABEL_MAP, \
@@ -52,57 +52,6 @@ def is_video_file(s: str, video_extensions: Container[str] = VIDEO_EXTENSIONS
     """
     ext = os.path.splitext(s)[1]
     return ext.lower() in video_extensions
-
-
-def find_unique_videos(images, output_dir = None, from_frame_names = False):
-    """
-    Function to extract the unique videos in the frames.json file. 
-    
-    Arguments: 
-    images = list containing dictionaries of image frames.
-        Each dictionary should contain:
-            'file' = 'path/to/frame/image'
-    output_dir = str, optional. Path to save directory. 
-        If provided, folders with the names of the unique videos will be created
-        in the save directory provided
-
-    """
-
-    frames_paths = []
-    video_save_paths = []
-    for entry in images:
-
-        if from_frame_names:
-            frame_name = entry
-        else:
-            frame_name = entry['file']
-
-        frames_path = os.path.dirname(frame_name)      
-        frames_paths.append(frames_path)
-        
-        if output_dir: 
-            video_path = os.path.dirname(frames_path)
-            video_save_paths.append(os.path.join(output_dir, (video_path)))
-
-    if output_dir: 
-        [os.makedirs(make_path, exist_ok=True) for make_path in unique(video_save_paths)]
-    
-    unique_videos = unique(frames_paths)
-    
-    return unique_videos
-
-
-def find_unique_objects(images):
-    
-    obj_nums = []
-    for image in images:
-        for detection in image['detections']:
-            obj_num = detection['object_number']
-            obj_nums.append(obj_num)
-
-    unq_obj_nums = unique(obj_nums)
-
-    return unq_obj_nums
 
 
 def write_json_file(output_object, output_path):
@@ -215,12 +164,12 @@ def process_frame_results(results, Fs, relative_path_base=None,
 
 def process_video_results(frame_results, nth_highest_confidence):
     """
-    Given an API output file produced at the *frame* level, corresponding to a directory 
-    created with video_folder_to_frames, map those frame-level results back to the 
-    video level for use in Timelapse.
+    Given an API output file produced at the *frame* level, corresponding to a 
+    directory created with video_folder_to_frames, map those frame-level results 
+    back to the video level for use in Timelapse.
 
-    Function adapted from detection.video_utils.frame_results_to_video_results, except
-    frame rate is added.
+    Function adapted from detection.video_utils.frame_results_to_video_results, 
+    except frame rate is added.
     """
 
     images = frame_results['images']
@@ -255,13 +204,16 @@ def process_video_results(frame_results, nth_highest_confidence):
         # category_id = list(detection_categories.keys())[0]
         for category_id in detection_categories:
             
-            category_detections = [det for det in all_detections_this_video if det['category'] == category_id]
+            category_detections = [det for det in all_detections_this_video if \
+                                   det['category'] == category_id]
             
             # Find the nth-highest-confidence video to choose a confidence value
             if len(category_detections) > nth_highest_confidence:
                 
-                category_detections_by_confidence = sorted(category_detections, key = lambda i: i['conf'],reverse=True)
-                canonical_detection = category_detections_by_confidence[nth_highest_confidence]
+                category_detections_by_conf = sorted(category_detections, 
+                                                    key = lambda i: i['conf'],
+                                                    reverse=True)
+                canonical_detection = category_detections_by_conf[nth_highest_confidence-1]
                 canonical_detections.append(canonical_detection)
                                       
         # Prepare the output representation for this video
@@ -292,9 +244,11 @@ def write_results(options, results, Fs,
 
     Args
     - results: list of dict, each dict represents detections on one image
-    - Fs: list of int, where each int represents the frame rate for each unique video.
+    - Fs: list of int, where each int represents the frame rate for each unique 
+      video.
     - output_file: str, path to JSON output file, should end in '.json'
-    - relative_path_base: str, path to a directory as the base for relative paths
+    - relative_path_base: str, path to a directory as the base for relative 
+      paths
     """
     
     frame_results = process_frame_results(
@@ -334,9 +288,11 @@ def write_frame_results(options, results, Fs, frame_output_file,
 
     Args
     - results: list of dict, each dict represents detections on one image
-    - Fs: list of int, where each int represents the frame rate for each unique video.
+    - Fs: list of int, where each int represents the frame rate for each unique 
+      video
     - output_file: str, path to JSON output file, should end in '.json'
-    - relative_path_base: str, path to a directory as the base for relative paths
+    - relative_path_base: str, path to a directory as the base for relative 
+      paths
     """
     frame_results = process_frame_results(
         results, Fs, 
@@ -351,40 +307,25 @@ def write_frame_results(options, results, Fs, frame_output_file,
         print('Output file saved at {}'.format(frame_output_file))
 
 
-def write_video_results(output_file, 
-    frames_json_inputdata = None,  
-    frames_json_inputfile = None, 
-    nth_highest_confidence = 1, mute = False):
+# def write_video_results(output_file, 
+#     frames_json_inputdata = None,  
+#     frames_json_inputfile = None, 
+#     nth_highest_confidence = 1, mute = False):
 
-    # Load results
-    if frames_json_inputfile is not None:
-        with open(frames_json_inputfile,'r') as f:
-            frames_json_inputdata = json.load(f)
+#     # Load results
+#     if frames_json_inputfile is not None:
+#         with open(frames_json_inputfile,'r') as f:
+#             frames_json_inputdata = json.load(f)
     
-    video_results = process_video_results(frames_json_inputdata, nth_highest_confidence)
+#     video_results = process_video_results(
+#         frames_json_inputdata, nth_highest_confidence)
     
-    # Write the output file
-    with open(output_file,'w') as f:
-        json.dump(video_results, f, indent=1)
+#     # Write the output file
+#     with open(output_file,'w') as f:
+#         json.dump(video_results, f, indent=1)
     
-    if not mute:
-        print('Output file saved at {}'.format(output_file))
-
-
-def find_unique_objects(images):
-
-    all_objs = []
-    for image in images:
-        
-        detections = image['detections']
-
-        for detection in detections:
-            obj = detection['object_number']
-            all_objs.append(obj)
-
-    unique_objs = unique(all_objs)
-
-    return(unique_objs)
+#     if not mute:
+#         print('Output file saved at {}'.format(output_file))
 
 
 def json_to_csv(options, images):
@@ -397,7 +338,8 @@ def json_to_csv(options, images):
 
         if options.check_accuracy:
             station_sampledate, _, vid_name = video.split(os.sep)
-            uniquefile = os.path.join(station_sampledate, vid_name).replace('\\','/')
+            uniquefile = os.path.join(
+                station_sampledate, vid_name).replace('\\','/')
         else:
             uniquefile = 'NA'
 
@@ -445,76 +387,6 @@ def json_to_csv(options, images):
     video_pd.to_csv(options.roll_avg_video_csv, index = False)
 
 
-def write_roll_avg_video_results(options, mute = False):
-    
-    # Load frame-level results
-    with open(options.roll_avg_frames_json,'r') as f:
-        input_data = json.load(f)
-
-    images = input_data['images']
-    Fs = input_data['videos']['frame_rates']
-
-    # Find one object detection for each video
-    unique_videos = find_unique_videos(images)
-
-    output_images = []
-    for unique_video, fs in zip(unique_videos, Fs):
-        frames = [im for im in images if unique_video in im['file']]
-
-        unique_objs = find_unique_objects(frames)
-
-        all_detections_this_video = []
-        for frame in frames:
-            all_detections_this_video.extend(frame['detections'])
-        
-        # Extract only the detection with the highest confidence for each object per video
-        top_obj_detections = []
-        for unique_obj in unique_objs:
-            obj_detections = [det for det in all_detections_this_video if unique_obj in det['object_number']]
-    
-            # Find the nth-highest-confidence frame to choose a confidence value
-            if len(obj_detections) > options.nth_highest_confidence:
-                
-                obj_detections_by_conf = sorted(obj_detections, key = lambda i: i['conf'], reverse=True)
-                top_obj_detection = obj_detections_by_conf[options.nth_highest_confidence]
-
-                if top_obj_detection['conf'] >= options.rendering_confidence_threshold:
-                    top_obj_detections.append(top_obj_detection)
-
-        # Output dict for this video
-        im_out = {}
-        im_out['file'] = unique_video
-        im_out['frame_rate'] = int(float(fs))
-        im_out['detections'] = top_obj_detections
-        im_out['max_detection_conf'] = 0
-        if len(top_obj_detections) > 0:
-            confidences = [d['conf'] for d in top_obj_detections]
-            im_out['max_detection_conf'] = max(confidences)
-        
-        output_images.append(im_out)
-
-    output_data = input_data
-    output_data['images'] = output_images
-    s = json.dumps(output_data,indent=1)
-    
-    # Write the output file
-    options.roll_avg_video_json = default_path_from_none(
-        options.output_dir, options.input_dir, 
-        options.roll_avg_video_json, '_roll_avg_videos.json'
-    )
-
-    with open(options.roll_avg_video_json,'w') as f:
-        f.write(s)
-    
-    if not mute:
-        print('Output file saved at {}'.format(options.roll_avg_video_json))
-
-    json_to_csv(options, output_images)
-    
-    if not mute:
-        print('Output file saved at {}'.format(options.roll_avg_video_csv))
-
-
 def export_fn(options, video_summ):
 
     print("Copying false negative videos to output directory now...")
@@ -528,7 +400,10 @@ def export_fn(options, video_summ):
     for idx, row in tqdm(export_pd.iterrows(), total=export_pd.shape[0]):
         
         input_vid = os.path.join(root, options.input_dir, row['FullVideoPath'])
-        output_vid_dir = os.path.join(root, options.output_dir, 'false_negative_videos', os.path.dirname(row['UniqueFileName']))
+        output_vid_dir = os.path.join(
+            root, options.output_dir, 'false_negative_videos', 
+            os.path.dirname(row['UniqueFileName'])
+        )
         os.makedirs(output_vid_dir, exist_ok = True)
 
         _ = shutil.copy2(input_vid, output_vid_dir)
@@ -537,18 +412,21 @@ def export_fn(options, video_summ):
 def summarise_cat(full_df):
     """
     Summarises dataset into two columns: 'UniqueFileName' and 'Category', 
-        where each row is a unique UniqueFileName. If a UniqueFileName has multiple 
-        Categories (more than one detection or animal), they are summarised 
-        using the following rules:
+    where each row is a unique UniqueFileName. If a UniqueFileName has multiple 
+    Categories (more than one detection or animal), they are summarised 
+    using the following rules:
     1) Where there are multiples of the same category, only one is kept
-    2) Where there is an animal (1) detection, and human (2) and/or vehicle (3) detection, 
-        the video is considered to be an animal category (1)
-    3) Where there is a human (2) and vehicle (3), the video is considered to be a human category (2)
+    2) Where there is an animal (1) detection, and human (2) and/or vehicle (3) 
+       detection, the video is considered to be an animal category (1)
+    3) Where there is a human (2) and vehicle (3), the video is considered to 
+       be a human category (2)
     """
 
     video_cat = full_df[['UniqueFileName', 'Category']]
-    summ_cat = video_cat.sort_values(by = ['UniqueFileName', 'Category']).drop_duplicates(
-        subset = ['UniqueFileName'], keep = 'first', ignore_index = True)
+    video_cat_sort = video_cat.sort_values(by = ['UniqueFileName', 'Category'])
+    summ_cat = video_cat_sort.drop_duplicates(
+        subset = ['UniqueFileName'], keep = 'first', ignore_index = True
+    )
 
     return summ_cat
 
@@ -569,22 +447,25 @@ def sort_empty_human(options):
     for idx, row in tqdm(vid_results_summ.iterrows(), total=vid_results_summ.shape[0]):
 
         station_dir = os.path.dirname(row['UniqueFileName'])
-        input_vid = os.path.join(root, options.output_dir, row['UniqueFileName'])
+        input_vid = os.path.join(root,options.output_dir,row['UniqueFileName'])
         
         if row['Category'] == 0:
 
-            false_neg_dir = os.path.join(root, options.output_dir, station_dir, 'False trigger')
+            false_neg_dir = os.path.join(root, options.output_dir, station_dir, 
+                                         'False trigger')
             os.makedirs(false_neg_dir, exist_ok = True)
             _ = shutil.move(input_vid, false_neg_dir)
 
         elif row['Category'] == 1:
 
-            animal_dir = os.path.join(root, options.output_dir, station_dir, 'Animal captures')
+            animal_dir = os.path.join(root, options.output_dir, station_dir, 
+                                      'Animal captures')
             os.makedirs(animal_dir, exist_ok = True)
             _ = shutil.move(input_vid, animal_dir)
 
         elif row['Category'] in (2,3):
 
-            human_dir = os.path.join(root, options.output_dir, station_dir, 'Non targeted')
+            human_dir = os.path.join(root, options.output_dir, station_dir, 
+                                     'Non targeted')
             os.makedirs(human_dir, exist_ok = True)
             _ = shutil.move(input_vid, human_dir)

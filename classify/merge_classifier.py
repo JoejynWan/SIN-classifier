@@ -1,22 +1,44 @@
 import os
+import json
 import argparse
 
 # Functions imported from this project
 import general.config as config
-from general.shared_utils import VideoOptions
+from general.shared_utils import VideoOptions, process_video_obj_results
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
-from classification.merge_classification_detection_output import main as merge_classifier_md
+from classification.merge_classification_detection_output import main as \
+    merge_classifier_md
+
+
+def write_classified_video_results(options):
+    
+    output_data, output_images = process_video_obj_results(
+        options.classification_frames_json,
+        options.nth_highest_confidence,
+        options.rendering_confidence_threshold
+    )
+    
+    # Write the output files
+    if options.classification_video_json is None:
+        path = options.classification_frames_json.replace('frames', 'video')
+        options.classification_video_json = path
+    
+    with open(options.classification_video_json,'w') as f:
+        json.dump(output_data, f, indent = 1)
+
+    print('Output file saved at {}'.format(options.classification_video_json))
 
 
 def merge_classifier(options):
 
-    if options.classification_json is None: 
+    if options.classification_frames_json is None: 
         filename = os.path.basename(options.roll_avg_frames_json)
         filename = os.path.splitext(filename)[0] + "_classified.json"
 
-        options.classification_json = os.path.join(options.output_dir, filename)
+        options.classification_frames_json = os.path.join(
+            options.output_dir, filename)
 
     sp_classifier_name = os.path.basename(options.species_model)
 
@@ -24,7 +46,7 @@ def merge_classifier(options):
         classification_csv_path = options.classification_csv,
         label_names_json_path = options.classifier_categories, 
         detection_json_path = options.roll_avg_frames_json,
-        output_json_path = options.classification_json, 
+        output_json_path = options.classification_frames_json, 
         classifier_name = sp_classifier_name, 
         threshold = 0,
         datasets = None,
@@ -36,6 +58,8 @@ def merge_classifier(options):
         label_pos = None,
         relative_conf = None,
         typical_confidence_threshold = None)
+    
+    write_classified_video_results(options)
         
 
 def get_arg_parser():
@@ -64,10 +88,16 @@ def get_arg_parser():
                'classes are numbered "0", "1", "2", ...'
     )
     parser.add_argument(
-        '--classification_json', type=str,
-        default = config.CLASSIFICATION_JSON, 
-        help = 'Path to json file containing the detection results after '
-               'merging with species classification results'
+        '--classification_frames_json', type=str,
+        default = config.CLASSIFICATION_FRAMES_JSON, 
+        help = 'Path to json file containing the frame-level detection results '
+               'after merging with species classification results'
+    )
+    parser.add_argument(
+        '--classification_video_json', type=str,
+        default = config.CLASSIFICATION_VIDEO_JSON, 
+        help = 'Path to json file containing the video-level detection results '
+               'after merging with species classification results'
     )
     parser.add_argument(
         '--species_model', type=str, 

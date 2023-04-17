@@ -1,6 +1,7 @@
 import os 
 import copy
 import time
+import json
 import argparse
 import numpy as np
 import humanfriendly
@@ -11,9 +12,10 @@ import ijson.backends.yajl2_c as ijson
 
 # Functions imported from this project
 import general.config as config
-from general.shared_utils import VideoOptions
-from detect_utils import find_unique_objects, default_path_from_none
-from detect_utils import write_frame_results, write_roll_avg_video_results
+from general.shared_utils import VideoOptions, process_video_obj_results
+from general.shared_utils import find_unique_objects
+from detect_utils import default_path_from_none
+from detect_utils import write_frame_results, json_to_csv
 from vis_detections import vis_detection_videos
 
 # Imported from Microsoft/CameraTraps github repository
@@ -284,6 +286,30 @@ def load_detector_roll_avg(options):
     return images, detector_label_map, video_paths, Fs
 
 
+def write_roll_avg_video_results(options, mute = False):
+    
+    output_data, output_images = process_video_obj_results(
+        options.roll_avg_frames_json,
+        options.nth_highest_confidence,
+        options.rendering_confidence_threshold
+    )
+    
+    # Write the output files
+    options.roll_avg_video_json = default_path_from_none(
+        options.output_dir, options.input_dir, 
+        options.roll_avg_video_json, '_roll_avg_videos.json'
+    )
+
+    with open(options.roll_avg_video_json,'w') as f:
+        json.dump(output_data, f, indent = 1)
+    
+    json_to_csv(options, output_images)
+
+    if not mute:
+        print('Output file saved at {}'.format(options.roll_avg_video_json))
+        print('Output file saved at {}'.format(options.roll_avg_video_csv))
+
+
 def rolling_avg(options, mute = False):
     
     ## Load images from full_det_frames_json
@@ -318,9 +344,10 @@ def rolling_avg(options, mute = False):
     )
 
     write_frame_results(
-        options, 
-        roll_avg, Fs, 
-        options.roll_avg_frames_json, mute = mute)
+        options, roll_avg, Fs, 
+        options.roll_avg_frames_json, mute = mute
+    )
+    
     write_roll_avg_video_results(options, mute = mute)
 
     return roll_avg

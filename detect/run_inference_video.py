@@ -131,7 +131,7 @@ def main():
         sp_classifier(options)
         merge_classifier(options)
 
-        detector_output = options.classification_json
+        detector_output = options.classification_frames_json
 
     else:
         detector_output = options.roll_avg_frames_json
@@ -231,10 +231,16 @@ def get_arg_parser():
                'classes are numbered "0", "1", "2", ...'
     )
     parser.add_argument(
-        '--classification_json', type=str,
-        default = config.CLASSIFICATION_JSON, 
-        help = 'Path to json file containing the detection results after '
-               'merging with species classification results'
+        '--classification_frames_json', type=str,
+        default = config.CLASSIFICATION_FRAMES_JSON, 
+        help = 'Path to json file containing the frame-level detection results '
+               'after merging with species classification results'
+    )
+    parser.add_argument(
+        '--classification_video_json', type=str,
+        default = config.CLASSIFICATION_VIDEO_JSON, 
+        help = 'Path to json file containing the video-level detection results '
+               'after merging with species classification results'
     )
     parser.add_argument(
         '--image_size', type=int, 
