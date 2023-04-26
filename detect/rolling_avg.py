@@ -238,7 +238,7 @@ def load_detector_roll_avg(options):
     start = time.time()
     print("\nLoading animal detections from full_det_frames.json for RPA...")
     
-    images = []
+    images_updated = []
     with open(options.full_det_frames_json, 'rb') as f:
         
         ## Load detections with a conf >= conf_threshold_limit
@@ -246,35 +246,40 @@ def load_detector_roll_avg(options):
         ## is conf_threshold_buf% less for rolling prediction averaging
         conf_threshold_limit = options.conf_threshold_buf * options.rendering_confidence_threshold 
 
-        for key, value in ijson.kvitems(f, '', use_float = True):
-            if key == 'images':
-                for raw_image in value:
-                    updated_detections = []
-                    updated_max_conf_list = []
-                    for detection in raw_image['detections']:
-                        conf_score = detection['conf']
-                        if conf_score >= conf_threshold_limit:
-                            updated_detections.append(detection)
-                            updated_max_conf_list.append(conf_score)
+        raw_images = ijson.items(f, 'images.item', use_float = True)
+        for raw_image in raw_images: 
+            updated_detections = []
+            updated_max_conf_list = []
+            for detection in raw_image['detections']:
+                conf_score = detection['conf']
+                if conf_score >= conf_threshold_limit:
+                    updated_detections.append(detection)
+                    updated_max_conf_list.append(conf_score)
 
-                    if updated_max_conf_list: 
-                        updated_max_conf = max(updated_max_conf_list)
-                    else: #updated_max_conf list is empty
-                        updated_max_conf = 0
+            if updated_max_conf_list: 
+                updated_max_conf = max(updated_max_conf_list)
+            else: #updated_max_conf list is empty
+                updated_max_conf = 0
 
-                    image = {
-                        'file': raw_image['file'],
-                        'max_detection_conf': round(updated_max_conf, 3),
-                        'detections': updated_detections
-                    }
-                    images.append(image)
+            image_updated = {
+                'file': raw_image['file'],
+                'max_detection_conf': round(updated_max_conf, 3),
+                'detections': updated_detections
+            }
+            images_updated.append(image_updated)
 
-            if key == 'detection_categories': 
-                detector_label_map = value
+        f.seek(0)
+        detection_categories = ijson.items(f, 'detection_categories', 
+                                           use_float = True)
+        detector_label_map = list(detection_categories)[0]
 
-            if key == 'videos':
-                video_paths = value['video_names'] 
-                Fs = value['frame_rates']
+        f.seek(0)
+        video_paths = list(ijson.items(f, 'videos.video_names.item', 
+                                       use_float = True))
+
+        f.seek(0)
+        Fs = list(ijson.items(f, 'videos.frame_rates.item', 
+                              use_float = True))
 
     end = time.time()
     elapsed = end - start
@@ -282,7 +287,7 @@ def load_detector_roll_avg(options):
         humanfriendly.format_timespan(elapsed)
         ))
 
-    return images, detector_label_map, video_paths, Fs
+    return images_updated, detector_label_map, video_paths, Fs
 
 
 def write_roll_avg_video_results(options, mute = False):
@@ -329,7 +334,7 @@ def rolling_avg(options, mute = False):
         roll_avg.extend(result)
         pbar.update(1)
 
-    pool = mp.Pool(mp.cpu_count())
+    pool = mp.Pool(options.n_cores)
     pbar = tqdm(total = len(video_paths))
 
     for video_path in video_paths: 
@@ -432,6 +437,11 @@ def get_arg_parser():
         default = config.CHECK_ACCURACY, 
         help = 'Whether accuracy of MegaDetector should be checked with manual '
                'ID. Folder names must contain species and quantity'
+    )
+    parser.add_argument(
+        '--n_cores', type=int,
+        default = config.N_CORES, 
+        help = 'number of cores to use for detection and cropping (CPU only)'
     )
     return parser
 
