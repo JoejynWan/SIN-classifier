@@ -1,4 +1,5 @@
 import os
+import json
 import tempfile
 import argparse
 from uuid import uuid1
@@ -11,6 +12,17 @@ from general.shared_utils import VideoOptions
 from ct_utils import args_to_object
 from classification.crop_detections import main as crop_detections_ms
 
+
+def load_crop_log(options):
+    for file in os.listdir(options.cropped_images_dir):
+        if file.endswith(".json"):
+            crop_log_path = os.path.join(options.cropped_images_dir, file)
+
+    with open(crop_log_path, 'r') as f:
+        crop_log = json.load(f)
+
+    return(crop_log)
+    
 
 def crop_detections(options):
 

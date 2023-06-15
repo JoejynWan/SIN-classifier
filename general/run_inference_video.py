@@ -12,7 +12,7 @@ from detect.run_det_video import video_dir_to_frames, det_frames
 from detect.vis_detections import vis_detection_videos
 from detect.manual_ID import manual_ID_results
 from detect.optimise_roll_avg import true_vs_pred
-from classify.crop_det import crop_detections
+from classify.crop_det import crop_detections, load_crop_log
 from classify.species_classifier import sp_classifier
 from classify.merge_classifier import merge_classifier
 
@@ -127,12 +127,20 @@ def main():
         # Cropping out bounding box detections of animals
         crop_detections(options)
 
-        # Classifying cropped bounding boxes to species 
-        sp_classifier(options)
-        merge_classifier(options)
+        crop_log = load_crop_log(options)
+        num_crops = crop_log['num_new_crops']
+        if num_crops == 0: 
+            # Skip classifier if there are no animal crops
+            detector_json = options.roll_avg_frames_json
+            detector_csv = options.roll_avg_video_csv
 
-        detector_json = options.classification_frames_json
-        detector_csv = options.classification_video_csv
+        else:
+            # Classifying cropped bounding boxes to species 
+            sp_classifier(options)
+            merge_classifier(options)
+
+            detector_json = options.classification_frames_json
+            detector_csv = options.classification_video_csv
 
     else:
         detector_json = options.roll_avg_frames_json
