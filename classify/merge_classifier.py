@@ -50,7 +50,7 @@ def merge_classifier(options):
         filename = os.path.splitext(filename)[0] + "_classified.json"
 
         options.classification_frames_json = os.path.join(
-            options.output_dir, filename)
+            options.output_files_dir, filename)
 
     sp_classifier_name = os.path.basename(options.species_model)
 

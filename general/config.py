@@ -17,23 +17,23 @@ SPECIES_DATABASE_FILE = 'data/species_database.csv'
 RECURSIVE = True 
 N_CORES = multiprocessing.cpu_count() - 1 # No. of available cores minus 1 to not over tax the system
 
-FULL_DET_FRAMES_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_frames.json'
-FULL_DET_VIDEO_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_full_det_videos.json'
+FULL_DET_FRAMES_JSON = None #Default: 'basename(INPUT_DIR)_full_det_frames.json'
+FULL_DET_VIDEO_JSON = None #Default: 'basename(INPUT_DIR)_full_det_videos.json'
 
 RESUME_FROM_CHECKPOINT = None
-CHECKPOINT_PATH = None #Defaults to '[OUTPUT_DIR]/checkpoint_[datetime].json'
+CHECKPOINT_PATH = None #Default: 'checkpoint_[datetime].json'
 CHECKPOINT_FREQUENCY = 30000 #Set to -1 to not run any checkpointing
 
 FRAME_SAMPLE = None
 DEBUG_MAX_FRAMES = -1
 REUSE_RESULTS_IF_AVAILABLE = False
-JSON_CONFIDENCE_THRESHOLD = 0.0 # Outdated: will be overridden by rolling prediction averaging. Description: don't include boxes in the .json file with confidence below this threshold
+JSON_CONFIDENCE_THRESHOLD = 0.001 #Exclude detections in the .json file with confidence below this threshold
 
 
 ## Settings for rendering of bounding boxes over videos
 RENDER_OUTPUT_VIDEO = True
 DELETE_OUTPUT_FRAMES = True
-FRAME_FOLDER = None #Defaults to temp folder
+FRAME_FOLDER = None #Default: temp folder
 RENDERING_CONFIDENCE_THRESHOLD = 0.2 #0.8 for MDv4, 0.2 for MDv5
 
 
@@ -43,16 +43,16 @@ IOU_THRESHOLD = 0.2
 CONF_THRESHOLD_BUF = 0.7
 NTH_HIGHEST_CONFIDENCE = 1
 
-ROLL_AVG_FRAMES_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_avg_frames.json'
-ROLL_AVG_VIDEO_JSON = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_avg_videos.json'
-ROLL_AVG_VIDEO_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_roll_avg_videos.csv'
+ROLL_AVG_FRAMES_JSON = None #Default: 'basename(INPUT_DIR)_roll_avg_frames.json'
+ROLL_AVG_VIDEO_JSON = None #Default: 'basename(INPUT_DIR)_roll_avg_videos.json'
+ROLL_AVG_VIDEO_CSV = None #Default: 'basename(INPUT_DIR)_roll_avg_videos.csv'
 
 
 ## Settings for comparing MegaDetector results with manual identification results
 CHECK_ACCURACY = False
-MANUAL_ID_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_ID.csv'
-MANUAL_VS_MD_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_manual_vs_md.csv'
-SPECIES_LIST_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_species_list.csv'
+MANUAL_ID_CSV = None #Default: 'basename(INPUT_DIR)_manual_ID.csv'
+MANUAL_VS_MD_CSV = None #Default: 'basename(INPUT_DIR)_manual_vs_md.csv'
+SPECIES_LIST_CSV = None #Default: 'basename(INPUT_DIR)_species_list.csv'
 
 
 ## Settings for optimising rolling prediction averaging 
@@ -60,7 +60,7 @@ ROLLING_AVG_SIZE_RANGE = [32]
 IOU_THRESHOLD_RANGE = [0.2]
 CONF_THRESHOLD_BUF_RANGE = [0.7]
 RENDERING_CONFIDENCE_THRESHOLD_RANGE = [0.15, 0.2, 0.25, 0.3, 0.35, 0.4]
-ROLL_AVG_ACC_CSV = None #Defaults to '[OUTPUT_DIR]/basename(INPUT_DIR)_optimise_roll_avg.csv'
+ROLL_AVG_ACC_CSV = None #Default: 'basename(INPUT_DIR)_optimise_roll_avg.csv'
 
 
 ## Settings for species classifier

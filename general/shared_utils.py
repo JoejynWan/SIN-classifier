@@ -23,7 +23,7 @@ class VideoOptions:
     frame_sample = None
     debug_max_frames = -1
     reuse_results_if_available = False
-    json_confidence_threshold = 0.0 # Outdated: will be overridden by rolling prediction averaging. Description: don't include boxes in the .json file with confidence below this threshold
+    json_confidence_threshold = 0.001 
 
     render_output_video = False
     delete_output_frames = True
@@ -270,3 +270,23 @@ def json_to_csv(options, input_json):
                 video_pd = video_pd.append(obj_row_pd)
     
     return video_pd
+
+
+def default_path_from_none(output_dir, input_dir, file_path, file_suffix):
+    """
+    Creates the default path for the output files if not defined by the user.
+    Default path is based on the output_dir, input_dir, and file_suffix. 
+    """
+    if file_path is None: 
+    
+        if output_dir is None:
+            output_file_name = input_dir + file_suffix
+        
+        else:
+            input_folder_name = os.path.basename(input_dir)
+            output_file_name = os.path.join(output_dir, input_folder_name + file_suffix)
+
+    else:
+        output_file_name = file_path
+
+    return output_file_name

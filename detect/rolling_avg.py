@@ -300,7 +300,7 @@ def write_roll_avg_video_results(options, mute = False):
     
     # Write the output files
     options.roll_avg_video_json = default_path_from_none(
-        options.output_dir, options.input_dir, 
+        options.output_files_dir, options.input_dir, 
         options.roll_avg_video_json, '_roll_avg_videos.json'
     )
 
@@ -310,7 +310,7 @@ def write_roll_avg_video_results(options, mute = False):
     video_pd = json_to_csv(options, options.roll_avg_video_json)
 
     options.roll_avg_video_csv = default_path_from_none(
-        options.output_dir, options.input_dir, 
+        options.output_files_dir, options.input_dir, 
         options.roll_avg_video_csv, '_roll_avg_videos.csv'
     )
     video_pd.to_csv(options.roll_avg_video_csv, index = False)
@@ -349,7 +349,7 @@ def rolling_avg(options, mute = False):
 
     ## Write the output files
     options.roll_avg_frames_json = default_path_from_none(
-        options.output_dir, options.input_dir, 
+        options.output_files_dir, options.input_dir, 
         options.roll_avg_frames_json, '_roll_avg_frames.json'
     )
 

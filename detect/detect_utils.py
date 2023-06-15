@@ -10,7 +10,7 @@ from datetime import datetime
 from collections import defaultdict
 
 # Functions imported from this project
-from general.shared_utils import find_unique_videos
+from general.shared_utils import find_unique_videos, default_path_from_none
 
 # Functions imported from Microsoft/CameraTraps github repository
 from detection.run_detector import DEFAULT_DETECTOR_LABEL_MAP, \
@@ -33,6 +33,9 @@ def check_output_dir(options):
         
         if rewrite_input.lower() == 'n':
             sys.exit('Error: Please input the correct output directory.')
+
+    os.makedirs(options.output_dir, exist_ok=True)
+    os.makedirs(options.output_files_dir, exist_ok=True)
 
 
 def delete_temp_dir(directory):
@@ -77,26 +80,6 @@ def load_detector_output(detector_output_path):
     Fs = detector_output['videos']['frame_rates']
 
     return images, detector_label_map, Fs
-
-
-def default_path_from_none(output_dir, input_dir, file_path, file_suffix):
-    """
-    Creates the default path for the output files if not defined by the user.
-    Default path is based on the output_dir, input_dir, and file_suffix. 
-    """
-    if file_path is None: 
-    
-        if output_dir is None:
-            output_file_name = input_dir + file_suffix
-        
-        else:
-            input_folder_name = os.path.basename(input_dir)
-            output_file_name = os.path.join(output_dir, input_folder_name + file_suffix)
-
-    else:
-        output_file_name = file_path
-
-    return output_file_name
 
 
 def process_frame_results(results, Fs, relative_path_base=None,
@@ -258,7 +241,7 @@ def write_results(options, results, Fs,
     
     ## write frame.json file
     options.full_det_frames_json = default_path_from_none(
-        options.output_dir, options.input_dir, 
+        options.output_files_dir, options.input_dir, 
         options.full_det_frames_json, '_full_det_frames.json'
     )
     with open(options.full_det_frames_json, 'w') as f:
@@ -271,7 +254,7 @@ def write_results(options, results, Fs,
     video_results = process_video_results(frame_results, nth_highest_confidence)
     
     options.full_det_video_json = default_path_from_none(
-        options.output_dir, options.input_dir, 
+        options.output_files_dir, options.input_dir, 
         options.full_det_video_json, '_full_det_video.json'
     )
     with open(options.full_det_video_json, 'w') as f:

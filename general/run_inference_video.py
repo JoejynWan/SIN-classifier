@@ -5,9 +5,9 @@ import humanfriendly
 
 # Functions imported from this project
 import general.config as config
-from general.shared_utils import VideoOptions
+from general.shared_utils import VideoOptions, default_path_from_none
 from detect.detect_utils import delete_temp_dir, check_output_dir
-from detect.detect_utils import export_fn, sort_videos, default_path_from_none
+from detect.detect_utils import export_fn, sort_videos
 from detect.run_det_video import video_dir_to_frames, det_frames
 from detect.vis_detections import vis_detection_videos
 from detect.manual_ID import manual_ID_results
@@ -62,7 +62,8 @@ def runtime_txt(
             humanfriendly.format_timespan(script_elapsed))
     ]
 
-    runtime_txt_file = os.path.join(options.output_dir, 'script_runtime.txt')
+    runtime_txt_file = os.path.join(options.output_files_dir, 
+                                    'script_runtime.txt')
     with open(runtime_txt_file, 'w') as f:
         for line in lines:
             f.write(line)
@@ -84,6 +85,8 @@ def main():
     assert os.path.isdir(options.input_dir),\
         '{} is not a folder'.format(options.input_dir)
 
+    options.output_files_dir = os.path.join(options.output_dir, 
+                                            "SINClassifier_outputs")
     check_output_dir(options)
 
     ## Getting the results from manual identifications
@@ -107,13 +110,13 @@ def main():
         acc_pd, video_summ = true_vs_pred(options)
 
         options.roll_avg_acc_csv = default_path_from_none(
-            options.output_dir, options.input_dir, 
+            options.output_files_dir, options.input_dir, 
             options.roll_avg_acc_csv, '_roll_avg_acc.csv'
         )
         acc_pd.to_csv(options.roll_avg_acc_csv, index = False)
 
         options.manual_vs_md_csv = default_path_from_none(
-            options.output_dir, options.input_dir, 
+            options.output_files_dir, options.input_dir, 
             options.manual_vs_md_csv, '_manual_vs_md.csv'
         )
         video_summ.to_csv(options.manual_vs_md_csv, index = False)
@@ -304,6 +307,12 @@ def get_arg_parser():
         default = config.DEBUG_MAX_FRAMES, 
         help = 'trim to N frames for debugging (impacts model execution, not '
                'frame rendering)'
+    )
+    parser.add_argument(
+        '--json_confidence_threshold', type=float,
+        default = config.JSON_CONFIDENCE_THRESHOLD, 
+        help = 'exclude detections in the .json file with confidence below '
+                'this threshold'
     )
     parser.add_argument(
         '--check_accuracy', type=bool,

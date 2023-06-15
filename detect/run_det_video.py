@@ -130,7 +130,7 @@ def run_md(options, image_file_names, Fs, run_chunks = False):
             chunk_num = chunk_num +1
     else:
         results, checkpoint_path = checkpointing_test(options)
-
+        
         results = load_and_run_detector_batch(
             options.model_file, image_file_names,
             confidence_threshold = options.json_confidence_threshold, 
@@ -146,8 +146,6 @@ def run_md(options, image_file_names, Fs, run_chunks = False):
 
 
 def det_frames(options, run_chunks = False):
-    
-    os.makedirs(options.output_dir, exist_ok=True)
 
     image_file_names = []
     image_file_name_txt = os.path.join(options.output_dir, 
@@ -244,6 +242,10 @@ def get_arg_parser():
     parser.add_argument('--debug_max_frames', type=int,
                         default = config.DEBUG_MAX_FRAMES, 
                         help='trim to N frames for debugging (impacts model execution, not frame rendering)'
+    )
+    parser.add_argument('--json_confidence_threshold', type=float,
+                        default = config.JSON_CONFIDENCE_THRESHOLD, 
+                        help='exclude detections in the .json file with confidence below this threshold'
     )
     return parser
 

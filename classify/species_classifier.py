@@ -13,7 +13,7 @@ from classification.run_classifier import main as sp_class_md
 def sp_classifier(options):
     if options.classification_csv is None: 
         options.classification_csv = os.path.join(
-            options.output_dir, "species_classifier_crops.csv.gz")
+            options.output_files_dir, "species_classifier_crops.csv.gz")
 
     sp_class_md(
         model_path = options.species_model,
