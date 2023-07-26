@@ -162,7 +162,7 @@ def id_object(frames, iou_threshold):
     return frames
 
 
-def rpa_calc(frames, rolling_avg_size):
+def rpa_calc(frames, rolling_avg_size, num_classes):
 
     unique_objects = find_unique_objects(frames)
 
@@ -170,7 +170,8 @@ def rpa_calc(frames, rolling_avg_size):
     Q_objs = []
     for unique_object in unique_objects:
         
-        initial_deque = [[0,0,0]] * 3 #start deque with 3 "empty frames" to remove any errornous first frames
+        empty_frame = np.zeros(num_classes).tolist()
+        initial_deque = [empty_frame] * 3 #start deque with 3 "empty frames" to remove any errornous first frames
 
         Q_obj = {
             'object_number': unique_object,
@@ -220,26 +221,96 @@ def rpa_calc(frames, rolling_avg_size):
     return frames
 
 
-def rpa_video(options, images, video_path):
-    
-    images_copy = copy.deepcopy(images)
+def rpa_calc_classifications(frames, rolling_avg_size, num_classes):
 
-    frames = [image for image in images_copy if os.path.dirname(image['file']) == video_path]
+    unique_objects = find_unique_objects(frames)
     
-    frames = id_object(frames, options.iou_threshold)
+    ## Create deque to store conf for each unique object
+    Q_objs = []
+    for unique_object in unique_objects:
 
-    frames = rpa_calc(frames, options.rolling_avg_size)
+        empty_frame = np.zeros(num_classes).tolist()
+        initial_deque = [empty_frame] * 3 #start deque with 3 "empty frames" to remove any errornous first frames
+
+        Q_obj = {
+            'object_number': unique_object,
+            'object_Q': deque(initial_deque, maxlen = rolling_avg_size)
+        }
+        Q_objs.append(Q_obj)
+    
+    ## Run rpa for frames
+    for frame in frames: 
+        
+        # Pre-allocate a confidence of zero for all classes for all objects.
+        # This means that for objects without a detection in this frame, 
+        # the confidence of the classes will be set to 0. 
+        for Q_obj in Q_objs:
+            Q_obj['object_Q'].append(empty_frame)
+        
+        detections = frame['detections']
+        
+        if detections: 
+            
+            # Fill in the confidence of each detection into their respective 
+            # object deque
+            for detection in detections:
+
+                det_obj_num = detection['object_number']
+                classifications = frame['classifications']
+                print(det_obj_num)
+                print(classifications)
+                if classifications:
+                    for classification in classifications:
+                        class_cat = int(classification[0])
+                        class_conf = classification[1]
+
+                        Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
+                        Q[-1][class_cat] = class_conf
+
+            # Calculate the mean confidence for each object and replace
+            # the confidence value in the detection
+            for detection in detections: 
+                det_obj_num = detection['object_number']
+                Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
+
+                # find the rolling prediction average...
+                np_mean = np.array(Q).mean(axis = 0)
+                print(np_mean)
+                # update the conf and cat of the detection 
+                # max_conf = max(np_mean)
+                # max_index = np.where(np_mean == max_conf)[0].tolist()[0] + 1
+
+                # detection['conf'] = round(max_conf, 3)
+                # detection['category'] = str(max_index)    
 
     return frames
 
 
-def load_detector_roll_avg(options):
+def rpa_video(options, images, video_path, 
+              num_classes, species_classifications = False):
+    
+    images_copy = copy.deepcopy(images)
+
+    frames = [image for image in images_copy if os.path.dirname(image['file']) == video_path]
+    print(frames)
+    if species_classifications:
+        frames = rpa_calc_classifications(frames, options.rolling_avg_size, num_classes)
+
+    else:
+
+        frames = id_object(frames, options.iou_threshold)
+        frames = rpa_calc(frames, options.rolling_avg_size, num_classes)
+
+    return frames
+
+
+def load_detector_roll_avg(frames_json, options, species_classifications = False):
 
     start = time.time()
     print("\nLoading animal detections from full_det_frames.json for RPA...")
     
     images_updated = []
-    with open(options.full_det_frames_json, 'rb') as f:
+    with open(frames_json, 'rb') as f:
         
         ## Load detections with a conf >= conf_threshold_limit
         ## Provide some buffer and accept detections with a conf threshold that 
@@ -280,6 +351,15 @@ def load_detector_roll_avg(options):
         f.seek(0)
         Fs = list(ijson.items(f, 'videos.frame_rates.item', 
                               use_float = True))
+        
+        if species_classifications:
+            f.seek(0)
+            classification_categories = ijson.items(f, 
+                                                    'classification_categories', 
+                                                    use_float = True)
+            classification_label_map = list(classification_categories)[0]
+        else:
+            classification_label_map = None
 
     end = time.time()
     elapsed = end - start
@@ -287,7 +367,7 @@ def load_detector_roll_avg(options):
         humanfriendly.format_timespan(elapsed)
         ))
 
-    return images_updated, detector_label_map, video_paths, Fs
+    return images_updated, detector_label_map, video_paths, Fs, classification_label_map
 
 
 def write_roll_avg_video_results(options, mute = False):
@@ -320,15 +400,22 @@ def write_roll_avg_video_results(options, mute = False):
         print('Output file saved at {}'.format(options.roll_avg_video_csv))
 
 
-def rolling_avg(options, mute = False):
+def rolling_avg(frames_json, options, species_classifications = False, 
+                mute = False):
     
     ## Load images from full_det_frames_json
     ## Remove detections with conf <= conf_threshold_limit to save RAM memory
-    images, detector_label_map, video_paths, Fs = load_detector_roll_avg(options)
-    
+    images, detector_label_map, video_paths, Fs, classification_label_map = load_detector_roll_avg(
+        frames_json, options, species_classifications)
+
     ## Conduct RPA
     print("Conducting rolling prediction averaging...")
 
+    if species_classifications:
+        num_classes = len(classification_label_map)
+    else:
+        num_classes = len(detector_label_map)
+    
     roll_avg = []
     def callback_func(result):
         roll_avg.extend(result)
@@ -336,10 +423,11 @@ def rolling_avg(options, mute = False):
 
     pool = mp.Pool(options.n_cores)
     pbar = tqdm(total = len(video_paths))
-
+    
     for video_path in video_paths: 
         pool.apply_async(
-            rpa_video, args = (options, images, video_path), 
+            rpa_video, args = (options, images, video_path, num_classes, 
+                               species_classifications), 
             callback = callback_func
         )
 
@@ -370,7 +458,10 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
 
-    rolling_avg(options)
+    frames_json = options.classification_frames_json
+    options.output_files_dir = os.path.join(options.output_dir, 
+                                            "SINClassifier_outputs")
+    rolling_avg(frames_json, options, species_classifications = True)
 
     # vis_detection_videos(options)
 
@@ -442,6 +533,12 @@ def get_arg_parser():
         '--n_cores', type=int,
         default = config.N_CORES, 
         help = 'number of cores to use for detection and cropping (CPU only)'
+    )
+    parser.add_argument(
+        '--classification_frames_json', type=str,
+        default = config.CLASSIFICATION_FRAMES_JSON, 
+        help = 'Path to json file containing the frame-level detection results '
+               'after merging with species classification results'
     )
     return parser
 

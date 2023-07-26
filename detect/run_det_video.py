@@ -164,7 +164,7 @@ def det_frames(options, run_chunks = False):
     checkpoint_path = run_md(options, image_file_names, Fs, run_chunks)
 
     ## Rolling prediction average 
-    rolling_avg(options)
+    rolling_avg(options.full_det_frames_json, options)
 
     ## Delete temp files after completion
     if checkpoint_path:
