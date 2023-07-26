@@ -4,7 +4,7 @@ import argparse
 
 # Functions imported from this project
 import general.config as config
-from general.shared_utils import VideoOptions
+from general.shared_utils import VideoOptions, default_path_from_none
 from general.shared_utils import process_video_obj_results, json_to_csv
 
 # Functions imported from Microsoft/CameraTraps github repository
@@ -46,11 +46,11 @@ def write_classified_video_results(options):
 def merge_classifier(options):
 
     if options.classification_frames_json is None: 
-        filename = os.path.basename(options.roll_avg_frames_json)
-        filename = os.path.splitext(filename)[0] + "_classified.json"
 
-        options.classification_frames_json = os.path.join(
-            options.output_files_dir, filename)
+        options.classification_frames_json = default_path_from_none(
+            options.output_files_dir, options.input_dir, 
+            options.classification_frames_json, '_classified_frames.json'
+        ) 
 
     sp_classifier_name = os.path.basename(options.species_model)
 
