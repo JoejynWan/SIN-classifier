@@ -12,6 +12,7 @@ from detect.run_det_video import video_dir_to_frames, det_frames
 from detect.vis_detections import vis_detection_videos
 from detect.manual_ID import manual_ID_results
 from detect.optimise_roll_avg import true_vs_pred
+from detect.rolling_avg import rolling_avg
 from classify.crop_det import crop_detections, load_crop_log
 from classify.species_classifier import sp_classifier
 from classify.merge_classifier import merge_classifier
@@ -141,9 +142,11 @@ def main():
             # Classifying cropped bounding boxes to species 
             sp_classifier(options)
             merge_classifier(options)
+            rolling_avg(options.classification_frames_json, options, 
+                        species_classifications = True, mute = False)
 
-            detector_json = options.classification_frames_json
-            detector_csv = options.classification_video_csv
+            detector_json = options.classification_roll_avg_frames_json
+            detector_csv = options.classification_roll_avg_video_csv
 
     else:
         detector_json = options.roll_avg_frames_json

@@ -34,7 +34,6 @@ def check_output_dir(options):
         if rewrite_input.lower() == 'n':
             sys.exit('Error: Please input the correct output directory.')
 
-    os.makedirs(options.output_dir, exist_ok=True)
     os.makedirs(options.output_files_dir, exist_ok=True)
 
 
@@ -83,7 +82,8 @@ def load_detector_output(detector_output_path):
 
 
 def process_frame_results(results, Fs, relative_path_base=None,
-                          detector_file=None, info=None):
+                          detector_file=None, info=None, 
+                          classification_map=None):
     """
     Preps the results from MegaDetector for saving into the frames.json file.
     Function is adapted from detection.run_tf_detector_batch.write_results_to_file, 
@@ -131,16 +131,30 @@ def process_frame_results(results, Fs, relative_path_base=None,
             print('Warning (write_results_to_file): info struct and ' + \
                   'detector file supplied, ignoring detector file')
 
-    frame_results = {
-        'images': results,
-        'detection_categories': DEFAULT_DETECTOR_LABEL_MAP,
-        'videos':{
-            'num_videos': len(unique_videos),
-            'video_names': unique_videos,
-            'frame_rates': Fs
-        },
-        'info': info
-    }
+    if classification_map:
+        frame_results = {
+            'images': results,
+            'detection_categories': DEFAULT_DETECTOR_LABEL_MAP,
+            'videos':{
+                'num_videos': len(unique_videos),
+                'video_names': unique_videos,
+                'frame_rates': Fs
+            },
+            'info': info,
+            'classification_categories': classification_map
+        }
+
+    else:
+        frame_results = {
+            'images': results,
+            'detection_categories': DEFAULT_DETECTOR_LABEL_MAP,
+            'videos':{
+                'num_videos': len(unique_videos),
+                'video_names': unique_videos,
+                'frame_rates': Fs
+            },
+            'info': info
+        }
 
     return frame_results
 
@@ -265,7 +279,8 @@ def write_results(options, results, Fs,
 
 
 def write_frame_results(options, results, Fs, frame_output_file, 
-    relative_path_base=None, mute = False):
+                        relative_path_base=None, info = None, 
+                        classification_map = None, mute = False):
     """
     Writes a list of detection results to a JSON output file. 
 
@@ -280,7 +295,9 @@ def write_frame_results(options, results, Fs, frame_output_file,
     frame_results = process_frame_results(
         results, Fs, 
         relative_path_base = relative_path_base,
-        detector_file = options.model_file)
+        detector_file = options.model_file,
+        info = info, 
+        classification_map = classification_map)
     
     ## write frame.json file
     with open(frame_output_file, 'w') as f:

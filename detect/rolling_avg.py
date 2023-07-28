@@ -254,12 +254,12 @@ def rpa_calc_classifications(frames, rolling_avg_size, num_classes):
             # Fill in the confidence of each detection into their respective 
             # object deque
             for detection in detections:
+                
+                if 'classifications' in detection:
 
-                det_obj_num = detection['object_number']
-                classifications = frame['classifications']
-                print(det_obj_num)
-                print(classifications)
-                if classifications:
+                    det_obj_num = detection['object_number']
+                    classifications = detection['classifications']
+
                     for classification in classifications:
                         class_cat = int(classification[0])
                         class_conf = classification[1]
@@ -270,18 +270,21 @@ def rpa_calc_classifications(frames, rolling_avg_size, num_classes):
             # Calculate the mean confidence for each object and replace
             # the confidence value in the detection
             for detection in detections: 
-                det_obj_num = detection['object_number']
-                Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
 
-                # find the rolling prediction average...
-                np_mean = np.array(Q).mean(axis = 0)
-                print(np_mean)
-                # update the conf and cat of the detection 
-                # max_conf = max(np_mean)
-                # max_index = np.where(np_mean == max_conf)[0].tolist()[0] + 1
+                if 'classifications' in detection:
+                
+                    det_obj_num = detection['object_number']
+                    classifications = detection['classifications']
+                    Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
 
-                # detection['conf'] = round(max_conf, 3)
-                # detection['category'] = str(max_index)    
+                    # find the rolling prediction average...
+                    np_mean = np.array(Q).mean(axis = 0)
+
+                    # update the confidence for each class
+                    for classification in classifications:
+                        class_idx = int(classification[0])
+                        updated_conf = round(np_mean[class_idx], 3)
+                        classification[1] = updated_conf
 
     return frames
 
@@ -292,7 +295,7 @@ def rpa_video(options, images, video_path,
     images_copy = copy.deepcopy(images)
 
     frames = [image for image in images_copy if os.path.dirname(image['file']) == video_path]
-    print(frames)
+    
     if species_classifications:
         frames = rpa_calc_classifications(frames, options.rolling_avg_size, num_classes)
 
@@ -307,7 +310,7 @@ def rpa_video(options, images, video_path,
 def load_detector_roll_avg(frames_json, options, species_classifications = False):
 
     start = time.time()
-    print("\nLoading animal detections from full_det_frames.json for RPA...")
+    print("\nLoading animal detections for rolling prediction averaging...")
     
     images_updated = []
     with open(frames_json, 'rb') as f:
@@ -345,12 +348,12 @@ def load_detector_roll_avg(frames_json, options, species_classifications = False
         detector_label_map = list(detection_categories)[0]
 
         f.seek(0)
-        video_paths = list(ijson.items(f, 'videos.video_names.item', 
-                                       use_float = True))
+        videos = ijson.items(f, 'videos', use_float = True)
+        videos_dict = list(videos)[0]
 
         f.seek(0)
-        Fs = list(ijson.items(f, 'videos.frame_rates.item', 
-                              use_float = True))
+        info = ijson.items(f, 'info', use_float = True)
+        info_dict = list(info)[0]
         
         if species_classifications:
             f.seek(0)
@@ -367,37 +370,73 @@ def load_detector_roll_avg(frames_json, options, species_classifications = False
         humanfriendly.format_timespan(elapsed)
         ))
 
-    return images_updated, detector_label_map, video_paths, Fs, classification_label_map
+    return images_updated, detector_label_map, videos_dict, info_dict, classification_label_map
 
 
-def write_roll_avg_video_results(options, mute = False):
+def write_roll_avg_video_results(frames_json, videos_json, csv_json, options, 
+                                 mute = False):
     
     output_data = process_video_obj_results(
-        options.roll_avg_frames_json,
+        frames_json,
         options.nth_highest_confidence,
         options.rendering_confidence_threshold
     )
     
     # Write the output files
-    options.roll_avg_video_json = default_path_from_none(
-        options.output_files_dir, options.input_dir, 
-        options.roll_avg_video_json, '_roll_avg_videos.json'
-    )
-
-    with open(options.roll_avg_video_json,'w') as f:
+    with open(videos_json,'w') as f:
         json.dump(output_data, f, indent = 1)
     
-    video_pd = json_to_csv(options, options.roll_avg_video_json)
+    video_pd = json_to_csv(options, videos_json)
 
-    options.roll_avg_video_csv = default_path_from_none(
-        options.output_files_dir, options.input_dir, 
-        options.roll_avg_video_csv, '_roll_avg_videos.csv'
-    )
-    video_pd.to_csv(options.roll_avg_video_csv, index = False)
+    video_pd.to_csv(csv_json, index = False)
 
     if not mute:
-        print('Output file saved at {}'.format(options.roll_avg_video_json))
-        print('Output file saved at {}'.format(options.roll_avg_video_csv))
+        print('Output file saved at {}'.format(videos_json))
+        print('Output file saved at {}'.format(csv_json))
+
+
+def get_output_paths(options, species_classifications):
+
+    if species_classifications:
+        options.classification_roll_avg_frames_json = default_path_from_none(
+            options.output_files_dir, options.input_dir, 
+            options.classification_roll_avg_frames_json, 
+            '_classification_roll_avg_frames.json'
+        )
+        options.classification_roll_avg_video_json = default_path_from_none(
+            options.output_files_dir, options.input_dir, 
+            options.classification_roll_avg_video_json, 
+            '_classification_roll_avg_videos.json'
+        )
+        options.classification_roll_avg_video_csv = default_path_from_none(
+            options.output_files_dir, options.input_dir, 
+            options.classification_roll_avg_video_csv, 
+            '_classification_roll_avg_videos.csv'
+        )
+
+        frames_json = options.classification_roll_avg_frames_json
+        video_json = options.classification_roll_avg_video_json
+        video_csv = options.classification_roll_avg_video_csv
+
+    else:
+        options.roll_avg_frames_json = default_path_from_none(
+            options.output_files_dir, options.input_dir, 
+            options.roll_avg_frames_json, '_roll_avg_frames.json'
+        )
+        options.roll_avg_video_json = default_path_from_none(
+            options.output_files_dir, options.input_dir, 
+            options.roll_avg_video_json, '_roll_avg_videos.json'
+        )
+        options.roll_avg_video_csv = default_path_from_none(
+            options.output_files_dir, options.input_dir, 
+            options.roll_avg_video_csv, '_roll_avg_videos.csv'
+        )
+
+        frames_json = options.roll_avg_frames_json
+        video_json = options.roll_avg_video_json
+        video_csv = options.roll_avg_video_csv
+
+    return frames_json, video_json, video_csv
 
 
 def rolling_avg(frames_json, options, species_classifications = False, 
@@ -405,17 +444,20 @@ def rolling_avg(frames_json, options, species_classifications = False,
     
     ## Load images from full_det_frames_json
     ## Remove detections with conf <= conf_threshold_limit to save RAM memory
-    images, detector_label_map, video_paths, Fs, classification_label_map = load_detector_roll_avg(
+    images, detector_label_map, video_info, info, classification_label_map = load_detector_roll_avg(
         frames_json, options, species_classifications)
+    
+    ## Get video_paths and Fs
+    video_paths = video_info['video_names']
+    Fs = video_info['frame_rates']
 
-    ## Conduct RPA
-    print("Conducting rolling prediction averaging...")
-
+    ## Get total number of classes
     if species_classifications:
         num_classes = len(classification_label_map)
     else:
         num_classes = len(detector_label_map)
-    
+
+    print("Conducting rolling prediction averaging...")
     roll_avg = []
     def callback_func(result):
         roll_avg.extend(result)
@@ -436,17 +478,14 @@ def rolling_avg(frames_json, options, species_classifications = False,
     pbar.close()
 
     ## Write the output files
-    options.roll_avg_frames_json = default_path_from_none(
-        options.output_files_dir, options.input_dir, 
-        options.roll_avg_frames_json, '_roll_avg_frames.json'
-    )
+    frames_json, video_json, video_csv = get_output_paths(options, species_classifications)
 
-    write_frame_results(
-        options, roll_avg, Fs, 
-        options.roll_avg_frames_json, mute = mute
-    )
+    write_frame_results(options, roll_avg, Fs, frames_json, info = info, 
+                        classification_map = classification_label_map, 
+                        mute = mute)
     
-    write_roll_avg_video_results(options, mute = mute)
+    write_roll_avg_video_results(frames_json, video_json, video_csv, options, 
+                                 mute = mute)
 
     return roll_avg
 
@@ -539,6 +578,19 @@ def get_arg_parser():
         default = config.CLASSIFICATION_FRAMES_JSON, 
         help = 'Path to json file containing the frame-level detection results '
                'after merging with species classification results'
+    )
+    parser.add_argument(
+        '--classification_roll_avg_frames_json', type=str,
+        default = config.CLASSIFICATION_ROLL_AVG_FRAMES_JSON, 
+        help = 'Path to json file containing the frame-level detection results '
+               'after merging with species classification results and '
+               'conducting rolling prediction averaging'
+    )
+    parser.add_argument(
+        '-c', '--classifier_categories', type=str,
+        default = config.CLASSIFIER_CATEGORIES, 
+        help = 'path to JSON file for classifier categories. If not given, '
+               'classes are numbered "0", "1", "2", ...'
     )
     return parser
 

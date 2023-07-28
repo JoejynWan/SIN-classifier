@@ -2,10 +2,8 @@ import multiprocessing
 
 
 ## Paths of inputs and outputs and must be filled in
-INPUT_DIR = 'C:\\TempDataForSpeed\\test'
-OUTPUT_DIR = 'results\\test'
-# INPUT_DIR = 'Z:\\01_Current_Projects\\CR2005 EMMP_AECOM\\02_Camera_Trapping\\Camera_Trap_Data\\01 Raw\\20230307'
-# OUTPUT_DIR = 'Z:\\01_Current_Projects\\CR2005 EMMP_AECOM\\02_Camera_Trapping\\Camera_Trap_Data\\02 Processed\\20230207'
+INPUT_DIR = 'C:\\TempDataForSpeed\\example_test_set'
+OUTPUT_DIR = 'results\\example_test_set'
 
 
 ## Paths to required datasets
@@ -22,7 +20,7 @@ FULL_DET_VIDEO_JSON = None #Default: 'basename(INPUT_DIR)_full_det_videos.json'
 
 RESUME_FROM_CHECKPOINT = None
 CHECKPOINT_PATH = None #Default: 'checkpoint_[datetime].json'
-CHECKPOINT_FREQUENCY = 30000 #Set to -1 to not run any checkpointing
+CHECKPOINT_FREQUENCY = 60000 #Set to -1 to not run any checkpointing
 
 FRAME_SAMPLE = None
 DEBUG_MAX_FRAMES = -1
@@ -71,6 +69,9 @@ CLASSIFICATION_CSV = None
 CLASSIFICATION_FRAMES_JSON = None
 CLASSIFICATION_VIDEO_JSON = None
 CLASSIFICATION_VIDEO_CSV = None
+CLASSIFICATION_ROLL_AVG_FRAMES_JSON = None
+CLASSIFICATION_ROLL_AVG_VIDEO_JSON = None
+CLASSIFICATION_ROLL_AVG_VIDEO_CSV = None
 CLASSIFIER_CATEGORIES = 'models/SIN_SpClassifier_v1_IndextoName.json'
 IMAGE_SIZE = 224
 BATCH_SIZE = 1

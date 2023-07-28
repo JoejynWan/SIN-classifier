@@ -57,6 +57,9 @@ class VideoOptions:
     classification_frames_json = None
     classification_video_json = None
     classification_video_csv = None
+    classification_roll_avg_frames_json = None
+    classification_roll_avg_video_json = None
+    classification_roll_avg_video_csv = None
     classifier_categories = None
     image_size = 224
     batch_size = 1
