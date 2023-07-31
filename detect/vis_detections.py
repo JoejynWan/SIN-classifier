@@ -215,7 +215,8 @@ def main():
     options = VideoOptions()
     args_to_object(args, options)
 
-    vis_detection_videos(options) 
+    detector_json = options.classification_roll_avg_frames_json
+    vis_detection_videos(options, detector_json, parallel = True) 
 
 
 def get_arg_parser():
@@ -223,34 +224,44 @@ def get_arg_parser():
         description='Module to draw bounding boxes of animals on videos using '
                     'a trained MegaDetector model, where MegaDetector runs '
                     'on each frame in a video (or every Nth frame).')
-    parser.add_argument('--model_file', type=str, 
-                        default = config.MODEL_FILE, 
-                        help = 'Path to .pb MegaDetector model file.'
+    parser.add_argument(
+        '--model_file', type=str, 
+        default = config.MODEL_FILE, 
+        help = 'Path to .pb MegaDetector model file.'
     )
-    parser.add_argument('--output_dir', type=str,
-                        default = config.OUTPUT_DIR, 
-                        help = 'Path to folder where videos will be saved.'
+    parser.add_argument(
+        '--output_dir', type=str,
+        default = config.OUTPUT_DIR, 
+        help = 'Path to folder where videos will be saved.'
     )
-    parser.add_argument('--frame_folder', type = str,
-                        default = config.FRAME_FOLDER,
-                        help = 'Path to folder containing the video frames '
-                                'processed by det_videos.py'
+    parser.add_argument(
+        '--frame_folder', type = str,
+        default = config.FRAME_FOLDER,
+        help = 'Path to folder containing the video frames processed by '
+                'det_videos.py'
     )
-    parser.add_argument('--roll_avg_frames_json', type=str,
-                        default = config.ROLL_AVG_FRAMES_JSON, 
-                        help = '.json file depicting the detections for each '
-                                'frame of the video'
+    parser.add_argument(
+        '--roll_avg_frames_json', type=str,
+        default = config.ROLL_AVG_FRAMES_JSON, 
+        help = '.json file depicting the detections for each frame of the video'
     )
-    parser.add_argument('--rendering_confidence_threshold', type=float,
-                        default = config.RENDERING_CONFIDENCE_THRESHOLD, 
-                        help = 'do not render boxes with confidence below this '
-                                'threshold'
+    parser.add_argument(
+        '--rendering_confidence_threshold', type=float,
+        default = config.RENDERING_CONFIDENCE_THRESHOLD, 
+        help = 'do not render boxes with confidence below this threshold'
     )
     parser.add_argument(
         '-c', '--classifier_categories', type=str,
         default = config.CLASSIFIER_CATEGORIES, 
         help = 'path to JSON file for classifier categories. If not given, '
                'classes are numbered "0", "1", "2", ...'
+    )
+    parser.add_argument(
+        '--classification_roll_avg_frames_json', type=str,
+        default = config.CLASSIFICATION_ROLL_AVG_FRAMES_JSON, 
+        help = 'Path to json file containing the frame-level detection results '
+               'after merging with species classification results and '
+               'conducting rolling prediction averaging'
     )
     return parser
 
