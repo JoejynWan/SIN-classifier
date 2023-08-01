@@ -265,6 +265,27 @@ def get_arg_parser():
                'after merging with species classification results'
     )
     parser.add_argument(
+        '--classification_roll_avg_frames_json', type=str,
+        default = config.CLASSIFICATION_ROLL_AVG_FRAMES_JSON, 
+        help = 'Path to json file containing the frame-level detection results '
+               'after merging with species classification results and '
+               'conducting rolling prediction averaging'
+    )
+    parser.add_argument(
+        '--classification_roll_avg_video_json', type=str,
+        default = config.CLASSIFICATION_ROLL_AVG_VIDEO_JSON, 
+        help = 'Path to json file containing the video-level detection results '
+               'after merging with species classification results and '
+               'conducting rolling prediction averaging'
+    )
+    parser.add_argument(
+        '--classification_roll_avg_video_csv', type=str,
+        default = config.CLASSIFICATION_ROLL_AVG_VIDEO_CSV, 
+        help = 'Path to csv file containing the video-level detection results '
+               'after merging with species classification results and '
+               'conducting rolling prediction averaging'
+    )
+    parser.add_argument(
         '--image_size', type=int, 
         default = config.IMAGE_SIZE,
         help = 'size of input image to model, usually 224px, but may be larger '
