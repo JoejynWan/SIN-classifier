@@ -182,14 +182,7 @@ def rpa_calc(frames, rolling_avg_size, num_classes):
     ## Run rpa for frames
     for frame in frames: 
         
-        # Pre-allocate a confidence of zero for all classes for all objects.
-        # This means that for objects without a detection in this frame, 
-        # the confidence of the classes will be set to 0. 
-        for Q_obj in Q_objs:
-            Q_obj['object_Q'].append([0,0,0])
-        
         detections = frame['detections']
-
         if detections: 
             
             # Fill in the confidence of each detection into their respective 
@@ -199,8 +192,12 @@ def rpa_calc(frames, rolling_avg_size, num_classes):
                 det_conf = detection['conf']
                 det_obj_num = detection['object_number']
 
-                Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
-                Q[-1][det_cat-1] = det_conf
+                filled_frame = empty_frame.copy()
+                filled_frame[det_cat-1] = det_conf
+
+                for Q_obj in Q_objs:
+                    if Q_obj['object_number'] == det_obj_num:
+                        Q_obj['object_Q'].append(filled_frame)
 
             # Calculate the mean confidence for each object and replace
             # the confidence value in the detection
@@ -241,14 +238,7 @@ def rpa_calc_classifications(frames, rolling_avg_size, num_classes):
     ## Run rpa for frames
     for frame in frames: 
         
-        # Pre-allocate a confidence of zero for all classes for all objects.
-        # This means that for objects without a detection in this frame, 
-        # the confidence of the classes will be set to 0. 
-        for Q_obj in Q_objs:
-            Q_obj['object_Q'].append(empty_frame)
-        
         detections = frame['detections']
-        
         if detections: 
             
             # Fill in the confidence of each detection into their respective 
@@ -259,13 +249,17 @@ def rpa_calc_classifications(frames, rolling_avg_size, num_classes):
 
                     det_obj_num = detection['object_number']
                     classifications = detection['classifications']
-
+                    
+                    filled_frame = empty_frame.copy()
                     for classification in classifications:
                         class_cat = int(classification[0])
                         class_conf = classification[1]
 
-                        Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
-                        Q[-1][class_cat] = class_conf
+                        filled_frame[class_cat] = class_conf
+
+                    for Q_obj in Q_objs:
+                        if Q_obj['object_number'] == det_obj_num:
+                            Q_obj['object_Q'].append(filled_frame)
 
             # Calculate the mean confidence for each object and replace
             # the confidence value in the detection
