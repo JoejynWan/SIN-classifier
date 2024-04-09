@@ -1,185 +1,69 @@
 import os
-import time
+import shutil
 import argparse
-import humanfriendly
+import pandas as pd
+from tqdm import tqdm
 
 # Functions imported from this project
 import general.config as config
-from general.shared_utils import VideoOptions, default_path_from_none
-from detect.detect_utils import delete_temp_dir, check_output_dir, export_fn
-from detect.sort_vids import sort_videos
-from detect.run_det_video import video_dir_to_frames, det_frames
-from detect.vis_detections import vis_detection_videos
-from detect.manual_ID import manual_ID_results
-from detect.optimise_roll_avg import true_vs_pred
-from detect.rolling_avg import rolling_avg
-from classify.crop_det import crop_detections, load_crop_log
-from classify.species_classifier import sp_classifier
-from classify.merge_classifier import merge_classifier
+from general.shared_utils import VideoOptions
+from detect.detect_utils import summarise_cat
 
 # Functions imported from Microsoft/CameraTraps github repository
 from ct_utils import args_to_object
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
 
+def sort_videos(options, video_csv):
 
-def runtime_txt(
-    options, script_start_time, checkpoint1_time, checkpoint2_time, 
-    checkpoint3_time, checkpoint4_time, checkpoint5_time):
+    print("Sorting the videos now...")
 
-    ## Elapsed time for MegaDetector
-    megadetector_elapsed = checkpoint2_time - checkpoint1_time
+    vid_results = pd.read_csv(video_csv)
 
-    ## Elapsed time for visualisation
-    if options.render_output_video:
-        vis_elapsed = checkpoint5_time - checkpoint4_time
-    else:
-        vis_elapsed = 0
+    if not vid_results['UniqueFileName'].any():
+        vid_results['UniqueFileName'] = vid_results['FullVideoPath']
+    vid_results_summ = summarise_cat(vid_results)
 
-    ## Elapsed time for species classification
-    classification_elapsed = checkpoint4_time - checkpoint3_time    
+    root = os.path.abspath(os.curdir)
+    vid_results_summ = vid_results_summ.reset_index()
 
-    ## Elapsed time for manual check
-    if options.check_accuracy:
-        manual_id_elapsed = checkpoint1_time - script_start_time
-        true_vs_pred_elapsed = checkpoint3_time - checkpoint2_time
-        check_acc_elapsed = manual_id_elapsed + true_vs_pred_elapsed
-    else:
-        check_acc_elapsed = 0
-    
-    ## Total elapsed time
-    script_elapsed = time.time() - script_start_time
+    for idx, row in tqdm(vid_results_summ.iterrows(), total=vid_results_summ.shape[0]):
 
-    lines = [
-        'Runtime for MegaDetector = {}'.format(
-            humanfriendly.format_timespan(megadetector_elapsed)),
-        'Runtime for Species Classification = {}'.format(
-            humanfriendly.format_timespan(classification_elapsed)),
-        'Runtime for visualisation of bounding boxes = {}'.format(
-            humanfriendly.format_timespan(vis_elapsed)),
-        'Runtime for manual ID vs MegaDetector comparison = {}'.format(
-            humanfriendly.format_timespan(check_acc_elapsed)),
-        'Total script runtime = {}'.format(
-            humanfriendly.format_timespan(script_elapsed))
-    ]
-
-    runtime_txt_file = os.path.join(options.output_files_dir, 
-                                    'script_runtime.txt')
-    with open(runtime_txt_file, 'w') as f:
-        for line in lines:
-            f.write(line)
-            f.write('\n')
-
-    return script_elapsed
-
-
-def main(): 
-    script_start_time = time.time()
-
-    ## Process Command line arguments
-    parser = get_arg_parser()
-    args = parser.parse_args()
-    options = VideoOptions()
-    args_to_object(args, options)
-    
-    ## Check arguments
-    assert os.path.isdir(options.input_dir),\
-        '{} is not a folder'.format(options.input_dir)
-
-    options.output_files_dir = os.path.join(options.output_dir, 
-                                            "SINClassifier_outputs")
-    check_output_dir(options)
-
-    ## Getting the results from manual identifications
-    # Run this first to ensure that all species are in species_database.csv
-    if options.check_accuracy:
-        manual_ID_results(options)
-
-    checkpoint1_time = time.time()
-
-    ## Detecting subjects in each video frame using MegaDetector
-    ## Includes rolling prediction averaging across frames
-    if not options.resume_from_checkpoint:
-       video_dir_to_frames(options)
-    det_frames(options)
-    
-    checkpoint2_time = time.time()
-
-    ## Comparing results of manual identification with MegaDetector detections
-    if options.check_accuracy:
+        station_dir = os.path.dirname(row['UniqueFileName'])
+        input_vid = os.path.join(root,options.output_dir,row['UniqueFileName'])
         
-        acc_pd, video_summ = true_vs_pred(options)
+        if row['Category'] == 0:
 
-        options.roll_avg_acc_csv = default_path_from_none(
-            options.output_files_dir, options.input_dir, 
-            options.roll_avg_acc_csv, '_roll_avg_acc.csv'
-        )
-        acc_pd.to_csv(options.roll_avg_acc_csv, index = False)
+            false_neg_dir = os.path.join(root, options.output_dir, station_dir, 
+                                         'False trigger')
+            os.makedirs(false_neg_dir, exist_ok = True)
+            _ = shutil.move(input_vid, false_neg_dir)
 
-        options.manual_vs_md_csv = default_path_from_none(
-            options.output_files_dir, options.input_dir, 
-            options.manual_vs_md_csv, '_manual_vs_md.csv'
-        )
-        video_summ.to_csv(options.manual_vs_md_csv, index = False)
+        elif row['Category'] == 1:
+            
+            if pd.isna(row['SpeciesClass']):
+                animal_dir = os.path.join(root, options.output_dir, station_dir, 
+                                          'Animal captures')
+            else:
+                spp_folder_name = row['SpeciesClass'].replace("_", " ")
+                animal_dir = os.path.join(root, options.output_dir, station_dir, 
+                                          spp_folder_name)
+                
+            os.makedirs(animal_dir, exist_ok = True)
+            _ = shutil.move(input_vid, animal_dir)
 
-        export_fn(options, video_summ)
+        elif row['Category'] in (2,3):
 
-    checkpoint3_time = time.time()
-    
-    ## Running species classifications 
-    if options.run_species_classifier: 
-        # Cropping out bounding box detections of animals
-        crop_detections(options)
-
-        crop_log = load_crop_log(options)
-        num_crops = crop_log['num_new_crops']
-        if num_crops == 0: 
-            # Skip classifier if there are no animal crops
-            detector_json = options.roll_avg_frames_json
-            detector_csv = options.roll_avg_video_csv
+            human_dir = os.path.join(root, options.output_dir, station_dir, 
+                                     'Non targeted')
+            os.makedirs(human_dir, exist_ok = True)
+            _ = shutil.move(input_vid, human_dir)
 
         else:
-            # Classifying cropped bounding boxes to species 
-            sp_classifier(options)
-            merge_classifier(options)
-            rolling_avg(options.classification_frames_json, options, 
-                        species_classifications = True, mute = False)
-
-            detector_json = options.classification_roll_avg_frames_json
-            detector_csv = options.classification_roll_avg_video_csv
-
-    else:
-        detector_json = options.roll_avg_frames_json
-        detector_csv = options.roll_avg_video_csv
-
-    checkpoint4_time = time.time()
-
-    ## Annotating and exporting to video
-    if options.render_output_video:
-        vis_detection_videos(options, detector_json, parallel = True)
-
-    # If we are not checking accuracy, means we are using to sort unknown videos
-    # Thus filter out the false triggers and human videos
-    if not options.check_accuracy: 
-        sort_videos(options, detector_csv)
-
-    ## Delete the frames stored in the temp folder (if delete_output_frames = T)
-    if options.delete_output_frames:
-        delete_temp_dir(options.frame_folder)
-        delete_temp_dir(options.cropped_images_dir)
-    else:
-        print('Frames of videos not deleted and saved in {}'.format(
-            options.frame_folder))
-
-    checkpoint5_time = time.time()
-
-    script_elapsed = runtime_txt(
-        options, script_start_time, 
-        checkpoint1_time, checkpoint2_time, checkpoint3_time, checkpoint4_time, 
-        checkpoint5_time)
-    print('Completed! Script successfully excecuted in {}'.format(
-        humanfriendly.format_timespan(script_elapsed)))
-
+            print('Warning: There are videos that are not sorted.')
+            others_dir = os.path.join(root, options.output_dir, station_dir, 
+                                     'Not sorted')
+            os.makedirs(others_dir, exist_ok = True)
+            _ = shutil.move(input_vid, others_dir)
 
 def get_arg_parser():
     parser = argparse.ArgumentParser(
@@ -412,5 +296,12 @@ def get_arg_parser():
 
 
 if __name__ == '__main__':
+    
+    ## Process Command line arguments
+    parser = get_arg_parser()
+    args = parser.parse_args()
+    options = VideoOptions()
+    args_to_object(args, options)
 
-    main()
+    detector_csv = options.classification_roll_avg_video_csv
+    sort_videos(options, detector_csv)
