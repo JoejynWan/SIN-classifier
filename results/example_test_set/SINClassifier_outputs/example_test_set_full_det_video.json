@@ -1,0 +1,210 @@
+{
+ "images": [
+  {
+   "file": "CT11_20211119\\IMG_0034.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.935,
+     "bbox": [
+      0,
+      0,
+      0.3009,
+      0.9499
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.0509,
+     "bbox": [
+      0,
+      0.4236,
+      0.08719,
+      0.5152
+     ]
+    }
+   ],
+   "max_detection_conf": 0.935
+  },
+  {
+   "file": "CT11_20211119\\IMG_0042.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.976,
+     "bbox": [
+      0,
+      0.4083,
+      0.1666,
+      0.5402
+     ]
+    }
+   ],
+   "max_detection_conf": 0.976
+  },
+  {
+   "file": "CT11_20211119\\IMG_0045.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.383,
+     "bbox": [
+      0.7206,
+      0.243,
+      0.2793,
+      0.7083
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.128,
+     "bbox": [
+      0.28,
+      0.001388,
+      0.7183,
+      0.6472
+     ]
+    }
+   ],
+   "max_detection_conf": 0.383
+  },
+  {
+   "file": "CT7_20211119\\IMG_0002.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.00631,
+     "bbox": [
+      0.4884,
+      0.001388,
+      0.1273,
+      0.3861
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.963,
+     "bbox": [
+      0,
+      0,
+      0.5817,
+      0.9486
+     ]
+    }
+   ],
+   "max_detection_conf": 0.963
+  },
+  {
+   "file": "CT7_20211119\\IMG_0031.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.216,
+     "bbox": [
+      0.8379,
+      0.4222,
+      0.0324,
+      0.05555
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.00313,
+     "bbox": [
+      0.5925,
+      0.6097,
+      0.04475,
+      0.07777
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 0.00302,
+     "bbox": [
+      0.8402,
+      0.4249,
+      0.04783,
+      0.04722
+     ]
+    }
+   ],
+   "max_detection_conf": 0.216
+  },
+  {
+   "file": "CT7_20211119\\IMG_0032.AVI",
+   "frame_rate": 30,
+   "detections": [
+    {
+     "category": "1",
+     "conf": 0.162,
+     "bbox": [
+      0.8541,
+      0.2972,
+      0.02006,
+      0.02222
+     ]
+    },
+    {
+     "category": "2",
+     "conf": 0.00243,
+     "bbox": [
+      0.07716,
+      0.4041,
+      0.05555,
+      0.2
+     ]
+    },
+    {
+     "category": "3",
+     "conf": 0.00538,
+     "bbox": [
+      0.5084,
+      0.5249,
+      0.06944,
+      0.08194
+     ]
+    }
+   ],
+   "max_detection_conf": 0.162
+  }
+ ],
+ "detection_categories": {
+  "1": "animal",
+  "2": "person",
+  "3": "vehicle"
+ },
+ "videos": {
+  "num_videos": 6,
+  "video_names": [
+   "CT11_20211119\\IMG_0034.AVI",
+   "CT11_20211119\\IMG_0042.AVI",
+   "CT11_20211119\\IMG_0045.AVI",
+   "CT7_20211119\\IMG_0002.AVI",
+   "CT7_20211119\\IMG_0031.AVI",
+   "CT7_20211119\\IMG_0032.AVI"
+  ],
+  "frame_rates": [
+   "30.00030000300003",
+   "30.00030000300003",
+   "30.00030000300003",
+   "30.00030000300003",
+   "30.00030000300003",
+   "30.00030000300003"
+  ]
+ },
+ "info": {
+  "detection_completion_time": "2023-07-28 10:27:41",
+  "format_version": "1.2",
+  "detector": "md_v5a.0.0.pt",
+  "detector_metadata": {
+   "megadetector_version": "v5a.0.0",
+   "typical_detection_threshold": 0.2,
+   "conservative_detection_threshold": 0.05
+  }
+ }
+}
