@@ -8,7 +8,7 @@ from general.shared_utils import VideoOptions, default_path_from_none
 from general.shared_utils import process_video_obj_results, json_to_csv
 
 # Functions imported from Microsoft/CameraTraps github repository
-from ct_utils import args_to_object
+from md_utils.ct_utils import args_to_object
 from classification.merge_classification_detection_output import main as \
     merge_classifier_md
 

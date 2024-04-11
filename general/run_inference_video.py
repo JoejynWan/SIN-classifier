@@ -18,7 +18,7 @@ from classify.species_classifier import sp_classifier
 from classify.merge_classifier import merge_classifier
 
 # Functions imported from Microsoft/CameraTraps github repository
-from ct_utils import args_to_object
+from md_utils.ct_utils import args_to_object
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
 

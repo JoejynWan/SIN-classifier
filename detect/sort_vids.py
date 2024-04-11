@@ -10,7 +10,7 @@ from general.shared_utils import VideoOptions
 from detect.detect_utils import summarise_cat
 
 # Functions imported from Microsoft/CameraTraps github repository
-from ct_utils import args_to_object
+from md_utils.ct_utils import args_to_object
 
 
 def sort_videos(options, video_csv):

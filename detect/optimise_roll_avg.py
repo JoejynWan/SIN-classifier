@@ -12,7 +12,7 @@ from detect.detect_utils import summarise_cat, check_output_dir
 from detect.rolling_avg import rolling_avg
 
 # Functions imported from Microsoft/CameraTraps github repository
-from ct_utils import args_to_object
+from md_utils.ct_utils import args_to_object
 
 
 def replace_pos_neg_cat(cat_data, positive_cat, negative_cat):

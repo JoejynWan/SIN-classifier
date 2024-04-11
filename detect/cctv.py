@@ -4,7 +4,7 @@ from PIL import Image
 from tqdm import tqdm
 
 from detection.run_detector import is_gpu_available, load_detector
-from visualization import visualization_utils as vis_utils
+from md_visualization import visualization_utils as vis_utils
 
 ## Variables
 model_file = 'models/md_v5a.0.0.pt'

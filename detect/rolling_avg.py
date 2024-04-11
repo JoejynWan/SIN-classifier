@@ -18,7 +18,7 @@ from detect.detect_utils import default_path_from_none, write_frame_results
 from detect.vis_detections import vis_detection_videos
 
 # Imported from Microsoft/CameraTraps github repository
-from ct_utils import args_to_object
+from md_utils.ct_utils import args_to_object
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
 

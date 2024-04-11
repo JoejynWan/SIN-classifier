@@ -6,7 +6,7 @@ import general.config as config
 from general.shared_utils import VideoOptions
 
 # Functions imported from Microsoft/CameraTraps github repository
-from ct_utils import args_to_object
+from md_utils.ct_utils import args_to_object
 from classification.run_classifier import main as sp_class_md
 
 

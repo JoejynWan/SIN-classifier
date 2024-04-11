@@ -18,7 +18,7 @@ from detect.detect_utils import delete_temp_dir, write_results, find_unique_vide
 # Functions imported from Microsoft/CameraTraps github repository
 from detection.run_detector_batch import load_and_run_detector_batch
 from detection.video_utils import video_folder_to_frames
-from ct_utils import args_to_object
+from md_utils.ct_utils import args_to_object
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #set to ignore INFO messages
 

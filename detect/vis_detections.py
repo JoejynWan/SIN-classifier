@@ -13,10 +13,10 @@ from detect.detect_utils import delete_temp_dir, find_unique_videos
 from detect.detect_utils import load_detector_output
 
 # Imported from Microsoft/CameraTraps github repository
-from visualization import visualization_utils as vis_utils
+from md_visualization import visualization_utils as vis_utils
 from data_management.annotations.annotation_constants import (
     detector_bbox_category_id_to_name)  # here id is int
-from ct_utils import args_to_object
+from md_utils.ct_utils import args_to_object
 
 #%% Constants
 # Set to ignore INFO messages

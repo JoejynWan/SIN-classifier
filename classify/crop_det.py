@@ -9,7 +9,7 @@ import general.config as config
 from general.shared_utils import VideoOptions
 
 # Functions imported from Microsoft/CameraTraps github repository
-from ct_utils import args_to_object
+from md_utils.ct_utils import args_to_object
 from classification.crop_detections import main as crop_detections_ms
 
 

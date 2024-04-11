@@ -10,7 +10,7 @@ from detect.detect_utils import default_path_from_none
 
 # Functions imported from Microsoft/CameraTraps github repository
 from detection.video_utils import find_videos
-from ct_utils import args_to_object
+from md_utils.ct_utils import args_to_object
 
 
 def species_list(options, manual_csv):
