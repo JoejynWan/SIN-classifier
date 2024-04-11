@@ -197,18 +197,16 @@ def rpa_calc(frames, rolling_avg_size, num_classes):
 
                 for Q_obj in Q_objs:
                     if Q_obj['object_number'] == det_obj_num:
-                        Q_obj['object_Q'].append(filled_frame)
 
-            # Calculate the mean confidence for each object and replace
-            # the confidence value in the detection
-            for detection in detections: 
-                det_obj_num = detection['object_number']
-                Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
+                        # find the rolling prediction average...
+                        temp_Q = Q_obj['object_Q'].copy()
+                        temp_Q.append(filled_frame)
+                        np_mean = np.array(temp_Q).mean(axis = 0)
 
-                # find the rolling prediction average...
-                np_mean = np.array(Q).mean(axis = 0)
+                        # update the confidence for each class in Q_obj
+                        Q_obj['object_Q'].append(np_mean.tolist())
 
-                # update the conf and cat of the detection 
+                # update the conf and cat of the detection in frames
                 max_conf = max(np_mean)
                 max_index = np.where(np_mean == max_conf)[0].tolist()[0] + 1
 
@@ -241,8 +239,6 @@ def rpa_calc_classifications(frames, rolling_avg_size, num_classes):
         detections = frame['detections']
         if detections: 
             
-            # Fill in the confidence of each detection into their respective 
-            # object deque
             for detection in detections:
                 
                 if 'classifications' in detection:
@@ -250,6 +246,7 @@ def rpa_calc_classifications(frames, rolling_avg_size, num_classes):
                     det_obj_num = detection['object_number']
                     classifications = detection['classifications']
                     
+                    # Get the confidence of each species class
                     filled_frame = empty_frame.copy()
                     for classification in classifications:
                         class_cat = int(classification[0])
@@ -259,26 +256,44 @@ def rpa_calc_classifications(frames, rolling_avg_size, num_classes):
 
                     for Q_obj in Q_objs:
                         if Q_obj['object_number'] == det_obj_num:
-                            Q_obj['object_Q'].append(filled_frame)
+                            
+                            # find the rolling prediction average...
+                            temp_Q = Q_obj['object_Q'].copy()
+                            temp_Q.append(filled_frame)
+                            np_mean = np.array(temp_Q).mean(axis = 0)
 
-            # Calculate the mean confidence for each object and replace
-            # the confidence value in the detection
-            for detection in detections: 
+                            # update the confidence for each class in Q_obj
+                            Q_obj['object_Q'].append(np_mean.tolist())
 
-                if 'classifications' in detection:
-                
-                    det_obj_num = detection['object_number']
-                    classifications = detection['classifications']
-                    Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
-
-                    # find the rolling prediction average...
-                    np_mean = np.array(Q).mean(axis = 0)
-
-                    # update the confidence for each class
+                    # update the confidence for each class in frames
                     for classification in classifications:
                         class_idx = int(classification[0])
                         updated_conf = round(np_mean[class_idx], 3)
-                        classification[1] = updated_conf
+                        classification[1] = updated_conf                            
+
+            # Calculate the mean confidence for each object and replace
+            # the confidence value in the detection
+            # for detection in detections: 
+
+            #     if 'classifications' in detection:
+                
+            #         det_obj_num = detection['object_number']
+            #         classifications = detection['classifications']
+            #         Q = [Q_obj['object_Q'] for Q_obj in Q_objs if Q_obj['object_number'] == det_obj_num][0]
+
+            #         # find the rolling prediction average...
+            #         np_mean = np.array(Q).mean(axis = 0)
+
+            #         # update the confidence for each class in Q_obj
+            #         for Q_obj in Q_objs:
+            #             if Q_obj['object_number'] == det_obj_num:
+            #                 Q_obj['object_Q'][-1] = np_mean.tolist()
+
+            #         # update the confidence for each class in frames
+            #         for classification in classifications:
+            #             class_idx = int(classification[0])
+            #             updated_conf = round(np_mean[class_idx], 3)
+            #             classification[1] = updated_conf
 
     return frames
 
