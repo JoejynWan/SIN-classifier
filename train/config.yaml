@@ -1,0 +1,5 @@
+input_dir: C:/TempDataForSpeed/example_test_set
+output_dir: D:/CNN_Animal_ID/SIN-classifier/results/example_test_set
+
+#
+frame_dir: Null # Path to save frames from videos. Defaults to temp folder. 
