@@ -2,6 +2,7 @@ import os
 import cv2
 import yaml
 import torch
+from tqdm import tqdm
 from munch import Munch
 from pathlib import Path
 import supervision as sv
@@ -54,12 +55,13 @@ def main(
 
     # Detect for animals with MegaDetector and crop out detections
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    print("Running detection/classification on {}".format(DEVICE))
     
     detection_model = pw_detection.MegaDetectorV5(device=DEVICE, pretrained=True)
     trans_det = pw_trans.MegaDetector_v5_Transform(target_size=detection_model.IMAGE_SIZE,
                                                    stride=detection_model.STRIDE)
 
-    for video_path in find_videos(conf.input_dir, recursive=True):
+    for video_path in tqdm(find_videos(conf.input_dir, recursive=True)):
 
         for frame_number, frame in enumerate(sv.get_video_frames_generator(source_path=video_path)):
             
