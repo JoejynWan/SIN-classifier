@@ -23,7 +23,11 @@ loader = DataLoader(dataset, batch_size=32, shuffle=False,
                     pin_memory=True, num_workers=0, drop_last=False)
 results = detection_model.batch_image_detection(loader)
 
-pw_utils.save_detection_images(results, 'results\\TrainVal_20221012_Trial\\Images')
-pw_utils.save_crop_images(results, 'results\\TrainVal_20221012_Trial\\Crops')
+pw_utils.save_detection_images(results, 
+                               output_dir='results\\TrainVal_20221012_Trial\\Images', 
+                               input_dir=tgt_folder_path)
+pw_utils.save_crop_images(results, 
+                          output_dir='results\\TrainVal_20221012_Trial\\Crops', 
+                          input_dir=tgt_folder_path)
 pw_utils.save_detection_json(results, 'results\\TrainVal_20221012_Trial\\batch_output.json',
                              categories=detection_model.CLASS_NAMES)

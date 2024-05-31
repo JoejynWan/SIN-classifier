@@ -12,6 +12,8 @@ depreciated/
 classify/__pycache__/*
 detect/__pycache__/*
 general/__pycache__/*
+sc_utils/__pycache__/*
+train/__pycache__/*
 
 ## Keep Species_Database.csv
 !data/Species_Database.csv
