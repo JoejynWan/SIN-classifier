@@ -1,5 +1,0 @@
-Runtime for MegaDetector = 2 minutes and 8.22 seconds
-Runtime for Species Classification = 23.57 seconds
-Runtime for visualisation of bounding boxes = 20.63 seconds
-Runtime for manual ID vs MegaDetector comparison = 0 seconds
-Total script runtime = 2 minutes and 52.43 seconds
