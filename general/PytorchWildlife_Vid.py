@@ -13,24 +13,25 @@ from PytorchWildlife.models import classification as pw_classification
 from PytorchWildlife.data import transforms as pw_trans
 
 
-def callback(frame: np.ndarray, index: int) -> np.ndarray:
+def callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
     """
     Callback function to process each video frame
     """
-    ## Run MegaDetector
-    results_det = detection_model.single_image_detection(trans_det(frame), frame.shape, index)
+    ## Run MegaDetector with tracking and smoothering
+    result = detection_model.single_image_detection(img_path=frame, img_id=frame_id)
+    result["detections"] = tracker.update_with_detections(result["detections"])
+    result["detections"] = smoother.update_with_detections(result["detections"])
     
+    ## Labels from MegaDetector
     labels = []
     class_names = []
     confs = []
-    if results_det["detections"].xyxy.size != 0:
-        class_id = results_det["detections"].class_id[0]
-        class_name = detection_model.CLASS_NAMES[class_id]
-        conf = results_det["detections"].confidence[0]
-
-        labels.append("{} {:.2f}".format(class_name, conf))
-        class_names.append(class_name)
-        confs.append(conf)
+    if result["detections"].xyxy.size != 0:
+        for class_id, conf in zip(result["detections"].class_id, result["detections"].confidence):
+            class_name = detection_model.CLASS_NAMES[class_id]
+            labels.append("{} {:.2f}".format(class_name, conf))
+            class_names.append(class_name)
+            confs.append(conf)
     
     # ## Labels from Classifier
     # labels = []
@@ -39,7 +40,7 @@ def callback(frame: np.ndarray, index: int) -> np.ndarray:
     #     results_clf = classification_model.single_image_classification(trans_clf(Image.fromarray(cropped_image)))
     #     labels.append("{} {:.2f}".format(results_clf["prediction"], results_clf["confidence"]))
     
-    annotated_frame = box_annotator.annotate(scene=frame, detections=results_det["detections"], 
+    annotated_frame = box_annotator.annotate(scene=frame, detections=result["detections"], 
                                              labels=labels)
     
     return annotated_frame, class_names, confs
@@ -49,7 +50,7 @@ def process_video(
     source_path: str,
     target_dir: str,
     callback: Callable[[np.ndarray, int], np.ndarray],
-    target_fps: int = 1,
+    stride: int = 1,
     codec: str = "mp4v"
     ):
     """
@@ -67,15 +68,6 @@ def process_video(
             Codec used to encode the processed video. Default is "avc1".
     """
     
-    ## Determine the stride from target_fps
-    source_video_info = sv.VideoInfo.from_video_path(video_path=source_path)
-    
-    if source_video_info.fps > target_fps:
-        stride = int(source_video_info.fps / target_fps)
-        source_video_info.fps = target_fps
-    else:
-        stride = 1
-    
     ## Run the callback
     result_frames = []
     class_names_all = []
@@ -83,7 +75,8 @@ def process_video(
     for index, frame in enumerate(
         sv.get_video_frames_generator(source_path=source_path, stride=stride)
     ):
-        result_frame, class_names, confs = callback(frame, index)
+        frame_id = Path(source_path).stem + "_frame" + str(index).zfill(3)
+        result_frame, class_names, confs = callback(frame, frame_id = frame_id)
         result_frames.append(result_frame)
         class_names_all.append(class_names)
         confs_all.append(confs)
@@ -116,18 +109,32 @@ TARGET_FPS = 100
 CODEC = "mp4v"
 
 ## Prep models and settings
-detection_model = pw_detection.MegaDetectorV5(device=DEVICE, pretrained=True)
-trans_det = pw_trans.MegaDetector_v5_Transform(target_size=detection_model.IMAGE_SIZE,
-                                               stride=detection_model.STRIDE)
+detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights="../MD_weights/MDV6b-yolov9c.pt", pretrained=True)
+# trans_det = pw_trans.MegaDetector_v5_Transform(target_size=detection_model.IMAGE_SIZE,
+#                                                stride=detection_model.STRIDE)
 
 # classification_model = pw_classification.AI4GAmazonRainforest(device=DEVICE, pretrained=True)
 # trans_clf = pw_trans.Classification_Inference_Transform(target_size=224)
-
-box_annotator = sv.BoxAnnotator(thickness=2, text_thickness=2, text_scale=.5)
 
 ## Run detection, classification, visualisation, and sorting of videos
 video_files = glob.glob(os.path.join(SOURCE_VIDEO_DIR, '**/*.AVI'), recursive=True)
 
 for video_file in tqdm(video_files):
+    
+    ## Determine the stride from target_fps
+    source_video_info = sv.VideoInfo.from_video_path(video_path=video_file)
+    
+    if source_video_info.fps > TARGET_FPS:
+        stride = int(source_video_info.fps / TARGET_FPS)
+        source_video_info.fps = TARGET_FPS
+    else:
+        stride = 1
+
+    ## Initiate supervision functions
+    tracker = sv.ByteTrack(track_thresh = 0.25, frame_rate = source_video_info.fps)
+    smoother = sv.DetectionsSmoother()
+    box_annotator = sv.BoxAnnotator(thickness=2, text_thickness=2, text_scale=.5)
+
+    ## Process a single video
     process_video(source_path = video_file, target_dir = TARGET_VIDEO_DIR, 
-                  callback = callback, target_fps = TARGET_FPS, codec = CODEC)
+                  callback = callback, stride = stride, codec = CODEC)
