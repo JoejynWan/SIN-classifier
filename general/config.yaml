@@ -1,0 +1,4 @@
+# Data
+SOURCE_DIR: 'C:\\TempDataForSpeed\\example_test_set'
+TARGET_DIR: 'results\\example_test_set'
+CODEC: "mp4v"
