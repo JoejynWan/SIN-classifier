@@ -40,8 +40,9 @@ def callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
     #     results_clf = classification_model.single_image_classification(trans_clf(Image.fromarray(cropped_image)))
     #     labels.append("{} {:.2f}".format(results_clf["prediction"], results_clf["confidence"]))
     
-    annotated_frame = box_annotator.annotate(scene=frame, detections=result["detections"], 
-                                             labels=labels)
+    annotated_frame = bbox_annotator.annotate(scene=frame, detections=result["detections"])
+    annotated_frame = label_annotator.annotate(annotated_frame, detections=result["detections"],
+                                               labels=labels)
     
     return annotated_frame, class_names, confs
 
@@ -102,14 +103,15 @@ def process_video(
 
 
 ## Arguments
-SOURCE_VIDEO_DIR = 'C:\\TempDataForSpeed\\20240618 maintenance'
-TARGET_VIDEO_DIR = 'results\\20240618 maintenance'
+SOURCE_VIDEO_DIR = 'C:\\TempDataForSpeed\\example_test_set'
+TARGET_VIDEO_DIR = 'results\\example_test_set'
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 TARGET_FPS = 100
 CODEC = "mp4v"
 
 ## Prep models and settings
-detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights="../MD_weights/MDV6b-yolov9c.pt", pretrained=True)
+detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights="models/MDV6b-yolov9c.pt", 
+                                              pretrained=True)
 # trans_det = pw_trans.MegaDetector_v5_Transform(target_size=detection_model.IMAGE_SIZE,
 #                                                stride=detection_model.STRIDE)
 
@@ -131,9 +133,10 @@ for video_file in tqdm(video_files):
         stride = 1
 
     ## Initiate supervision functions
-    tracker = sv.ByteTrack(track_thresh = 0.25, frame_rate = source_video_info.fps)
+    tracker = sv.ByteTrack(frame_rate = source_video_info.fps)
     smoother = sv.DetectionsSmoother()
-    box_annotator = sv.BoxAnnotator(thickness=2, text_thickness=2, text_scale=.5)
+    bbox_annotator = sv.BoundingBoxAnnotator(thickness=2)
+    label_annotator = sv.LabelAnnotator(text_thickness=2, text_scale=.5)
 
     ## Process a single video
     process_video(source_path = video_file, target_dir = TARGET_VIDEO_DIR, 
