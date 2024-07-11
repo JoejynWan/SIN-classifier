@@ -4,6 +4,8 @@ data/*
 results/*
 !results/example_test_set
 models/*
+log/*
+weights/*
 
 ## Ignore depreciated folder which contains old code/data
 depreciated/
