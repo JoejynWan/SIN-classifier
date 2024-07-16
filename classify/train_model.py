@@ -13,12 +13,12 @@ from PW_FT_classification.src import datasets
 
 def main(
         config:str='./classify/config_classify.yaml',
-        project:str='Custom-classification',
+        project:str='SIN-Classifier_v2',
         gpus:str='0', 
         logger_type:str='csv',
         evaluate:str=None,
         np_threads:str='32',
-        session:int=0,
+        session:int=None,
         seed:int=0,
         dev:bool=False,
         val:bool=False,
@@ -47,6 +47,7 @@ def main(
     # GPU configuration: set up GPUs based on availability and user specification
     gpus = gpus if torch.cuda.is_available() else None
     gpus = [int(i) for i in gpus.split(',')]
+    torch.set_float32_matmul_precision("high")
 
     # Environment variable setup for numpy multi-threading
     os.environ["OMP_NUM_THREADS"] = str(np_threads)
@@ -68,46 +69,52 @@ def main(
 
     # Dataset and algorithm loading based on the configuration
     dataset = datasets.__dict__[conf.dataset_name](conf=conf)
-    learner = algorithms.__dict__[conf.algorithm](conf=conf,
-                            train_class_counts=dataset.train_class_counts, 
-                            id_to_labels=dataset.id_to_labels)
+    learner = algorithms.__dict__[conf.algorithm](
+        conf=conf,
+        train_class_counts=dataset.train_class_counts, 
+        id_to_labels=dataset.id_to_labels
+    )
 
     # Logger setup based on the specified logger type
-    log_folder = 'log_dev' if dev else 'log'
+    results_folder = 'results_dev' if dev else 'results'
+    save_dir = './{}/{}/{}_{}'.format(results_folder, project, conf.algorithm, conf.conf_id)
     logger = None
     if logger_type == 'csv':
         logger = CSVLogger(
-            save_dir='./{}/{}/{}'.format(log_folder, conf.log_dir, conf.algorithm),
+            save_dir=save_dir,
             prefix=project,
-            name='{}_{}'.format(conf.algorithm, conf.conf_id),
+            name=None, 
             version=session
         )
     elif logger_type == 'tensorboard':
         logger = TensorBoardLogger(
-            save_dir='./{}/{}/{}'.format(log_folder, conf.log_dir, conf.algorithm),
+            save_dir=save_dir,
             prefix=project,
-            name='{}_{}'.format(conf.algorithm, conf.conf_id),
+            name=None,
             version=session
         )
     elif logger_type == 'comet':
         logger = CometLogger(
             api_key=os.environ.get("COMET_API_KEY"),
-            save_dir='./{}/{}/{}'.format(log_folder, conf.log_dir, conf.algorithm),
+            save_dir=save_dir,
             project_name=project, 
-            experiment_name='{}_{}_{}'.format(conf.algorithm, conf.conf_id, session),
+            experiment_name=None,
         )
     elif logger_type == 'wandb':
         logger = WandbLogger(
-            save_dir='./{}/{}/{}'.format(log_folder, conf.log_dir, conf.algorithm),
+            save_dir=save_dir,
             project=project,  
-            name='{}_{}_{}'.format(conf.algorithm, conf.conf_id, session),
+            name=None,
         )
 
     # Callbacks for model checkpointing and learning rate monitoring
-    weights_folder = 'weights_dev' if dev else 'weights'
     checkpoint_callback = ModelCheckpoint(
-        monitor='valid_mac_acc', mode='max', dirpath='./{}/{}/{}'.format(weights_folder, conf.log_dir, conf.algorithm),
-        save_top_k=1, filename='{}-{}'.format(conf.conf_id, session) + '-{epoch:02d}-{valid_mac_acc:.2f}', verbose=True
+        monitor='valid_mic_acc', 
+        mode='max', 
+        dirpath=save_dir,
+        save_top_k=1, 
+        filename='{}'.format(conf.conf_id) + '-{epoch:02d}-{valid_mic_acc:.2f}', 
+        verbose=True
     )
 
     lr_monitor = LearningRateMonitor(logging_interval='step')
@@ -134,6 +141,8 @@ def main(
             trainer.test(learner, dataloaders=[dataset.test_dataloader()], ckpt_path=evaluate)
     else:
         trainer.fit(learner, datamodule=dataset)
+        conf.evaluate=checkpoint_callback.best_model_path()
+        trainer.test(learner, dataloaders=[dataset.test_dataloader()], ckpt_path="best")
 
 
 if __name__ == '__main__':
