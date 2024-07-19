@@ -3,6 +3,7 @@ import os
 import yaml
 import torch
 from munch import Munch
+from datetime import datetime
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -63,7 +64,10 @@ def main(
     conf.val = val
     conf.predict = predict
     conf.predict_root = predict_root
-
+    conf.start_time = datetime.now()
+    results_folder = 'results_dev' if dev else 'results'
+    conf.save_dir  = './{}/{}/{}_{}'.format(results_folder, project, conf.algorithm, conf.conf_id)
+    
     # Set a global seed for reproducibility
     pl.seed_everything(seed)
 
@@ -76,19 +80,17 @@ def main(
     )
 
     # Logger setup based on the specified logger type
-    results_folder = 'results_dev' if dev else 'results'
-    save_dir = './{}/{}/{}_{}'.format(results_folder, project, conf.algorithm, conf.conf_id)
     logger = None
     if logger_type == 'csv':
         logger = CSVLogger(
-            save_dir=save_dir,
+            save_dir=conf.save_dir,
             prefix=project,
             name=None, 
             version=session
         )
     elif logger_type == 'tensorboard':
         logger = TensorBoardLogger(
-            save_dir=save_dir,
+            save_dir=conf.save_dir,
             prefix=project,
             name=None,
             version=session
@@ -96,24 +98,24 @@ def main(
     elif logger_type == 'comet':
         logger = CometLogger(
             api_key=os.environ.get("COMET_API_KEY"),
-            save_dir=save_dir,
+            save_dir=conf.save_dir,
             project_name=project, 
             experiment_name=None,
         )
     elif logger_type == 'wandb':
         logger = WandbLogger(
-            save_dir=save_dir,
+            save_dir=conf.save_dir,
             project=project,  
             name=None,
         )
 
     # Callbacks for model checkpointing and learning rate monitoring
     checkpoint_callback = ModelCheckpoint(
-        monitor='valid_mic_acc', 
+        monitor='valid_mac_acc', 
         mode='max', 
-        dirpath=save_dir,
+        dirpath=os.path.join(conf.save_dir, f"version_{logger.version}"),
         save_top_k=1, 
-        filename='{}'.format(conf.conf_id) + '-{epoch:02d}-{valid_mic_acc:.2f}', 
+        filename='{}'.format(conf.conf_id) + '-{epoch:02d}-{valid_mac_acc:.2f}', 
         verbose=True
     )
 
@@ -141,7 +143,6 @@ def main(
             trainer.test(learner, dataloaders=[dataset.test_dataloader()], ckpt_path=evaluate)
     else:
         trainer.fit(learner, datamodule=dataset)
-        conf.evaluate=checkpoint_callback.best_model_path()
         trainer.test(learner, dataloaders=[dataset.test_dataloader()], ckpt_path="best")
 
 
