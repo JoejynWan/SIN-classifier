@@ -10,6 +10,7 @@ from pathlib import Path
 import supervision as sv
 from typing import Callable
 from PytorchWildlife.models import detection as pw_detection
+from sc_utils.check_corrupt import check_corrupt_dir
 
 
 def callback(frame: np.ndarray, frame_id: str = None, target_dir: str = None) -> np.ndarray:
@@ -73,6 +74,9 @@ if __name__ == '__main__':
     ## Load and set configurations from the YAML file
     with open(CONFIG_PATH) as f:
         config = Munch(yaml.load(f, Loader=yaml.FullLoader))
+
+    ## Check for corrupt videos before running MD
+    corrupted = check_corrupt_dir(config.SOURCE_DIR, config.TARGET_DIR, vid_duration_threshold = 0)
 
     ## Load the detection model
     detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights="models/MDV6b-yolov9c.pt", 

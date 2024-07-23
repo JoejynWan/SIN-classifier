@@ -12,8 +12,7 @@ VIDEO_EXTENSIONS = ('.mp4','.avi','.mpeg','.mpg')
 def is_video_file(s: str, video_extensions: Container[str] = VIDEO_EXTENSIONS
                   ) -> bool:
     """
-    Checks a file's extension against a hard-coded set of video file
-    extensions.
+    Checks a file's extension against a hard-coded set of video file extensions.
     """
     ext = os.path.splitext(s)[1]
     return ext.lower() in video_extensions
@@ -21,22 +20,22 @@ def is_video_file(s: str, video_extensions: Container[str] = VIDEO_EXTENSIONS
 
 def find_video_strings(strings: Iterable[str]) -> List[str]:
     """
-    Given a list of strings that are potentially video file names, looks for
-    strings that actually look like video file names (based on extension).
+    Given a list of strings that are potentially video file names, looks for strings that actually 
+    look like video file names (based on extension).
     """
     return [s for s in strings if is_video_file(s.lower())]
 
 
 def find_videos(dirname: str, recursive: bool = False) -> List[str]:
     """
-    Finds all files in a directory that look like video file names. Returns
-    absolute paths.
+    Finds all files in a directory that look like video file names. Returns absolute paths.
     """
     if recursive:
         strings = glob.glob(os.path.join(dirname, '**', '*.*'), recursive=True)
     else:
         strings = glob.glob(os.path.join(dirname, '*.*'))
     return find_video_strings(strings)
+
 
 def check_corrupt_file(
     video_file, input_dir, output_dir, 
@@ -49,16 +48,18 @@ def check_corrupt_file(
     vidcap = cv2.VideoCapture(input_fn_absolute)
     Fs = vidcap.get(cv2.CAP_PROP_FPS)
     frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
-    duration = frame_count/Fs
 
-    if Fs < Fs_threshold or duration < vid_duration_threshold:
-
+    if Fs == 0 or Fs < Fs_threshold or frame_count/Fs < vid_duration_threshold:
         ## Move/copy the corrupt videos into corrupt folder
+        if Fs == 0:
+            issue = 'unreadable_file'
+        elif Fs < Fs_threshold:
+            issue = 'low_fps'
+        elif frame_count/Fs < vid_duration_threshold: 
+            issue = 'short_duration'
+        
         video_dir_relative = os.path.dirname(video_file)
-        if Fs < Fs_threshold:
-            video_dir_abs = os.path.join(output_dir, video_dir_relative, 'low_fps')
-        elif duration < vid_duration_threshold: 
-            video_dir_abs = os.path.join(output_dir, video_dir_relative, 'short_duration')
+        video_dir_abs = os.path.join(output_dir, video_dir_relative, issue)
         os.makedirs(video_dir_abs, exist_ok=True)
 
         if move_or_copy == "move":
@@ -71,6 +72,7 @@ def check_corrupt_file(
         ## Record the names and frame rates of the corrupt videos
         corrupt_fs_row = {
             'video_path': input_fn_absolute,
+            'issue': issue, 
             'Fs': Fs
         }
         corrupt_fs_row_pd = pd.DataFrame(corrupt_fs_row, index = [0])
@@ -112,6 +114,11 @@ def check_corrupt_dir(
 
     if not corrupt_fs.empty:
         print(
-            "Warning: There are {} videos either with an extremely low frame rate (< 20fps), "
-            "or they have a short duration (< 5 seconds)."
-            "They have been moved/copied to the low_fps or short_duration folder.".format(len(corrupt_fs)))
+            "Warning: There are {} videos that are either unreadable, have an extremely low frame "
+            "rate (< {} fps), or a short duration (< {} seconds). They have been moved/copied to "
+            "{}: \n {} \n".format(
+                len(corrupt_fs), Fs_threshold, vid_duration_threshold, output_dir, corrupt_fs
+                )
+        )
+
+    return(corrupt_fs)
