@@ -71,14 +71,6 @@ def main(
     # Set a global seed for reproducibility
     pl.seed_everything(seed)
 
-    # Dataset and algorithm loading based on the configuration
-    dataset = datasets.__dict__[conf.dataset_name](conf=conf)
-    learner = algorithms.__dict__[conf.algorithm](
-        conf=conf,
-        train_class_counts=dataset.train_class_counts, 
-        id_to_labels=dataset.id_to_labels
-    )
-
     # Logger setup based on the specified logger type
     logger = None
     if logger_type == 'csv':
@@ -109,12 +101,23 @@ def main(
             name=None,
         )
 
+    # Update save_dir based on logger.version
+    conf.save_dir = os.path.join(conf.save_dir, f"version_{logger.version}") 
+
+    # Dataset and algorithm loading based on the configuration
+    dataset = datasets.__dict__[conf.dataset_name](conf=conf)
+    learner = algorithms.__dict__[conf.algorithm](
+        conf=conf,
+        train_class_counts=dataset.train_class_counts, 
+        id_to_labels=dataset.id_to_labels
+    )
+
     # Callbacks for model checkpointing and learning rate monitoring
     checkpoint_callback = ModelCheckpoint(
         monitor='valid_mac_acc', 
         mode='max', 
-        dirpath=os.path.join(conf.save_dir, f"version_{logger.version}"),
-        save_top_k=1, 
+        dirpath=conf.save_dir, 
+        save_top_k=5, 
         filename='{}'.format(conf.conf_id) + '-{epoch:02d}-{valid_mac_acc:.2f}', 
         verbose=True
     )
