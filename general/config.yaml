@@ -1,4 +1,7 @@
 # Data
-SOURCE_DIR: 'C:\\TempDataForSpeed\\example_test_set'
-TARGET_DIR: 'results\\example_test_set'
+SOURCE_DIR: 'C:/TempDataForSpeed/example_test_set'
+TARGET_DIR: 'D:/CNN_Animal_ID/SIN-classifier/results/example_test_set'
 CODEC: "mp4v"
+
+# Model weights
+CLS_WEIGHTS_PATH: './models/SINClassifierV2_20240717-epoch=28-valid_mac_acc=92.61.ckpt'
