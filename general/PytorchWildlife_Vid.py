@@ -12,6 +12,7 @@ from itertools import chain
 from typing import Callable
 from PytorchWildlife.models import detection as pw_detection
 from PytorchWildlife.models import classification as pw_classification
+from sc_utils.smoother import ClassificationSmoother
 
 
 def callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
@@ -36,22 +37,26 @@ def callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
             confs.append(conf)
     
     ## Labels from Classifier
-    for class_id, xyxy, class_names_tup in zip(results_det["detections"].class_id, 
-                                               results_det["detections"].xyxy, 
-                                               enumerate(class_names)):
+    for class_id, xyxy, tracker_id, class_names_tup in zip(results_det["detections"].class_id, 
+                                                           results_det["detections"].xyxy, 
+                                                           results_det["detections"].tracker_id, 
+                                                           enumerate(class_names)):
         if class_id == 0:
             cropped_image = sv.crop_image(image=frame, xyxy=xyxy)
-            results_clf = classification_model.single_image_classification(img = cropped_image, 
+            results_clf = classification_model.single_image_classification(img=cropped_image, 
                                                                            img_id=frame_id)
             
             results_clf["detections"] = sv.Detections(
                 xyxy = np.array([xyxy]),
                 confidence = np.array([results_clf["confidence"]]), 
-                class_id = np.array([results_clf["class_id"]])
+                class_id = np.array([results_clf["class_id"]]),
+                tracker_id = np.array([tracker_id]), 
+                data = {'all_confs': np.array([[conf[1] for conf in results_clf["all_confidences"]]]), 
+                        'all_class_id': np.array([[conf[0] for conf in results_clf["all_confidences"]]])}
             )
-            results_clf["detections"] = tracker_cls.update_with_detections(results_clf["detections"])
+            
             results_clf["detections"] = smoother_cls.update_with_detections(results_clf["detections"])
-
+ 
             conf = max(results_clf["detections"].confidence)
             conf_idx = np.where(results_clf["detections"].confidence == conf)[0]
             conf_id = results_clf["detections"].class_id[conf_idx].item()
@@ -156,10 +161,9 @@ if __name__ == '__main__':
 
         ## Initiate supervision objects
         source_video_info = sv.VideoInfo.from_video_path(video_path=video_file)
-        tracker_det = sv.ByteTrack(frame_rate = source_video_info.fps)
+        tracker_det = sv.ByteTrack(frame_rate=source_video_info.fps)
         smoother_det = sv.DetectionsSmoother()
-        tracker_cls = sv.ByteTrack(frame_rate = source_video_info.fps)
-        smoother_cls = sv.DetectionsSmoother()
+        smoother_cls = ClassificationSmoother()
         bbox_annotator = sv.BoundingBoxAnnotator(thickness=2)
         label_annotator = sv.LabelAnnotator(text_thickness=2, text_scale=.5)
 
