@@ -4,6 +4,7 @@ import glob
 import yaml
 import torch
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 from munch import Munch
 from pathlib import Path
@@ -15,70 +16,80 @@ from PytorchWildlife.models import classification as pw_classification
 from sc_utils.smoother import ClassificationSmoother
 
 
-def callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
+def detection_callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
     """
-    Callback function to process each video frame
+    Callback function to process each video frame with MegaDetector. Tracking and smoothering is 
+    used to average the bounding boxes (xyxy) and confidences across frames. 
     """
-    ## Run MegaDetector with tracking and smoothering
+
     results_det = detection_model.single_image_detection(img_path=frame, img_id=frame_id)
     results_det["detections"] = tracker_det.update_with_detections(results_det["detections"])
     results_det["detections"] = smoother_det.update_with_detections(results_det["detections"])
-    
-    ## Labels from MegaDetector
-    labels = []
-    class_names = []
-    confs = []
-    if results_det["detections"].xyxy.size != 0:
-        for class_id, conf in zip(results_det["detections"].class_id, 
-                                  results_det["detections"].confidence):
-            class_name = detection_model.CLASS_NAMES[class_id]
-            labels.append("{} {:.2f}".format(class_name, conf))
-            class_names.append(class_name)
-            confs.append(conf)
-    
-    ## Labels from Classifier
-    for class_id, xyxy, tracker_id, class_names_tup in zip(results_det["detections"].class_id, 
-                                                           results_det["detections"].xyxy, 
-                                                           results_det["detections"].tracker_id, 
-                                                           enumerate(class_names)):
-        if class_id == 0:
-            cropped_image = sv.crop_image(image=frame, xyxy=xyxy)
-            results_clf = classification_model.single_image_classification(img=cropped_image, 
-                                                                           img_id=frame_id)
-            
-            results_clf["detections"] = sv.Detections(
-                xyxy = np.array([xyxy]),
-                confidence = np.array([results_clf["confidence"]]), 
-                class_id = np.array([results_clf["class_id"]]),
-                tracker_id = np.array([tracker_id]), 
-                data = {'all_confs': np.array([[conf[1] for conf in results_clf["all_confidences"]]]), 
-                        'all_class_id': np.array([[conf[0] for conf in results_clf["all_confidences"]]])}
-            )
-            
-            results_clf["detections"] = smoother_cls.update_with_detections(results_clf["detections"])
- 
-            conf = max(results_clf["detections"].confidence)
-            conf_idx = np.where(results_clf["detections"].confidence == conf)[0]
-            conf_id = results_clf["detections"].class_id[conf_idx].item()
-            class_name = classification_model.CLASS_NAMES[conf_id]
 
-            labels[class_names_tup[0]] = "{} {:.2f}".format(class_name, conf)
-            class_names[class_names_tup[0]] = class_name
-            confs[class_names_tup[0]] = conf
+    return results_det
+
+
+def classification_callback(frame: np.ndarray, results_det = None) -> np.ndarray:
+    """
+    Callback function to process each video frame with species classifier. 
+    """
+
+    spp_dets = []
+    for xyxy, tracker_id in zip(results_det["detections"].xyxy, results_det["detections"].tracker_id):
+
+        cropped_image = sv.crop_image(image=frame, xyxy=xyxy)
+        spp_results = classification_model.single_image_classification(img=cropped_image, 
+                                                                       img_id=results_det['img_id'])
+        
+        spp_det = sv.Detections(
+            xyxy = np.array([xyxy]),
+            confidence = np.array([spp_results["confidence"]]), 
+            class_id = np.array([spp_results["class_id"]]),
+            tracker_id = np.array([tracker_id]), 
+            data = {'all_confs': np.array([[conf[1] for conf in spp_results["all_confidences"]]]), 
+                    'all_class_id': np.array([[conf[0] for conf in spp_results["all_confidences"]]])}
+        )
+        
+        spp_det = smoother_cls.update_with_detections(spp_det)
+        spp_dets.append(spp_det)
+
+    results_clf = {"img_id": results_det["img_id"]}
+    results_clf["detections"] = sv.Detections.merge(spp_dets)
+
+    return results_clf
+
+
+def get_video_class(results, model):
+    """
+    Get the overall class name of the video across all frames. Class names will be based on the 
+    model provided (either the detection or classification model). 
+    """
+    confs_all = []
+    class_id_all = []
+    for result in results: 
+        if result["detections"].xyxy.size != 0:
+            confs_all.append(result["detections"].confidence)
+            class_id_all.append(result["detections"].class_id)
     
-    annotated_frame = bbox_annotator.annotate(scene=frame, detections=results_det["detections"])
-    annotated_frame = label_annotator.annotate(annotated_frame, 
-                                               detections=results_det["detections"],
-                                               labels=labels)
-    
-    return annotated_frame, class_names, confs
+    if not class_id_all:
+        video_class = 'empty'
+    else:
+        confs_all_chain = list(chain.from_iterable(confs_all))
+        class_id_all_chain = np.array(list(chain.from_iterable(class_id_all)))
+        max_conf_idx = list(np.where(np.array(confs_all_chain) == max(confs_all_chain))[0])
+        max_conf_class_ids = class_id_all_chain[max_conf_idx].tolist()
+        max_conf_class_id = max(max_conf_class_ids, key = max_conf_class_ids.count)
+        video_class = model.CLASS_NAMES[max_conf_class_id]
+
+    return video_class
 
 
 def process_video(    
     source_video_file: str,
     source_video_dir: str, 
     target_dir: str,
-    callback: Callable[[np.ndarray, int], np.ndarray],
+    detection_callback: Callable[[np.ndarray, int], np.ndarray],
+    classification_callback: Callable[[np.ndarray, int], np.ndarray],
     codec: str = "mp4v"
     ):
     """
@@ -98,34 +109,53 @@ def process_video(
             Codec used to encode the processed video. Default is "avc1".
     """
     
-    ## Run the callback
-    result_frames = []
-    class_names_all = []
-    confs_all = []
+    ## Run MegaDetector
+    results_dets = []
     for index, frame in enumerate(
         sv.get_video_frames_generator(source_path=source_video_file)
     ):
         frame_id = Path(source_video_file).stem + "_frame" + str(index).zfill(3)
-        result_frame, class_names, confs = callback(frame, frame_id = frame_id)
-        
-        result_frames.append(result_frame)
-        class_names_all.append(class_names)
-        confs_all.append(confs)
+        results_det = detection_callback(frame, frame_id = frame_id)
+        results_dets.append(results_det)
 
-    ## Get the target video path to write and sort the videos
-    if not [cm for cm in class_names_all if cm != []]:
-        class_dir = 'False trigger'
+    ## Run species classifier only if video is detected to be animal
+    video_class = get_video_class(results_dets, detection_model)
+
+    if video_class == "animal":
+        results_clfs = []
+        for results_det, frame in zip(
+            results_dets, sv.get_video_frames_generator(source_path=source_video_file)
+        ):
+            results_clf = classification_callback(frame, results_det)
+            results_clfs.append(results_clf)
+
+        video_class = get_video_class(results_clfs, classification_model)
+        results = results_clfs
+        model = classification_model
     else:
-        confs_all_chain = list(chain.from_iterable(confs_all))
-        class_names_all_chain = np.array(list(chain.from_iterable(class_names_all)))
-        max_conf_idx = list(np.where(np.array(confs_all_chain) == max(confs_all_chain))[0])
-        max_conf_class_names = class_names_all_chain[max_conf_idx].tolist()
-        class_dir = max(max_conf_class_names, key = max_conf_class_names.count)
+        results = results_dets
+        model = detection_model
 
+    ## Get annotated frames with labels 
+    annotated_frames = []
+    for result, frame in zip(results, sv.get_video_frames_generator(source_path=source_video_file)):
+        
+        labels = []
+        for class_id, conf in zip(result["detections"].class_id, result["detections"].confidence):
+            class_name = model.CLASS_NAMES[class_id]
+            labels.append("{} {:.2f}".format(class_name, conf))
+
+        annotated_frame = bbox_annotator.annotate(scene=frame, detections=result["detections"])
+        annotated_frame = label_annotator.annotate(annotated_frame, 
+                                                   detections=result["detections"],
+                                                   labels=labels)
+        annotated_frames.append(annotated_frame)
+
+    ## Get the full output video path
     vid_path_parts=Path(source_video_file).parts
     last_input_dir=Path(source_video_dir).parts[-1]
     relative_dir=Path(*vid_path_parts[vid_path_parts.index(last_input_dir)+1:-1])
-    full_output_dir = os.path.join(target_dir, relative_dir, class_dir)
+    full_output_dir = os.path.join(target_dir, relative_dir, video_class)
     os.makedirs(full_output_dir, exist_ok=True)
 
     video_name=Path(source_video_file).parts[-1]
@@ -134,8 +164,10 @@ def process_video(
     ## Save out the processed video
     source_video_info = sv.VideoInfo.from_video_path(video_path=source_video_file)
     with sv.VideoSink(target_path=target_video_path, video_info=source_video_info, codec=codec) as sink:
-        for result_frame in result_frames:
+        for result_frame in annotated_frames:
             sink.write_frame(frame=cv2.cvtColor(result_frame, cv2.COLOR_RGB2BGR))
+
+    return video_class
 
 
 if __name__ == '__main__':
@@ -156,6 +188,7 @@ if __name__ == '__main__':
                                                            weights=config.CLS_WEIGHTS_PATH)
     
     ## Run detection, classification, visualisation, and sorting of videos
+    outs = []
     video_files = glob.glob(os.path.join(config.SOURCE_DIR, '**/*.AVI'), recursive=True)
     for video_file in tqdm(video_files):     
 
@@ -168,7 +201,16 @@ if __name__ == '__main__':
         label_annotator = sv.LabelAnnotator(text_thickness=2, text_scale=.5)
 
         ## Process a single video
-        process_video(source_video_file = video_file, 
-                      source_video_dir = config.SOURCE_DIR, 
-                      target_dir = config.TARGET_DIR, 
-                      callback = callback, codec = config.CODEC)
+        video_class = process_video(source_video_file = video_file, 
+                                    source_video_dir = config.SOURCE_DIR, 
+                                    target_dir = config.TARGET_DIR, 
+                                    detection_callback = detection_callback, 
+                                    classification_callback = classification_callback, 
+                                    codec = config.CODEC)
+        
+        ## Save out the results
+        outs.append({'path': video_file, 'pred': video_class})
+
+## Output the results as csv
+outs_df = pd.DataFrame(outs)
+outs_df.to_csv(os.path.join(config.TARGET_DIR, "results.csv"), index = False)
