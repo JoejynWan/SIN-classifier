@@ -84,58 +84,11 @@ def get_video_class(results, model):
     return video_class
 
 
-def process_video(    
-    source_video_file: str,
-    source_video_dir: str, 
-    target_dir: str,
-    detection_callback: Callable[[np.ndarray, int], np.ndarray],
-    classification_callback: Callable[[np.ndarray, int], np.ndarray],
-    codec: str = "mp4v"
-    ):
+def vis_video(results, video_class, model, source_video_file, source_video_dir, target_dir, codec):
     """
-    Process a video frame-by-frame, applying a callback function to each frame and saving the 
-    results to a new video. This version allows codec selection.
-    
-    Args:
-        source_video_file (str): 
-            Path to the source video file.
-        source_video_dir (str): 
-            Path to the directory containing the source video file.
-        target_dir (str): 
-            Path to the directory where the processed video will be saved.
-        callback (Callable[[np.ndarray, int], np.ndarray]): 
-            A function that takes a video frame and its index as input and returns the processed frame.
-        codec (str, optional): 
-            Codec used to encode the processed video. Default is "avc1".
+    Visualise videos with the annotated bounding boxes from MegaDetector (or species classifier, 
+    if available). 
     """
-    
-    ## Run MegaDetector
-    results_dets = []
-    for index, frame in enumerate(
-        sv.get_video_frames_generator(source_path=source_video_file)
-    ):
-        frame_id = Path(source_video_file).stem + "_frame" + str(index).zfill(3)
-        results_det = detection_callback(frame, frame_id = frame_id)
-        results_dets.append(results_det)
-
-    ## Run species classifier only if video is detected to be animal
-    video_class = get_video_class(results_dets, detection_model)
-
-    if video_class == "animal":
-        results_clfs = []
-        for results_det, frame in zip(
-            results_dets, sv.get_video_frames_generator(source_path=source_video_file)
-        ):
-            results_clf = classification_callback(frame, results_det)
-            results_clfs.append(results_clf)
-
-        video_class = get_video_class(results_clfs, classification_model)
-        results = results_clfs
-        model = classification_model
-    else:
-        results = results_dets
-        model = detection_model
-
     ## Get annotated frames with labels 
     annotated_frames = []
     for result, frame in zip(results, sv.get_video_frames_generator(source_path=source_video_file)):
@@ -167,6 +120,71 @@ def process_video(
         for result_frame in annotated_frames:
             sink.write_frame(frame=cv2.cvtColor(result_frame, cv2.COLOR_RGB2BGR))
 
+
+def process_video(    
+    source_video_file: str,
+    source_video_dir: str, 
+    target_dir: str,
+    detection_callback: Callable[[np.ndarray, int], np.ndarray],
+    classification_callback: Callable[[np.ndarray, int], np.ndarray],
+    vis_media: bool,
+    codec: str = "mp4v"
+    ):
+    """
+    Process a video frame-by-frame, applying a callback function to each frame and saving the 
+    results to a new video. This version allows codec selection.
+    
+    Args:
+        source_video_file (str): 
+            Path to the source video file.
+        source_video_dir (str): 
+            Path to the directory containing the source video file.
+        target_dir (str): 
+            Path to the directory where the processed video will be saved.
+        detection_callback (Callable[[np.ndarray, int], np.ndarray]): 
+            A function that takes a video frame and its index as input and returns the results
+            from MegaDetector
+        classification_callback (Callable[[np.ndarray, int], np.ndarray]): 
+            A function that takes a video frame and the results from MegaDetector and returns the 
+            results from the species classifier. 
+        vis_media (bool):
+            Boolean that controls if videos with bounding boxes should be saved out. 
+        codec (str, optional): 
+            Codec used to encode the processed video. Default is "avc1".
+    """
+    
+    ## Run MegaDetector
+    results_dets = []
+    for index, frame in enumerate(
+        sv.get_video_frames_generator(source_path=source_video_file)
+    ):
+        frame_id = Path(source_video_file).stem + "_frame" + str(index).zfill(3)
+        results_det = detection_callback(frame, frame_id = frame_id)
+        results_dets.append(results_det)
+
+    ## Run species classifier only if classification_callback is provided and video is detected to 
+    ## be animal
+    video_class = get_video_class(results_dets, detection_model)
+
+    if classification_callback is None or video_class != "animal": 
+        results = results_dets
+        model = detection_model
+    elif video_class == "animal": 
+        results_clfs = []
+        for results_det, frame in zip(
+            results_dets, sv.get_video_frames_generator(source_path=source_video_file)
+        ):
+            results_clf = classification_callback(frame, results_det)
+            results_clfs.append(results_clf)
+
+        video_class = get_video_class(results_clfs, classification_model)
+        results = results_clfs
+        model = classification_model
+
+    ## Save out videos with annotated bounding boxes
+    if vis_media: 
+        vis_video(results, video_class, model, source_video_file, source_video_dir, target_dir, codec)
+
     return video_class
 
 
@@ -181,11 +199,12 @@ if __name__ == '__main__':
         config = Munch(yaml.load(f, Loader=yaml.FullLoader))
 
     ## Load the detection and classification models
-    detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights="models/MDV6b-yolov9c.pt", 
+    detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights=config.DET_WEIGHTS_PATH, 
                                                   pretrained=True)
 
-    classification_model = pw_classification.SINClassifier(device=DEVICE, 
-                                                           weights=config.CLS_WEIGHTS_PATH)
+    if config.CLS_WEIGHTS_PATH: 
+        classification_model = pw_classification.SINClassifier(device=DEVICE, 
+                                                               weights=config.CLS_WEIGHTS_PATH)
     
     ## Run detection, classification, visualisation, and sorting of videos
     outs = []
@@ -196,9 +215,12 @@ if __name__ == '__main__':
         source_video_info = sv.VideoInfo.from_video_path(video_path=video_file)
         tracker_det = sv.ByteTrack(frame_rate=source_video_info.fps)
         smoother_det = sv.DetectionsSmoother()
-        smoother_cls = ClassificationSmoother()
         bbox_annotator = sv.BoundingBoxAnnotator(thickness=2)
         label_annotator = sv.LabelAnnotator(text_thickness=2, text_scale=.5)
+        if config.CLS_WEIGHTS_PATH: 
+            smoother_cls = ClassificationSmoother()
+        else:
+            classification_callback = None
 
         ## Process a single video
         video_class = process_video(source_video_file = video_file, 
@@ -206,11 +228,12 @@ if __name__ == '__main__':
                                     target_dir = config.TARGET_DIR, 
                                     detection_callback = detection_callback, 
                                     classification_callback = classification_callback, 
+                                    vis_media = config.VIS_MEDIA, 
                                     codec = config.CODEC)
         
         ## Save out the results
         outs.append({'path': video_file, 'pred': video_class})
 
-## Output the results as csv
-outs_df = pd.DataFrame(outs)
-outs_df.to_csv(os.path.join(config.TARGET_DIR, "results.csv"), index = False)
+    ## Output the results as csv
+    outs_df = pd.DataFrame(outs)
+    outs_df.to_csv(os.path.join(config.TARGET_DIR, "results.csv"), index = False)
