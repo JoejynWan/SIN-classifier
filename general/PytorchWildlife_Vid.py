@@ -14,6 +14,7 @@ from typing import Callable
 from PytorchWildlife.models import detection as pw_detection
 from PytorchWildlife.models import classification as pw_classification
 from sc_utils.smoother import ClassificationSmoother
+from sc_utils.check_corrupt import check_corrupt_dir
 
 
 def detection_callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
@@ -118,7 +119,7 @@ def vis_video(results, video_class, model, source_video_file, source_video_dir, 
     source_video_info = sv.VideoInfo.from_video_path(video_path=source_video_file)
     with sv.VideoSink(target_path=target_video_path, video_info=source_video_info, codec=codec) as sink:
         for result_frame in annotated_frames:
-            sink.write_frame(frame=cv2.cvtColor(result_frame, cv2.COLOR_RGB2BGR))
+            sink.write_frame(frame=result_frame)
 
 
 def process_video(    
@@ -197,6 +198,9 @@ if __name__ == '__main__':
     ## Load and set configurations from the YAML file
     with open(CONFIG_PATH) as f:
         config = Munch(yaml.load(f, Loader=yaml.FullLoader))
+
+    ## Check for corrupt videos
+    check_corrupt_dir(config.SOURCE_DIR, config.TARGET_DIR, vid_duration_threshold=0)
 
     ## Load the detection and classification models
     detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights=config.DET_WEIGHTS_PATH, 
