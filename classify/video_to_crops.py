@@ -1,6 +1,4 @@
 import os
-import cv2 
-import glob
 import yaml
 import torch
 import numpy as np
@@ -10,7 +8,7 @@ from pathlib import Path
 import supervision as sv
 from typing import Callable
 from PytorchWildlife.models import detection as pw_detection
-from sc_utils.check_corrupt import check_corrupt_dir
+from sc_utils.check_corrupt import check_corrupt_dir, find_videos
 
 
 def callback(frame: np.ndarray, frame_id: str = None, target_dir: str = None) -> np.ndarray:
@@ -69,32 +67,27 @@ if __name__ == '__main__':
     ## Set the general arguments
     CONFIG_PATH = './classify/config_classify.yaml'
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    VIDEO_EXTS = ('**/*.AVI', '**/*.MP4')
 
     ## Load and set configurations from the YAML file
     with open(CONFIG_PATH) as f:
         config = Munch(yaml.load(f, Loader=yaml.FullLoader))
 
     ## Check for corrupt videos before running MD
-    corrupted = check_corrupt_dir(config.SOURCE_DIR, config.TARGET_DIR, vid_duration_threshold = 0)
+    corrupted = check_corrupt_dir(config.SOURCE_DIR, config.TARGET_DIR, 
+                                  vid_duration_threshold = 0, Fs_threshold = 10)
 
     ## Load the detection model
     detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights="models/MDV6b-yolov9c.pt", 
                                                   pretrained=True)
     
     ## Run detection, saving out of animal crops
-    video_files = []
-    for video_ext in VIDEO_EXTS:
-        video_files.extend(glob.glob(os.path.join(config.SOURCE_DIR, video_ext), recursive=True))
-    
+    video_files = find_videos(config.SOURCE_DIR, recursive=True)   
     for video_file in tqdm(video_files):     
 
         ## Initiate supervision objects
         source_video_info = sv.VideoInfo.from_video_path(video_path=video_file)
         tracker = sv.ByteTrack(frame_rate = source_video_info.fps)
         smoother = sv.DetectionsSmoother()
-        bbox_annotator = sv.BoundingBoxAnnotator(thickness=2)
-        label_annotator = sv.LabelAnnotator(text_thickness=2, text_scale=.5)
 
         ## Process a single video
         video_to_crops(source_video_file = video_file, target_dir = config.TARGET_DIR, 
