@@ -14,7 +14,7 @@ from typing import Callable
 from PytorchWildlife.models import detection as pw_detection
 from PytorchWildlife.models import classification as pw_classification
 from sc_utils.smoother import ClassificationSmoother
-from sc_utils.check_corrupt import check_corrupt_dir
+from sc_utils.check_corrupt import check_corrupt_dir, find_videos
 
 
 def detection_callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
@@ -198,11 +198,13 @@ if __name__ == '__main__':
     ## Load and set configurations from the YAML file
     with open(CONFIG_PATH) as f:
         config = Munch(yaml.load(f, Loader=yaml.FullLoader))
-
-    ## Check for corrupt videos
+ 
+    ## Check for target_dir and corrupt videos
+    assert os.path.exists(config.TARGET_DIR), "TARGET_DIR does not exist."
     check_corrupt_dir(config.SOURCE_DIR, config.TARGET_DIR, vid_duration_threshold=0)
 
     ## Load the detection and classification models
+    # detection_model = pw_detection.MegaDetectorV5(device=DEVICE, pretrained=True)
     detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights=config.DET_WEIGHTS_PATH, 
                                                   pretrained=True)
 
@@ -212,7 +214,7 @@ if __name__ == '__main__':
     
     ## Run detection, classification, visualisation, and sorting of videos
     outs = []
-    video_files = glob.glob(os.path.join(config.SOURCE_DIR, '**/*.AVI'), recursive=True)
+    video_files = find_videos(config.SOURCE_DIR, recursive=True)
     for video_file in tqdm(video_files):     
 
         ## Initiate supervision objects
