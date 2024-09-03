@@ -14,7 +14,7 @@ from PW_FT_classification.src import datasets
 
 def main(
         config:str='./classify/config_classify.yaml',
-        project:str='SIN-Classifier_v2',
+        project:str='SINClassifierV2',
         gpus:str='0', 
         logger_type:str='csv',
         evaluate:str=None,
@@ -109,7 +109,9 @@ def main(
     learner = algorithms.__dict__[conf.algorithm](
         conf=conf,
         train_class_counts=dataset.train_class_counts, 
-        id_to_labels=dataset.id_to_labels
+        id_to_labels=dataset.id_to_labels, 
+        head_lists=conf.head_lists,
+        epoch_thresh=conf.epoch_thresh
     )
 
     # Callbacks for model checkpointing and learning rate monitoring
