@@ -147,7 +147,7 @@ def main(
         else:
             trainer.test(learner, dataloaders=[dataset.test_dataloader()], ckpt_path=evaluate)
     else:
-        trainer.fit(learner, datamodule=dataset)
+        trainer.fit(learner, datamodule=dataset, ckpt_path=conf.resume_from_ckpt)
         trainer.test(learner, dataloaders=[dataset.test_dataloader()], ckpt_path="best")
 
 
