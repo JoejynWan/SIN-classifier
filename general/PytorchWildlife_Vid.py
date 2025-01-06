@@ -23,7 +23,7 @@ def detection_callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
     used to average the bounding boxes (xyxy) and confidences across frames. 
     """
 
-    results_det = detection_model.single_image_detection(img_path=frame, img_id=frame_id)
+    results_det = detection_model.single_image_detection(img=frame, img_path=frame_id)
     results_det["detections"] = tracker_det.update_with_detections(results_det["detections"])
     results_det["detections"] = smoother_det.update_with_detections(results_det["detections"])
 
@@ -206,7 +206,7 @@ if __name__ == '__main__':
     ## Load the detection and classification models
     # detection_model = pw_detection.MegaDetectorV5(device=DEVICE, pretrained=True)
     detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights=config.DET_WEIGHTS_PATH, 
-                                                  pretrained=True)
+                                                  version=config.DET_VERSION)
 
     if config.CLS_WEIGHTS_PATH: 
         classification_model = pw_classification.SINClassifier(device=DEVICE, 
