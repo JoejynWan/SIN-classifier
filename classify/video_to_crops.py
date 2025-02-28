@@ -16,7 +16,7 @@ def callback(frame: np.ndarray, frame_id: str = None, target_dir: str = None) ->
     Callback function to process each video frame
     """
     ## Run MegaDetector with tracking and smoothering
-    result = detection_model.single_image_detection(img_path=frame, img_id=frame_id)
+    result = detection_model.single_image_detection(img=frame, img_path=frame_id)
     result["detections"] = tracker.update_with_detections(result["detections"])
     result["detections"] = smoother.update_with_detections(result["detections"])
     
@@ -73,12 +73,12 @@ if __name__ == '__main__':
         config = Munch(yaml.load(f, Loader=yaml.FullLoader))
 
     ## Check for corrupt videos before running MD
-    corrupted = check_corrupt_dir(config.SOURCE_DIR, config.TARGET_DIR, 
-                                  vid_duration_threshold = 0, Fs_threshold = 10)
+    corrupted = check_corrupt_dir(config.SOURCE_DIR, config.TARGET_DIR, vid_duration_threshold = 0, 
+                                  Fs_threshold = 15)
 
     ## Load the detection model
-    detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights="models/MDV6b-yolov9c.pt", 
-                                                  pretrained=True)
+    detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights=config.DET_WEIGHTS_PATH, 
+                                                  version=config.DET_VERSION)
     
     ## Run detection, saving out of animal crops
     video_files = find_videos(config.SOURCE_DIR, recursive=True)   

@@ -1,10 +1,10 @@
 # Data
-SOURCE_DIR: 'C:\\TempDataForSpeed\\SINClassifierV2_20240812\\testset'
-TARGET_DIR: 'D:\\CNN_Animal_ID\\SIN-classifier\\results\\SINClassifierV2\\testset'
+SOURCE_DIR: 'Z:/01_Current_Projects/CR202 EMMP_Obayashi/02_Camera_Trapping/Camera_Trap_Data/01 Raw/Eng Neo Forest Monitoring/20250207/CV1_20250207'
+TARGET_DIR: 'Z:/01_Current_Projects/CR202 EMMP_Obayashi/02_Camera_Trapping/Camera_Trap_Data/02 Processed/Eng Neo Forest Monitoring/20250207/CV1_20250207'
 CODEC: "mp4v"
-VIS_MEDIA: False
+VIS_MEDIA: True
 
 # Model weights
 DET_WEIGHTS_PATH: NULL
-DET_VERSION: 'yolov9e' #yolov9c, yolov9e, yolov10n, or yolov10x
+DET_VERSION: 'yolov9c' #yolov9c, yolov9e, yolov10n, or yolov10x
 CLS_WEIGHTS_PATH: NULL

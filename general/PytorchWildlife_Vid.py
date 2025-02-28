@@ -204,7 +204,8 @@ if __name__ == '__main__':
     check_corrupt_dir(config.SOURCE_DIR, config.TARGET_DIR, vid_duration_threshold=0)
 
     ## Load the detection and classification models
-    # detection_model = pw_detection.MegaDetectorV5(device=DEVICE, pretrained=True)
+    # detection_model = pw_detection.MegaDetectorV5(device=DEVICE, pretrained=True, 
+    #                                               version=config.DET_VERSION)
     detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights=config.DET_WEIGHTS_PATH, 
                                                   version=config.DET_VERSION)
 

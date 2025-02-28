@@ -1,11 +1,13 @@
 ## Arguments for video_to_crops.py
-SOURCE_DIR: 'C:/TempDataForSpeed/SINClassifierV2_20240812/videos'
-TARGET_DIR: 'C:/TempDataForSpeed/SINClassifierV2_20240812/cropped_resized'
+SOURCE_DIR: 'Z:/01_Current_Projects/CR202 EMMP_Obayashi/02_Camera_Trapping/Camera_Trap_Data/01 Raw/Eng Neo Forest Monitoring/20250207/CV1_20250207'
+TARGET_DIR: 'Z:/01_Current_Projects/CR202 EMMP_Obayashi/02_Camera_Trapping/Camera_Trap_Data/02 Processed/Eng Neo Forest Monitoring/20250207/CV1_20250207'
 
 ## Arguments for train_model.py
-dataset_root: 'C:\\TempDataForSpeed\\SINClassifierV2_20240812'
+DET_WEIGHTS_PATH: NULL
+DET_VERSION: 'yolov9c' #yolov9c, yolov9e, yolov10n, or yolov10x
+dataset_root: 'C://TempDataForSpeed//SINClassifierV2_20250120'
 # training
-conf_id: SINClassifierV2_20240812
+conf_id: SINClassifierV2_20250120
 algorithm: RSG
 num_epochs: 200
 log_interval: 10

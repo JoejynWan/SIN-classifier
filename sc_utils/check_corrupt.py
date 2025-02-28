@@ -92,7 +92,7 @@ def check_corrupt_dir(
     input_dir, 
     output_dir, 
     move_or_copy = "move", copy_non_corrupt = False, 
-    Fs_threshold = 20, vid_duration_threshold = 5):
+    Fs_threshold = 15, vid_duration_threshold = 5):
 
     print("Checking for corrupt videos now...")
 
