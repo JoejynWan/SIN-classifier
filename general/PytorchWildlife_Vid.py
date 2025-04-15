@@ -23,7 +23,7 @@ def detection_callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
     used to average the bounding boxes (xyxy) and confidences across frames. 
     """
 
-    results_det = detection_model.single_image_detection(img=frame, img_path=frame_id)
+    results_det = detection_model.single_image_detection(img=frame, img_path=frame_id, verbose=False)
     results_det["detections"] = tracker_det.update_with_detections(results_det["detections"])
     results_det["detections"] = smoother_det.update_with_detections(results_det["detections"])
 
