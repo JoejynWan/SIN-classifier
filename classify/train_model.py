@@ -22,8 +22,7 @@ def main(
         session:int=None,
         seed:int=0,
         dev:bool=False,
-        val:bool=False,
-        predict:bool=False,
+        mode:str='train_test', #"train_only", "train_test", "val", "test", or "predict"
         predict_root:str=""
     ):
     """
@@ -48,7 +47,6 @@ def main(
     # GPU configuration: set up GPUs based on availability and user specification
     gpus = gpus if torch.cuda.is_available() else None
     gpus = [int(i) for i in gpus.split(',')]
-    torch.set_float32_matmul_precision("high")
 
     # Environment variable setup for numpy multi-threading
     os.environ["OMP_NUM_THREADS"] = str(np_threads)
@@ -61,8 +59,7 @@ def main(
     with open(config) as f:
         conf = Munch(yaml.load(f, Loader=yaml.FullLoader))
     conf.evaluate = evaluate
-    conf.val = val
-    conf.predict = predict
+    conf.mode = mode
     conf.predict_root = predict_root
     conf.start_time = datetime.now()
     results_folder = 'results_dev' if dev else 'results'
@@ -140,15 +137,22 @@ def main(
     )
     # Training, validation, or evaluation execution based on the mode
     if evaluate is not None:
-        if val:
+        if conf.mode == 'val':
             trainer.validate(learner, dataloaders=[dataset.val_dataloader()], ckpt_path=evaluate)
-        elif predict:
+        elif conf.mode == 'predict':
             trainer.predict(learner, dataloaders=[dataset.predict_dataloader()], ckpt_path=evaluate)
-        else:
+        elif conf.mode == 'test':
             trainer.test(learner, dataloaders=[dataset.test_dataloader()], ckpt_path=evaluate)
+        else:
+            print('Invalid mode for evaluation.')
     else:
-        trainer.fit(learner, datamodule=dataset, ckpt_path=conf.resume_from_ckpt)
-        trainer.test(learner, dataloaders=[dataset.test_dataloader()], ckpt_path="best")
+        if conf.mode == 'train_only':
+            trainer.fit(learner, datamodule=dataset, ckpt_path=conf.resume_from_ckpt)
+        elif conf.mode == 'train_test': 
+            trainer.fit(learner, datamodule=dataset, ckpt_path=conf.resume_from_ckpt)
+            trainer.test(learner, dataloaders=[dataset.test_dataloader()], ckpt_path="best")
+        else:
+            print('Invalid mode for training.')
 
 
 if __name__ == '__main__':
