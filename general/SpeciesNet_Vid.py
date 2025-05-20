@@ -3,6 +3,7 @@ import cv2
 import glob
 import yaml
 import torch
+import tempfile
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -30,32 +31,46 @@ def detection_callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
     return results_det
 
 
-def classification_callback(frame: np.ndarray, results_det = None) -> np.ndarray:
+def classification_callback(frame_path: str, results_det = None) -> np.ndarray:
     """
-    Callback function to process each video frame with species classifier. 
+    Callback function to process each video frame with SpeciesNet classifier. 
     """
 
-    spp_dets = []
-    for xyxy, tracker_id in zip(results_det["detections"].xyxy, results_det["detections"].tracker_id):
+    clf_conf_thres = 0.8
+    clf_labels = []
+    for i in range(len(results_det['detections'].xyxy)):
+        r = {
+            'img_id': frame_path,
+            'normalized_coords': [results_det['detections'].xyxy[i]]
+            }
+    results_clf = classification_model.single_image_classification(frame_path, det_results=r)[0]
+    clf_labels.append("{} {:.2f}".format(
+        results_clf["prediction"] if results_clf["confidence"] > clf_conf_thres else "Unknown",
+        results_clf["confidence"]
+    ))
+    
 
-        cropped_image = sv.crop_image(image=frame, xyxy=xyxy)
-        spp_results = classification_model.single_image_classification(img=cropped_image, 
-                                                                       img_id=results_det['img_id'])
-        
-        spp_det = sv.Detections(
-            xyxy = np.array([xyxy]),
-            confidence = np.array([spp_results["confidence"]]), 
-            class_id = np.array([spp_results["class_id"]]),
-            tracker_id = np.array([tracker_id]), 
-            data = {'all_confs': np.array([[conf[1] for conf in spp_results["all_confidences"]]]), 
-                    'all_class_id': np.array([[conf[0] for conf in spp_results["all_confidences"]]])}
-        )
-        
-        spp_det = smoother_cls.update_with_detections(spp_det)
-        spp_dets.append(spp_det)
+    # spp_dets = []
+    # for xyxy, tracker_id in zip(results_det["detections"].xyxy, results_det["detections"].tracker_id):
 
-    results_clf = {"img_id": results_det["img_id"]}
-    results_clf["detections"] = sv.Detections.merge(spp_dets)
+    #     cropped_image = sv.crop_image(image=frame, xyxy=xyxy)
+    #     spp_results = classification_model.single_image_classification(img=cropped_image, 
+    #                                                                    img_id=results_det['img_id'])
+        
+    #     spp_det = sv.Detections(
+    #         xyxy = np.array([xyxy]),
+    #         confidence = np.array([spp_results["confidence"]]), 
+    #         class_id = np.array([spp_results["class_id"]]),
+    #         tracker_id = np.array([tracker_id]), 
+    #         data = {'all_confs': np.array([[conf[1] for conf in spp_results["all_confidences"]]]), 
+    #                 'all_class_id': np.array([[conf[0] for conf in spp_results["all_confidences"]]])}
+    #     )
+        
+    #     spp_det = smoother_cls.update_with_detections(spp_det)
+    #     spp_dets.append(spp_det)
+
+    # results_clf = {"img_id": results_det["img_id"]}
+    # results_clf["detections"] = sv.Detections.merge(spp_dets)
 
     return results_clf
 
@@ -154,13 +169,22 @@ def process_video(
             Codec used to encode the processed video. Default is "avc1".
     """
     
-    ## Run MegaDetector
     results_dets = []
     for index, frame in enumerate(
         sv.get_video_frames_generator(source_path=source_video_file)
     ):
+        ## Run MegaDetector
         frame_id = Path(source_video_file).stem + "_frame" + str(index).zfill(3)
         results_det = detection_callback(frame, frame_id = frame_id)
+        
+        ## Run SpeciesNet Classifier
+        with tempfile.TemporaryDirectory(prefix = "frame_folder") as tmpdir: 
+            frame_path = os.path.join(tmpdir, frame_id + '.jpg')
+            cv2.imwrite(frame_path, frame)    
+        
+            results_clf = classification_callback(frame_path, results_det)
+        
+        
         results_dets.append(results_det)
 
     ## Run species classifier only if classification_callback is provided and video is detected to 
@@ -209,9 +233,9 @@ if __name__ == '__main__':
     detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights=config.DET_WEIGHTS_PATH, 
                                                   version=config.DET_VERSION)
 
-    if config.CLS_WEIGHTS_PATH: 
-        classification_model = pw_classification.SINClassifier(device=DEVICE, 
-                                                               weights=config.CLS_WEIGHTS_PATH)
+    if config.CLS_VERSION: 
+        classification_model = pw_classification.SpeciesNetTFInferenceMD6(version=config.CLS_VERSION, 
+                                                                          run_mode='multi_thread')
     
     ## Run detection, classification, visualisation, and sorting of videos
     outs = []
@@ -224,7 +248,7 @@ if __name__ == '__main__':
         smoother_det = sv.DetectionsSmoother()
         bbox_annotator = sv.BoxAnnotator(thickness=2)
         label_annotator = sv.LabelAnnotator(text_thickness=2, text_scale=.5)
-        if config.CLS_WEIGHTS_PATH: 
+        if config.CLS_VERSION: 
             smoother_cls = ClassificationSmoother()
         else:
             classification_callback = None

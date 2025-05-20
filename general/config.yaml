@@ -1,10 +1,11 @@
 # Data
-SOURCE_DIR: 'Z:/01_Current_Projects/CR202 EMMP_Obayashi/02_Camera_Trapping/Camera_Trap_Data/01 Raw/Eng Neo Forest Monitoring/20250207/CV1_20250207'
-TARGET_DIR: 'Z:/01_Current_Projects/CR202 EMMP_Obayashi/02_Camera_Trapping/Camera_Trap_Data/02 Processed/Eng Neo Forest Monitoring/20250207/CV1_20250207'
+SOURCE_DIR: 'C:/TempDataForSpeed/example_test_set'
+TARGET_DIR: 'D:/CNN_Animal_ID/SIN-classifier/results/example_test_set'
 CODEC: "mp4v"
-VIS_MEDIA: True
+VIS_MEDIA: False
 
 # Model weights
 DET_WEIGHTS_PATH: NULL
-DET_VERSION: 'yolov9c' #yolov9c, yolov9e, yolov10n, or yolov10x
+DET_VERSION: 'MDV6-yolov9-c' #MDV6-yolov9-c, MDV6-yolov9-e, MDV6-yolov10-n, MDV6-yolov10-x, or MDV6-rtdetr-c
 CLS_WEIGHTS_PATH: NULL
+CLS_VERSION: NULL #'v4.0.1a'
