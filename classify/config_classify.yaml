@@ -3,38 +3,40 @@ SOURCE_DIR: 'Z:/01_Current_Projects/CR202 EMMP_Obayashi/02_Camera_Trapping/Camer
 TARGET_DIR: 'Z:/01_Current_Projects/CR202 EMMP_Obayashi/02_Camera_Trapping/Camera_Trap_Data/02 Processed/Eng Neo Forest Monitoring/20250207/CV1_20250207'
 
 ## Arguments for train_model.py
-DET_WEIGHTS_PATH: NULL
-DET_VERSION: 'yolov9c' #yolov9c, yolov9e, yolov10n, or yolov10x
-dataset_root: 'C://TempDataForSpeed//SINClassifierV2_20250120'
 # training
 conf_id: SINClassifierV2_20250120
-algorithm: RSG
+algorithm: RSG # options are: Plain or RSG
 num_epochs: 200
-log_interval: 10
+log_interval: 100
 parallel: 0
 # data loading
+dataset_root: 'C://TempDataForSpeed//SINClassifierV2_20250120'
 dataset_name: Custom_Crop
-batch_size: 128
-num_workers: 20
+batch_size: 64
+num_workers: 12
 # model
-resume_from_ckpt: None
-model_name: RSGResNet
+resume_from_ckpt: NULL
+model_name: RSGResNet # options are: PlainResNetClassifier or RSGResNet
 num_layers: 50
 num_classes: 35
-loss_type: LDAM #CE, LDAM, or Focal
 # RSG
-head_lists: [1,2,3,4,7,14,15,16,17,19,22,23,25]
-epoch_thresh: 150
-n_center: 15
-transfer_strength: 0.01
-# optimisation
-train_rule: DRW #None, Reweight, or DRW
+head_lists: [1,2,3,4,7,14,17,19,25,8,15,16,21,23,24]
+epoch_thresh: 100
+n_center: 30
+transfer_strength: 1.0
+loss_type: LDAM # options are: CE, LDAM, or Focal. Automatically CE for plain algo. 
+
+## Optimisation
+# feature
+train_rule: DRW # options are: None, Reweight, or DRW. Automatically None for plain algo. 
 lr_feature: 0.1
 momentum_feature: 0.9
 weight_decay_feature: 0.0005
+# classifier
 lr_classifier: 0.1
 momentum_classifier: 0.9
 weight_decay_classifier: 0.0005
-step_size: 30 # for StepLR scheduler
-milestones: [110, 150, 180] #for MultiStepLR scheduler
+# lr_scheduler
+step_size: 30 # for StepLR scheduler in plain algo
+milestones: [60, 100, 130, 180] # for MultiStepLR scheduler in rsg algo
 gamma: 0.1

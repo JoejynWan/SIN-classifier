@@ -47,6 +47,7 @@ def main(
     # GPU configuration: set up GPUs based on availability and user specification
     gpus = gpus if torch.cuda.is_available() else None
     gpus = [int(i) for i in gpus.split(',')]
+    torch.set_float32_matmul_precision('high')
 
     # Environment variable setup for numpy multi-threading
     os.environ["OMP_NUM_THREADS"] = str(np_threads)
