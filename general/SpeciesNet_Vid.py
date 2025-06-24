@@ -30,46 +30,46 @@ def detection_callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
     return results_det
 
 
-def classification_callback(frame_path: str, results_det = None) -> np.ndarray:
+def classification_callback(frame_path: str, results_det = None, img_size = None) -> np.ndarray:
     """
     Callback function to process each video frame with SpeciesNet classifier. 
     """
 
+    ## Convert xyxy to normalised bounding box to be compatiable with speciesnet
+    normalized_coords = []
+    for xyxy in results_det['detections'].xyxy:
+        x1, y1, x2, y2 = xyxy
+        normalized_xyxy = [x1 / img_size[1], y1 / img_size[0], x2 / img_size[1], y2 / img_size[0]]
+        normalized_coords.append(normalized_xyxy)
+
+    r = {'img_id': frame_path,
+        'normalized_coords': normalized_coords}
+    spp_results = classification_model.single_image_classification(frame_path, det_results=r)
+    
+    ## Save out as sv.Detections class for compatibility with supervision
+    clf_detections = sv.Detections(
+        xyxy = results_det['detections'].xyxy,
+        confidence = np.array([spp_result['confidence'] for spp_result in spp_results]), 
+        tracker_id = results_det['detections'].tracker_id, 
+        data = {'prediction': [spp_result['prediction'] for spp_result in spp_results]}
+    )
+
+    ## Get labels
     clf_conf_thres = 0.8
     clf_labels = []
-    for i in range(len(results_det['detections'].xyxy)):
-        r = {
-            'img_id': frame_path,
-            'normalized_coords': [results_det['detections'].xyxy[i]]
-            }
-    results_clf = classification_model.single_image_classification(frame_path, det_results=r)[0]
-    clf_labels.append("{} {:.2f}".format(
-        results_clf["prediction"] if results_clf["confidence"] > clf_conf_thres else "Unknown",
-        results_clf["confidence"]
-    ))
-    
+    for spp_result in spp_results:
+        clf_labels.append("{} {:.2f}".format(
+            spp_result["prediction"] if spp_result["confidence"] > clf_conf_thres else "Unknown",
+            spp_result["confidence"]
+        ))
 
-    # spp_dets = []
-    # for xyxy, tracker_id in zip(results_det["detections"].xyxy, results_det["detections"].tracker_id):
-
-    #     cropped_image = sv.crop_image(image=frame, xyxy=xyxy)
-    #     spp_results = classification_model.single_image_classification(img=cropped_image, 
-    #                                                                    img_id=results_det['img_id'])
-        
-    #     spp_det = sv.Detections(
-    #         xyxy = np.array([xyxy]),
-    #         confidence = np.array([spp_results["confidence"]]), 
-    #         class_id = np.array([spp_results["class_id"]]),
-    #         tracker_id = np.array([tracker_id]), 
-    #         data = {'all_confs': np.array([[conf[1] for conf in spp_results["all_confidences"]]]), 
-    #                 'all_class_id': np.array([[conf[0] for conf in spp_results["all_confidences"]]])}
-    #     )
-        
-    #     spp_det = smoother_cls.update_with_detections(spp_det)
-    #     spp_dets.append(spp_det)
-
-    # results_clf = {"img_id": results_det["img_id"]}
-    # results_clf["detections"] = sv.Detections.merge(spp_dets)
+    ## Match format with singe_image_detection
+    results_clf = {
+        'img_id': results_det['img_id'],
+        'detections': clf_detections,
+        'labels': clf_labels, 
+        'normalized_coords': normalized_coords
+    }
 
     return results_clf
 
@@ -168,7 +168,7 @@ def process_video(
             Codec used to encode the processed video. Default is "avc1".
     """
     
-    results_dets = []
+    results_clfs = []
     for index, frame in enumerate(
         sv.get_video_frames_generator(source_path=source_video_file)
     ):
@@ -177,38 +177,42 @@ def process_video(
         results_det = detection_callback(frame, frame_id = frame_id)
         
         ## Run SpeciesNet Classifier
+        frame_height, frame_width = frame.shape[:2]
+        frame_size = (frame_height, frame_width)
+
         with tempfile.TemporaryDirectory(prefix = "frame_folder") as tmpdir: 
             frame_path = os.path.join(tmpdir, frame_id + '.jpg')
             cv2.imwrite(frame_path, frame)    
         
-            results_clf = classification_callback(frame_path, results_det)
+            results_clf = classification_callback(frame_path, results_det, frame_size)
         
-        
-        results_dets.append(results_det)
+        results_clfs.append(results_clf)
+    
+    if vis_media: 
+        vis_video(results_clfs, video_class, model, source_video_file, source_video_dir, target_dir, codec)
 
     ## Run species classifier only if classification_callback is provided and video is detected to 
     ## be animal
-    video_class = get_video_class(results_dets, detection_model)
+    # video_class = get_video_class(results_dets, detection_model)
 
-    if classification_callback is None or video_class != "animal": 
-        results = results_dets
-        model = detection_model
-    elif video_class == "animal": 
-        results_clfs = []
-        for results_det, frame in zip(
-            results_dets, sv.get_video_frames_generator(source_path=source_video_file)
-        ):
-            results_clf = classification_callback(frame, results_det)
-            results_clfs.append(results_clf)
+    # if classification_callback is None or video_class != "animal": 
+    #     results = results_dets
+    #     model = detection_model
+    
+    # elif video_class == "animal": 
+    #     results_clfs = []
+    #     for results_det, frame in zip(
+    #         results_dets, sv.get_video_frames_generator(source_path=source_video_file)
+    #     ):
+    #         results_clf = classification_callback(frame, results_det)
+    #         results_clfs.append(results_clf)
 
-        video_class = get_video_class(results_clfs, classification_model)
-        results = results_clfs
-        model = classification_model
+    #     video_class = get_video_class(results_clfs, classification_model)
+    #     results = results_clfs
+    #     model = classification_model
 
     ## Save out videos with annotated bounding boxes
-    if vis_media: 
-        vis_video(results, video_class, model, source_video_file, source_video_dir, target_dir, codec)
-
+    
     return video_class
 
 

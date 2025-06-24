@@ -10,12 +10,8 @@ weights/*
 ## Ignore depreciated folder which contains old code/data
 depreciated/
 
-## Ignore pycache folder
-classify/__pycache__/*
-detect/__pycache__/*
-general/__pycache__/*
-sc_utils/__pycache__/*
-train/__pycache__/*
+## Ignore pycache folders
+__pycache__
 
 ## Keep Species_Database.csv
 !data/Species_Database.csv
@@ -23,3 +19,9 @@ train/__pycache__/*
 ## Keep README.md files
 !*README.md
 
+## Ignore setup files
+sin_classifier.egg-info/
+
+## Ignore vs code folders
+.vs
+.vscode
