@@ -1,6 +1,5 @@
 import os
 import cv2 
-import glob
 import yaml
 import torch
 import tempfile

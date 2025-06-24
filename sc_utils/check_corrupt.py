@@ -1,5 +1,6 @@
 
 import os
+import sys
 import cv2
 import glob
 import shutil
@@ -44,10 +45,12 @@ def check_corrupt_file(
 
     input_fn_absolute = os.path.join(input_dir,video_file)
     assert os.path.isfile(input_fn_absolute), 'File {} not found'.format(input_fn_absolute)
-
+    
+    cv2.setLogLevel(0)  # 0 = LOG_LEVEL_SILENT, suppress FFmepg warnings
     vidcap = cv2.VideoCapture(input_fn_absolute)
     Fs = vidcap.get(cv2.CAP_PROP_FPS)
     frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
+    vidcap.release()
 
     if Fs == 0 or Fs < Fs_threshold or frame_count/Fs < vid_duration_threshold:
         ## Move/copy the corrupt videos into corrupt folder

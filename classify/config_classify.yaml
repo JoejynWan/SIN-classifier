@@ -1,16 +1,18 @@
 ## Arguments for video_to_crops.py
-SOURCE_DIR: 'Z:/01_Current_Projects/CR202 EMMP_Obayashi/02_Camera_Trapping/Camera_Trap_Data/01 Raw/Eng Neo Forest Monitoring/20250207/CV1_20250207'
-TARGET_DIR: 'Z:/01_Current_Projects/CR202 EMMP_Obayashi/02_Camera_Trapping/Camera_Trap_Data/02 Processed/Eng Neo Forest Monitoring/20250207/CV1_20250207'
+SOURCE_DIR: 'C:\TempDataForSpeed\SINClassifierV2_20250604\raw_videos'
+TARGET_DIR: 'C:\TempDataForSpeed\SINClassifierV2_20250604\cropped_resized'
+DET_WEIGHTS_PATH: NULL
+DET_VERSION: 'MDV6-yolov9-c' #MDV6-yolov9-c, MDV6-yolov9-e, MDV6-yolov10-c, MDV6-yolov10-e, or MDV6-rtdetr-c
 
 ## Arguments for train_model.py
 # training
-conf_id: SINClassifierV2_20250120
+conf_id: SINClassifierV2_20250604
 algorithm: RSG # options are: Plain or RSG
 num_epochs: 200
 log_interval: 100
 parallel: 0
 # data loading
-dataset_root: 'C://TempDataForSpeed//SINClassifierV2_20250120'
+dataset_root: 'C://TempDataForSpeed//SINClassifierV2_20250604'
 dataset_name: Custom_Crop
 batch_size: 64
 num_workers: 12
@@ -18,11 +20,11 @@ num_workers: 12
 resume_from_ckpt: NULL
 model_name: RSGResNet # options are: PlainResNetClassifier or RSGResNet
 num_layers: 50
-num_classes: 35
+num_classes: 36
 # RSG
-head_lists: [1,2,3,4,7,14,17,19,25,8,15,16,21,23,24]
+head_lists: [1,2,3,4,7,8,14,15,16,17,19,21,22,23,24,25,30,32,34]
 epoch_thresh: 100
-n_center: 30
+n_center: 15
 transfer_strength: 1.0
 loss_type: LDAM # options are: CE, LDAM, or Focal. Automatically CE for plain algo. 
 

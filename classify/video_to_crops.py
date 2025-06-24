@@ -16,7 +16,7 @@ def callback(frame: np.ndarray, frame_id: str = None, target_dir: str = None) ->
     Callback function to process each video frame
     """
     ## Run MegaDetector with tracking and smoothering
-    result = detection_model.single_image_detection(img=frame, img_path=frame_id)
+    result = detection_model.single_image_detection(img=frame, img_path=frame_id, verbose=False)
     result["detections"] = tracker.update_with_detections(result["detections"])
     result["detections"] = smoother.update_with_detections(result["detections"])
     
@@ -67,6 +67,7 @@ if __name__ == '__main__':
     ## Set the general arguments
     CONFIG_PATH = './classify/config_classify.yaml'
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    os.environ["FFMPEG_LOG_LEVEL"] = "quiet" #suppress FFmpeg messages
 
     ## Load and set configurations from the YAML file
     with open(CONFIG_PATH) as f:
