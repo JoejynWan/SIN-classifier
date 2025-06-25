@@ -41,10 +41,13 @@ def classification_callback(frame_path: str, results_det = None, img_size = None
         normalized_xyxy = [x1 / img_size[1], y1 / img_size[0], x2 / img_size[1], y2 / img_size[0]]
         normalized_coords.append(normalized_xyxy)
 
-    r = {'img_id': frame_path,
-        'normalized_coords': normalized_coords}
-    spp_results = classification_model.single_image_classification(frame_path, det_results=r)
-    
+    spp_results = []
+    for i in range(len(normalized_coords)):
+        r = {'img_id': frame_path,
+             'normalized_coords': [normalized_coords[i]]}
+        spp_result = classification_model.single_image_classification(frame_path, det_results=r)
+        spp_results.extend(spp_result)
+
     ## Save out as sv.Detections class for compatibility with supervision
     clf_detections = sv.Detections(
         xyxy = results_det['detections'].xyxy,
