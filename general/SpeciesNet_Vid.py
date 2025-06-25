@@ -9,11 +9,10 @@ from tqdm import tqdm
 from munch import Munch
 from pathlib import Path
 import supervision as sv
-from itertools import chain
 from typing import Callable
+from collections import Counter
 from PytorchWildlife.models import detection as pw_detection
 from PytorchWildlife.models import classification as pw_classification
-from sc_utils.smoother import ClassificationSmoother
 from sc_utils.check_corrupt import check_corrupt_dir, find_videos
 
 
@@ -50,18 +49,23 @@ def classification_callback(frame_path: str, results_det = None, img_size = None
     clf_detections = sv.Detections(
         xyxy = results_det['detections'].xyxy,
         confidence = np.array([spp_result['confidence'] for spp_result in spp_results]), 
+        class_id = np.array([spp_result['class_id'] for spp_result in spp_results]), 
         tracker_id = results_det['detections'].tracker_id, 
         data = {'prediction': [spp_result['prediction'] for spp_result in spp_results]}
     )
+    clf_detections = smoother_cls.update_with_detections(clf_detections)
 
     ## Get labels
     clf_conf_thres = 0.8
     clf_labels = []
-    for spp_result in spp_results:
-        clf_labels.append("{} {:.2f}".format(
-            spp_result["prediction"] if spp_result["confidence"] > clf_conf_thres else "Unknown",
-            spp_result["confidence"]
-        ))
+    for i in range(len(clf_detections)):
+        # Set class_id to unknown if conf is below threshold
+        if clf_detections.confidence[i] < clf_conf_thres:
+            clf_detections.class_id[i] = list(classification_model.id_to_label.keys())[-1]
+            clf_detections.data['prediction'][i] = list(classification_model.id_to_label.items())[-1]
+    
+        label = classification_model.id_to_label[clf_detections.class_id[i]].split(';')[-1]
+        clf_labels.append("{} {:.2f}".format(label, clf_detections.confidence[i]))
 
     ## Match format with singe_image_detection
     results_clf = {
@@ -74,32 +78,25 @@ def classification_callback(frame_path: str, results_det = None, img_size = None
     return results_clf
 
 
-def get_video_class(results, model):
+def get_video_class(results):
     """
-    Get the overall class name of the video across all frames. Class names will be based on the 
-    model provided (either the detection or classification model). 
+    Get the overall class name of the video across all frames. 
+    Overall class name is based on the most common occurance across all frames. 
     """
-    confs_all = []
-    class_id_all = []
+    preds_all = []
     for result in results: 
         if result["detections"].xyxy.size != 0:
-            confs_all.append(result["detections"].confidence)
-            class_id_all.append(result["detections"].class_id)
+            preds_all.extend(result["detections"].data["prediction"])
     
-    if not class_id_all:
-        video_class = 'empty'
+    if not preds_all:
+        video_class = 'blank'
     else:
-        confs_all_chain = list(chain.from_iterable(confs_all))
-        class_id_all_chain = np.array(list(chain.from_iterable(class_id_all)))
-        max_conf_idx = list(np.where(np.array(confs_all_chain) == max(confs_all_chain))[0])
-        max_conf_class_ids = class_id_all_chain[max_conf_idx].tolist()
-        max_conf_class_id = max(max_conf_class_ids, key = max_conf_class_ids.count)
-        video_class = model.CLASS_NAMES[max_conf_class_id]
+        video_class, count = Counter(preds_all).most_common(1)[0]
 
     return video_class
 
 
-def vis_video(results, video_class, model, source_video_file, source_video_dir, target_dir, codec):
+def vis_video(results, video_class, source_video_file, source_video_dir, target_dir, codec):
     """
     Visualise videos with the annotated bounding boxes from MegaDetector (or species classifier, 
     if available). 
@@ -107,16 +104,11 @@ def vis_video(results, video_class, model, source_video_file, source_video_dir, 
     ## Get annotated frames with labels 
     annotated_frames = []
     for result, frame in zip(results, sv.get_video_frames_generator(source_path=source_video_file)):
-        
-        labels = []
-        for class_id, conf in zip(result["detections"].class_id, result["detections"].confidence):
-            class_name = model.CLASS_NAMES[class_id]
-            labels.append("{} {:.2f}".format(class_name, conf))
 
         annotated_frame = bbox_annotator.annotate(scene=frame, detections=result["detections"])
         annotated_frame = label_annotator.annotate(annotated_frame, 
                                                    detections=result["detections"],
-                                                   labels=labels)
+                                                   labels=result['labels'])
         annotated_frames.append(annotated_frame)
 
     ## Get the full output video path
@@ -188,30 +180,9 @@ def process_video(
         
         results_clfs.append(results_clf)
     
+    video_class = get_video_class(results_clfs)
     if vis_media: 
-        vis_video(results_clfs, video_class, model, source_video_file, source_video_dir, target_dir, codec)
-
-    ## Run species classifier only if classification_callback is provided and video is detected to 
-    ## be animal
-    # video_class = get_video_class(results_dets, detection_model)
-
-    # if classification_callback is None or video_class != "animal": 
-    #     results = results_dets
-    #     model = detection_model
-    
-    # elif video_class == "animal": 
-    #     results_clfs = []
-    #     for results_det, frame in zip(
-    #         results_dets, sv.get_video_frames_generator(source_path=source_video_file)
-    #     ):
-    #         results_clf = classification_callback(frame, results_det)
-    #         results_clfs.append(results_clf)
-
-    #     video_class = get_video_class(results_clfs, classification_model)
-    #     results = results_clfs
-    #     model = classification_model
-
-    ## Save out videos with annotated bounding boxes
+        vis_video(results_clfs, video_class, source_video_file, source_video_dir, target_dir, codec)
     
     return video_class
 
@@ -237,8 +208,9 @@ if __name__ == '__main__':
                                                   version=config.DET_VERSION)
 
     if config.CLS_VERSION: 
-        classification_model = pw_classification.SpeciesNetTFInferenceMD6(version=config.CLS_VERSION, 
-                                                                          run_mode='multi_thread')
+        classification_model = pw_classification.SpeciesNetTFInference(version=config.CLS_VERSION, 
+                                                                       run_mode='multi_thread')
+        classification_model.id_to_label[len(classification_model.id_to_label)] = "unknown"
     
     ## Run detection, classification, visualisation, and sorting of videos
     outs = []
@@ -252,7 +224,7 @@ if __name__ == '__main__':
         bbox_annotator = sv.BoxAnnotator(thickness=2)
         label_annotator = sv.LabelAnnotator(text_thickness=2, text_scale=.5)
         if config.CLS_VERSION: 
-            smoother_cls = ClassificationSmoother()
+            smoother_cls = sv.DetectionsSmoother()
         else:
             classification_callback = None
 

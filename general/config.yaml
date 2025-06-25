@@ -1,13 +1,10 @@
 # Data
 SOURCE_DIR: 'C:/TempDataForSpeed/example_test_set'
 TARGET_DIR: 'D:/CNN_Animal_ID/SIN-classifier/results/example_test_set'
-# SOURCE_DIR: 'Z:/01_Current_Projects/CR202 EMMP_Obayashi/02_Camera_Trapping/Camera_Trap_Data/01 Raw/Windsor Forest Monitoring/20250616'
-# TARGET_DIR: 'Z:/01_Current_Projects/CR202 EMMP_Obayashi/02_Camera_Trapping/Camera_Trap_Data/02 Processed/Windsor Forest Monitoring/20250616'
 CODEC: "mp4v"
 VIS_MEDIA: True
 
 # Model weights
 DET_WEIGHTS_PATH: NULL
 DET_VERSION: 'MDV6-yolov9-c' #MDV6-yolov9-c, MDV6-yolov9-e, MDV6-yolov10-c, MDV6-yolov10-e, or MDV6-rtdetr-c
-CLS_WEIGHTS_PATH: NULL
-CLS_VERSION: 'v4.0.1a' #'v4.0.1a'
+CLS_VERSION: 'v4.0.1a' #NULL, 'v4.0.1a'
