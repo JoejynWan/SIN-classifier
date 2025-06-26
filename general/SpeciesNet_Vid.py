@@ -9,14 +9,14 @@ from tqdm import tqdm
 from munch import Munch
 from pathlib import Path
 import supervision as sv
-from typing import Callable
+from typing import Callable, Optional
 from collections import Counter
 from PytorchWildlife.models import detection as pw_detection
 from PytorchWildlife.models import classification as pw_classification
 from sc_utils.check_corrupt import check_corrupt_dir, find_videos
 
 
-def detection_callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
+def detection_callback(frame: np.ndarray, frame_id: str = None, img_size = None) -> np.ndarray:
     """
     Callback function to process each video frame with MegaDetector. Tracking and smoothering is 
     used to average the bounding boxes (xyxy) and confidences across frames. 
@@ -26,26 +26,27 @@ def detection_callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
     results_det["detections"] = tracker_det.update_with_detections(results_det["detections"])
     results_det["detections"] = smoother_det.update_with_detections(results_det["detections"])
 
-    return results_det
-
-
-def classification_callback(frame_path: str, results_det = None, img_size = None) -> np.ndarray:
-    """
-    Callback function to process each video frame with SpeciesNet classifier. 
-    """
-
-    ## Convert xyxy to normalised bounding box to be compatiable with speciesnet
-    normalized_coords = []
+    ## Update normalized_coords after tracker and smoother
+    results_det['normalized_coords'] = []
     for xyxy in results_det['detections'].xyxy:
         x1, y1, x2, y2 = xyxy
         normalized_xyxy = [x1 / img_size[1], y1 / img_size[0], x2 / img_size[1], y2 / img_size[0]]
-        normalized_coords.append(normalized_xyxy)
+        results_det['normalized_coords'].append(normalized_xyxy)
 
+    return results_det
+
+
+def classification_callback(frame_path: str, results_det = None, country = None) -> np.ndarray:
+    """
+    Callback function to process each video frame with SpeciesNet classifier. 
+    """
+    ## Run classification for each detection separately
     spp_results = []
-    for i in range(len(normalized_coords)):
+    for i in range(len(results_det['normalized_coords'])):
         r = {'img_id': frame_path,
-             'normalized_coords': [normalized_coords[i]]}
-        spp_result = classification_model.single_image_classification(frame_path, det_results=r)
+             'normalized_coords': [results_det['normalized_coords'][i]]}
+        spp_result = classification_model.single_image_classification(frame_path, det_results=r, 
+                                                                      country=country)
         spp_results.extend(spp_result)
 
     ## Save out as sv.Detections class for compatibility with supervision
@@ -65,8 +66,8 @@ def classification_callback(frame_path: str, results_det = None, img_size = None
         # Set class_id to unknown if conf is below threshold
         if clf_detections.confidence[i] < clf_conf_thres:
             clf_detections.class_id[i] = list(classification_model.id_to_label.keys())[-1]
-            clf_detections.data['prediction'][i] = list(classification_model.id_to_label.items())[-1]
-    
+            clf_detections.data['prediction'][i] = list(classification_model.id_to_label.values())[-1]
+
         label = classification_model.id_to_label[clf_detections.class_id[i]].split(';')[-1]
         clf_labels.append("{} {:.2f}".format(label, clf_detections.confidence[i]))
 
@@ -75,7 +76,7 @@ def classification_callback(frame_path: str, results_det = None, img_size = None
         'img_id': results_det['img_id'],
         'detections': clf_detections,
         'labels': clf_labels, 
-        'normalized_coords': normalized_coords
+        'normalized_coords': results_det['normalized_coords']
     }
 
     return results_clf
@@ -118,7 +119,7 @@ def vis_video(results, video_class, source_video_file, source_video_dir, target_
     vid_path_parts=Path(source_video_file).parts
     last_input_dir=Path(source_video_dir).parts[-1]
     relative_dir=Path(*vid_path_parts[vid_path_parts.index(last_input_dir)+1:-1])
-    full_output_dir = os.path.join(target_dir, relative_dir, video_class)
+    full_output_dir = os.path.join(str(target_dir), str(relative_dir), str(video_class))
     os.makedirs(full_output_dir, exist_ok=True)
 
     video_name=Path(source_video_file).parts[-1]
@@ -138,7 +139,8 @@ def process_video(
     detection_callback: Callable[[np.ndarray, int], np.ndarray],
     classification_callback: Callable[[np.ndarray, int], np.ndarray],
     vis_media: bool,
-    codec: str = "mp4v"
+    codec: Optional[str] = "mp4v", 
+    country: Optional[str] = None
     ):
     """
     Process a video frame-by-frame, applying a callback function to each frame and saving the 
@@ -164,22 +166,22 @@ def process_video(
     """
     
     results_clfs = []
-    for index, frame in enumerate(
+    for index, frame in enumerate(       
         sv.get_video_frames_generator(source_path=source_video_file)
     ):
-        ## Run MegaDetector
-        frame_id = Path(source_video_file).stem + "_frame" + str(index).zfill(3)
-        results_det = detection_callback(frame, frame_id = frame_id)
-        
-        ## Run SpeciesNet Classifier
         frame_height, frame_width = frame.shape[:2]
         frame_size = (frame_height, frame_width)
-
+    
+        ## Run MegaDetector
+        frame_id = Path(source_video_file).stem + "_frame" + str(index).zfill(3)
+        results_det = detection_callback(frame, frame_id, frame_size)
+        
+        ## Run SpeciesNet Classifier
         with tempfile.TemporaryDirectory(prefix = "frame_folder") as tmpdir: 
             frame_path = os.path.join(tmpdir, frame_id + '.jpg')
             cv2.imwrite(frame_path, frame)    
         
-            results_clf = classification_callback(frame_path, results_det, frame_size)
+            results_clf = classification_callback(frame_path, results_det, country)
         
         results_clfs.append(results_clf)
     
@@ -238,7 +240,8 @@ if __name__ == '__main__':
                                     detection_callback = detection_callback, 
                                     classification_callback = classification_callback, 
                                     vis_media = config.VIS_MEDIA, 
-                                    codec = config.CODEC)
+                                    codec = config.CODEC, 
+                                    country = config.COUNTRY)
         
         ## Save out the results
         outs.append({'path': video_file, 'pred': video_class})
