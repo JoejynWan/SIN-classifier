@@ -6,6 +6,7 @@ VIS_MEDIA: True
 
 # Model weights
 DET_WEIGHTS_PATH: NULL
-DET_VERSION: 'MDV6-yolov9-c' #MDV6-yolov9-c, MDV6-yolov9-e, MDV6-yolov10-c, MDV6-yolov10-e, or MDV6-rtdetr-c
-CLS_VERSION: 'v4.0.1a' #NULL, 'v4.0.1a'
+DET_VERSION: 'MDV6-yolov9-c' #MDV6-yolov9-c, MDV6-yolov9-e, MDV6-yolov10-c, MDV6-yolov10-e, MDV6-rtdetr-c, MDV6-mit-yolov9-e, MDV6-apa-rtdetr-e
+CLS_WEIGHTS_PATH: NULL
+CLS_VERSION: NULL #NULL, 'v4.0.1a'
 COUNTRY: 'SGP' #Country (in ISO 3166-1 alpha-3 format, e.g. 'AUS') for SpeciesNet only.

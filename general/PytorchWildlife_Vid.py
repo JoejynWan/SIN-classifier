@@ -17,6 +17,34 @@ from sc_utils.smoother import ClassificationSmoother
 from sc_utils.check_corrupt import check_corrupt_dir, find_videos
 
 
+def load_detection_model(config): 
+        
+    if config.DET_VERSION in ('a', 'b'):
+        detection_model = pw_detection.MegaDetectorV5(device=DEVICE, 
+                                                      pretrained=True, 
+                                                      weights=config.DET_WEIGHTS_PATH, 
+                                                      version=config.DET_VERSION)
+    elif config.DET_VERSION in ('MDV6-mit-yolov9-c', 'MDV6-mit-yolov9-e'):
+        detection_model = pw_detection.MegaDetectorV6MIT(device=DEVICE, 
+                                                         pretrained=True,
+                                                         weights=config.DET_WEIGHTS_PATH, 
+                                                         version=config.DET_VERSION)
+    elif config.DET_VERSION in ('MDV6-apa-rtdetr-c', 'MDV6-apa-rtdetr-e'):
+        detection_model = pw_detection.MegaDetectorV6Apache(device=DEVICE, 
+                                                            pretrained=True,
+                                                            weights=config.DET_WEIGHTS_PATH, 
+                                                            version=config.DET_VERSION)
+    elif config.DET_VERSION in ('MDV6-yolov9-c', 'MDV6-yolov9-e', 'MDV6-yolov10-c', 
+                                'MDV6-yolov10-e', 'MDV6-rtdetr-c'): 
+        detection_model = pw_detection.MegaDetectorV6(device=DEVICE, 
+                                                      weights=config.DET_WEIGHTS_PATH, 
+                                                      version=config.DET_VERSION)
+    else: 
+        raise ValueError('Select a valid model version.')
+    
+    return(detection_model)
+
+
 def detection_callback(frame: np.ndarray, frame_id: str = None) -> np.ndarray:
     """
     Callback function to process each video frame with MegaDetector. Tracking and smoothering is 
@@ -204,10 +232,7 @@ if __name__ == '__main__':
     check_corrupt_dir(config.SOURCE_DIR, config.TARGET_DIR, vid_duration_threshold=0)
 
     ## Load the detection and classification models
-    # detection_model = pw_detection.MegaDetectorV5(device=DEVICE, pretrained=True, 
-    #                                               version=config.DET_VERSION)
-    detection_model = pw_detection.MegaDetectorV6(device=DEVICE, weights=config.DET_WEIGHTS_PATH, 
-                                                  version=config.DET_VERSION)
+    detection_model = load_detection_model(config)
 
     if config.CLS_WEIGHTS_PATH: 
         classification_model = pw_classification.SINClassifier(device=DEVICE, 
