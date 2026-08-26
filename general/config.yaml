@@ -1,6 +1,6 @@
 # Data
-SOURCE_DIR: 'C:/TempDataForSpeed/example_test_set'
-TARGET_DIR: 'D:/CNN_Animal_ID/SIN-classifier/results/example_test_set'
+SOURCE_DIR: 'data\example_test_set'
+TARGET_DIR: 'C:\TempDataForSpeed\example_test_set_out'
 CODEC: "mp4v"
 VIS_MEDIA: True
 
@@ -8,5 +8,5 @@ VIS_MEDIA: True
 DET_WEIGHTS_PATH: NULL
 DET_VERSION: 'MDV6-yolov9-c' #MDV6-yolov9-c, MDV6-yolov9-e, MDV6-yolov10-c, MDV6-yolov10-e, MDV6-rtdetr-c, MDV6-mit-yolov9-e, MDV6-apa-rtdetr-e
 CLS_WEIGHTS_PATH: NULL
-CLS_VERSION: NULL #NULL, 'v4.0.1a'
+CLS_VERSION: 'v4.0.3a/1' #NULL, 'v4.0.3a/1', 'v4.0.3b/1'
 COUNTRY: 'SGP' #Country (in ISO 3166-1 alpha-3 format, e.g. 'AUS') for SpeciesNet only.

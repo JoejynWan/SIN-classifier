@@ -12,8 +12,8 @@ import supervision as sv
 from typing import Callable, Optional
 from collections import Counter
 from PytorchWildlife.models import detection as pw_detection
-from PytorchWildlife.models import classification as pw_classification
 from sc_utils.check_corrupt import check_corrupt_dir, find_videos
+from sc_utils.speciesnet_classifier import SpeciesNetInference
 
 
 def detection_callback(frame: np.ndarray, frame_id: str = None, img_size = None) -> np.ndarray:
@@ -213,8 +213,8 @@ if __name__ == '__main__':
                                                   version=config.DET_VERSION)
 
     if config.CLS_VERSION: 
-        classification_model = pw_classification.SpeciesNetTFInference(version=config.CLS_VERSION, 
-                                                                       run_mode='multi_thread')
+        classification_model = SpeciesNetInference(version=config.CLS_VERSION,
+                                                   run_mode='multi_thread')
         classification_model.id_to_label[len(classification_model.id_to_label)] = "unknown"
     
     ## Run detection, classification, visualisation, and sorting of videos
