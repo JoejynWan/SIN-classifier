@@ -111,6 +111,9 @@ class ClassificationSmoother:
         smooth_confs = np.mean([d.data['all_confs'] for d in track], axis=0)
         ret.confidence = np.array([smooth_confs.max()])
         ret.class_id = np.array([np.argmax(smooth_confs)])
+        ## Carry the smoothed vector forward rather than track[0]'s stale one, so
+        ## callers can re-decide from pooled evidence instead of a single frame.
+        ret.data['all_confs'] = smooth_confs
 
         return ret
 

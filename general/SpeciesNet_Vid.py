@@ -13,6 +13,7 @@ from typing import Callable, Optional
 from collections import Counter
 from PytorchWildlife.models import detection as pw_detection
 from sc_utils.check_corrupt import check_corrupt_dir, find_videos
+from sc_utils.smoother import ClassificationSmoother
 from sc_utils.speciesnet_classifier import SpeciesNetInference
 
 
@@ -50,24 +51,36 @@ def classification_callback(frame_path: str, results_det = None, country = None)
         spp_results.extend(spp_result)
 
     ## Save out as sv.Detections class for compatibility with supervision
+    data = {'prediction': [spp_result['prediction'] for spp_result in spp_results]}
+    if classification_model.geofenced:
+        ## Full per-class vector so the smoother can average the whole distribution
+        ## rather than just the winning score.
+        data['all_confs'] = np.array([[c[1] for c in spp_result['all_confidences']]
+                                      for spp_result in spp_results])
+
     clf_detections = sv.Detections(
         xyxy = results_det['detections'].xyxy,
         confidence = np.array([spp_result['confidence'] for spp_result in spp_results]), 
         class_id = np.array([spp_result['class_id'] for spp_result in spp_results]), 
         tracker_id = results_det['detections'].tracker_id, 
-        data = {'prediction': [spp_result['prediction'] for spp_result in spp_results]}
+        data = data
     )
     clf_detections = smoother_cls.update_with_detections(clf_detections)
 
-    ## Get labels
-    clf_conf_thres = 0.8
+    ## Decide the label once from the smoothed distribution. Deciding per frame
+    ## and smoothing afterwards lets brief confident frames get averaged away.
+    if classification_model.geofenced and 'all_confs' in clf_detections.data:
+        for i in range(len(clf_detections)):
+            smoothed = classification_model.resolve_smoothed(clf_detections.data['all_confs'][i])
+            clf_detections.class_id[i] = smoothed['class_id']
+            clf_detections.confidence[i] = smoothed['confidence']
+            clf_detections.data['prediction'][i] = smoothed['prediction']
+
+    ## Get labels. No confidence gate here: roll-up already degrades an
+    ## unconvincing species to a coarser taxonomic level, so discarding the
+    ## result on top of that only throws away a usable answer.
     clf_labels = []
     for i in range(len(clf_detections)):
-        # Set class_id to unknown if conf is below threshold
-        if clf_detections.confidence[i] < clf_conf_thres:
-            clf_detections.class_id[i] = list(classification_model.id_to_label.keys())[-1]
-            clf_detections.data['prediction'][i] = list(classification_model.id_to_label.values())[-1]
-
         label = classification_model.id_to_label[clf_detections.class_id[i]].split(';')[-1]
         clf_labels.append("{} {:.2f}".format(label, clf_detections.confidence[i]))
 
@@ -82,22 +95,38 @@ def classification_callback(frame_path: str, results_det = None, country = None)
     return results_clf
 
 
-def get_video_class(results):
+def get_video_class(results, classification_model=None):
     """
     Get the overall class name of the video across all frames. 
     Overall class name is based on the most common occurance across all frames. 
     """
     preds_all = []
+    class_ids_all = []
     for result in results: 
         if result["detections"].xyxy.size != 0:
             preds_all.extend(result["detections"].data["prediction"])
+            class_ids_all.extend(result["detections"].class_id)
     
     if not preds_all:
-        video_class = 'blank'
-    else:
-        video_class, count = Counter(preds_all).most_common(1)[0]
+        return 'blank'
 
-    return video_class
+    counts = Counter(preds_all)
+    top_count = max(counts.values())
+    tied = [pred for pred, count in counts.items() if count == top_count]
+
+    if len(tied) == 1 or classification_model is None:
+        return tied[0]
+
+    ## Break ties toward the more specific label. Roll-up means a coarse label
+    ## like 'animal' can tie with the 'bird' it was rolled up from, and 'animal'
+    ## says nothing the detector had not already established.
+    depths = {}
+    for pred, class_id in zip(preds_all, class_ids_all):
+        if pred in tied and pred not in depths:
+            taxonomy = classification_model.id_to_label[class_id].split(';')[1:6]
+            depths[pred] = sum(1 for rank in taxonomy if rank)
+
+    return max(tied, key=lambda pred: depths.get(pred, 0))
 
 
 def vis_video(results, video_class, source_video_file, source_video_dir, target_dir, codec):
@@ -185,7 +214,7 @@ def process_video(
         
         results_clfs.append(results_clf)
     
-    video_class = get_video_class(results_clfs)
+    video_class = get_video_class(results_clfs, classification_model)
     if vis_media: 
         vis_video(results_clfs, video_class, source_video_file, source_video_dir, target_dir, codec)
     
@@ -214,8 +243,8 @@ if __name__ == '__main__':
 
     if config.CLS_VERSION: 
         classification_model = SpeciesNetInference(version=config.CLS_VERSION,
-                                                   run_mode='multi_thread')
-        classification_model.id_to_label[len(classification_model.id_to_label)] = "unknown"
+                                                   run_mode='multi_thread',
+                                                   country=config.COUNTRY)
     
     ## Run detection, classification, visualisation, and sorting of videos
     outs = []
@@ -229,7 +258,12 @@ if __name__ == '__main__':
         bbox_annotator = sv.BoxAnnotator(thickness=2)
         label_annotator = sv.LabelAnnotator(text_thickness=2, text_scale=.5)
         if config.CLS_VERSION: 
-            smoother_cls = sv.DetectionsSmoother()
+            ## ClassificationSmoother averages the whole per-class vector and
+            ## recomputes the winner; it needs all_confs, which only exists when
+            ## geofencing supplies a fixed target set. Without a country the
+            ## classifier returns only its global top-5, so fall back.
+            smoother_cls = (ClassificationSmoother() if config.COUNTRY
+                            else sv.DetectionsSmoother())
         else:
             classification_callback = None
 
