@@ -12,7 +12,7 @@ import supervision as sv
 from itertools import chain
 from typing import Callable
 from PytorchWildlife.models import detection as pw_detection
-from PytorchWildlife.models import classification as pw_classification
+from sc_utils.sin_classifier import SINClassifierInference
 from sc_utils.smoother import ClassificationSmoother
 from sc_utils.check_corrupt import check_corrupt_dir, find_videos
 
@@ -75,8 +75,7 @@ def classification_callback(frame: np.ndarray, results_det = None) -> np.ndarray
             confidence = np.array([spp_results["confidence"]]), 
             class_id = np.array([spp_results["class_id"]]),
             tracker_id = np.array([tracker_id]), 
-            data = {'all_confs': np.array([[conf[1] for conf in spp_results["all_confidences"]]]), 
-                    'all_class_id': np.array([[conf[0] for conf in spp_results["all_confidences"]]])}
+            data = {'all_confs': np.array([[conf[1] for conf in spp_results["all_confidences"]]])}
         )
         
         spp_det = smoother_cls.update_with_detections(spp_det)
@@ -235,8 +234,8 @@ if __name__ == '__main__':
     detection_model = load_detection_model(config)
 
     if config.CLS_WEIGHTS_PATH: 
-        classification_model = pw_classification.SINClassifier(device=DEVICE, 
-                                                               weights=config.CLS_WEIGHTS_PATH)
+        classification_model = SINClassifierInference(weights=config.CLS_WEIGHTS_PATH,
+                                                      device=DEVICE)
     
     ## Run detection, classification, visualisation, and sorting of videos
     outs = []

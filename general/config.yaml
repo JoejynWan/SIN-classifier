@@ -7,6 +7,10 @@ VIS_MEDIA: True
 # Model weights
 DET_WEIGHTS_PATH: NULL
 DET_VERSION: 'MDV6-yolov9-c' #MDV6-yolov9-c, MDV6-yolov9-e, MDV6-yolov10-c, MDV6-yolov10-e, MDV6-rtdetr-c, MDV6-mit-yolov9-e, MDV6-apa-rtdetr-e
-CLS_WEIGHTS_PATH: NULL
-CLS_VERSION: 'v4.0.3a/1' #NULL, 'v4.0.3a/1', 'v4.0.3b/1'
+## SIN classifier checkpoint, for PytorchWildlife_Vid.py. NULL disables it.
+## The RSG alternative (RSG_SINClassifierV2_20250604/version_14/...epoch=196-valid_mac_acc=34.56.ckpt)
+## scores 34.56 vs 57.98 macro accuracy, and its cosine head caps confidence at
+## ~0.17, so its scores are not comparable to this one or to SpeciesNet's.
+CLS_WEIGHTS_PATH: 'models\Plain_SINClassifierV2_20250604\version_5\SINClassifierV2_20250604-epoch=181-valid_mac_acc=57.98.ckpt'
+CLS_VERSION: NULL #NULL, 'v4.0.3a/1', 'v4.0.3b/1'
 COUNTRY: 'SGP' #Country (in ISO 3166-1 alpha-3 format, e.g. 'AUS') for SpeciesNet only. NULL disables geofencing and uses all global labels.
