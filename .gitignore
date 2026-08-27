@@ -25,3 +25,9 @@ sin_classifier.egg-info/
 ## Ignore vs code folders
 .vs
 .vscode
+
+## Ignore model weights downloaded into the working directory. MegaDetector
+## fetches these via wget, which leaves a .tmp in the cwd while downloading.
+*.pt
+*.ckpt
+*.tmp
