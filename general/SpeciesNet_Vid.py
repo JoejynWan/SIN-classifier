@@ -233,6 +233,11 @@ if __name__ == '__main__':
  
     ## Check for target_dir and corrupt videos
     assert os.path.exists(config.TARGET_DIR), "TARGET_DIR does not exist."
+
+    assert config.CLS_VERSION, (
+        "CLS_VERSION must be set for SpeciesNet_Vid.py. "
+        "Use general/PytorchWildlife_Vid.py for detection-only runs.")
+    
     check_corrupt_dir(config.SOURCE_DIR, config.TARGET_DIR, vid_duration_threshold=0)
 
     ## Load the detection and classification models
