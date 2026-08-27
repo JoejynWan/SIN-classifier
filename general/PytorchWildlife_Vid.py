@@ -66,7 +66,14 @@ def classification_callback(frame: np.ndarray, results_det = None) -> np.ndarray
     spp_dets = []
     for xyxy, tracker_id in zip(results_det["detections"].xyxy, results_det["detections"].tracker_id):
 
-        cropped_image = sv.crop_image(image=frame, xyxy=xyxy)
+        ## Frames arrive BGR from sv.get_video_frames_generator, and the detector
+        ## wants them that way, but single_image_classification hands the array to
+        ## PIL.Image.fromarray, which reads any 3-channel array as RGB. Training
+        ## crops went through sv.ImageSink -> cv2.imwrite, which expects BGR and so
+        ## wrote correct colours, meaning the classifier learnt true RGB. Without
+        ## this conversion the channels are swapped only at inference.
+        cropped_image = cv2.cvtColor(sv.crop_image(image=frame, xyxy=xyxy),
+                                     cv2.COLOR_BGR2RGB)
         spp_results = classification_model.single_image_classification(img=cropped_image, 
                                                                        img_id=results_det['img_id'])
         
