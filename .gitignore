@@ -6,6 +6,7 @@ results/*
 models/*
 log/*
 weights/*
+bbnc_queue/
 
 ## Ignore depreciated folder which contains old code/data
 depreciated/

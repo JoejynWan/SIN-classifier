@@ -1,6 +1,6 @@
 ## Arguments for video_to_crops.py
-SOURCE_DIR: 'C:\TempDataForSpeed\SINClassifierV2_20250604\raw_videos'
-TARGET_DIR: 'C:\TempDataForSpeed\SINClassifierV2_20250604\cropped_resized'
+SOURCE_DIR: 'D:\CNN_Animal_ID\TempDataForSpeed\SINClassifierV2_20250604\raw_videos'
+TARGET_DIR: 'D:\CNN_Animal_ID\TempDataForSpeed\SINClassifierV2_20250604\cropped_resized'
 DET_WEIGHTS_PATH: NULL
 DET_VERSION: 'MDV6-yolov9-c' #MDV6-yolov9-c, MDV6-yolov9-e, MDV6-yolov10-c, MDV6-yolov10-e, or MDV6-rtdetr-c
 
@@ -12,7 +12,7 @@ num_epochs: 200
 log_interval: 100
 parallel: 0
 # data loading
-dataset_root: 'C://TempDataForSpeed//SINClassifierV2_20250604'
+dataset_root: 'D://CNN_Animal_ID//TempDataForSpeed//SINClassifierV2_20250604'
 dataset_name: Custom_Crop
 batch_size: 64
 num_workers: 12
